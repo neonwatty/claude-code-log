@@ -1,10 +1,20 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: mode === 'development',
+    minify: mode === 'production',
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'lit': ['lit'],
+          'shared': ['@app/shared'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
@@ -14,5 +24,24 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
-});
+  preview: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
+  define: {
+    __DEV__: mode === 'development',
+    __PROD__: mode === 'production',
+  },
+}));
