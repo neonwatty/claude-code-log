@@ -1,20 +1,17 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './middleware/logger';
 import { validateContentType } from './middleware/validation';
-
-dotenv.config();
+import config from './config/env';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Global middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: config.corsOrigin,
     credentials: true,
   })
 );
@@ -38,9 +35,9 @@ process.on('SIGTERM', () => {
   });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+const server = app.listen(config.port, () => {
+  console.log(`🚀 Server running on http://localhost:${config.port}`);
+  console.log(`📝 Environment: ${config.nodeEnv}`);
 });
 
 export default app;
