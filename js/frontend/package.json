@@ -1,0 +1,33 @@
+{
+  "name": "@app/frontend",
+  "version": "1.0.0",
+  "description": "Frontend application using Lit and Vite",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@app/shared": "*",
+    "lit": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/ui": "^3.2.4",
+    "c8": "^10.1.3",
+    "eslint": "^8.54.0",
+    "happy-dom": "^18.0.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0",
+    "vitest": "^3.2.4"
+  }
+}
