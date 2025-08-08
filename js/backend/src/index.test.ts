@@ -51,11 +51,23 @@ describe('Backend TypeScript Compilation', () => {
       const content = readFileSync(indexPath, 'utf-8');
 
       expect(content).toContain('import express from');
-      expect(content).toContain('app.use(cors');
+      expect(content).toContain('cors({');
       expect(content).toContain('app.use(express.json())');
       expect(content).toContain('app.use(express.urlencoded');
       expect(content).toContain('errorHandler');
       expect(content).toContain('notFoundHandler');
+    });
+
+    it('should have WebSocket integration', async () => {
+      const indexPath = resolve(__dirname, 'index.ts');
+      const { readFileSync } = await import('fs');
+      const content = readFileSync(indexPath, 'utf-8');
+
+      expect(content).toContain('import { createServer }');
+      expect(content).toContain('WebSocketService');
+      expect(content).toContain('httpServer = createServer(app)');
+      expect(content).toContain('webSocketService = new WebSocketService');
+      expect(content).toContain('httpServer.listen');
     });
 
     it('should have routing structure', () => {
@@ -67,6 +79,9 @@ describe('Backend TypeScript Compilation', () => {
 
       const usersPath = resolve(__dirname, 'routes/users.ts');
       expect(existsSync(usersPath)).toBe(true);
+
+      const websocketPath = resolve(__dirname, 'routes/websocket.ts');
+      expect(existsSync(websocketPath)).toBe(true);
     });
 
     it('should have middleware functions', () => {
@@ -78,6 +93,14 @@ describe('Backend TypeScript Compilation', () => {
 
       const validationPath = resolve(__dirname, 'middleware/validation.ts');
       expect(existsSync(validationPath)).toBe(true);
+    });
+
+    it('should have WebSocket service and types', () => {
+      const websocketServicePath = resolve(__dirname, 'services/websocket.ts');
+      expect(existsSync(websocketServicePath)).toBe(true);
+
+      const websocketTypesPath = resolve(__dirname, 'types/websocket.ts');
+      expect(existsSync(websocketTypesPath)).toBe(true);
     });
   });
 });
