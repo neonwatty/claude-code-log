@@ -72,10 +72,10 @@ export function parseContentItem(itemData: Record<string, any>): ContentItem {
         } as ImageContent;
       default:
         // Fallback to text content for unknown types
-        return { type: 'text', text: String(itemData) } as TextContent;
+        return { type: 'text', text: JSON.stringify(itemData) } as TextContent;
     }
   } catch {
-    return { type: 'text', text: String(itemData) } as TextContent;
+    return { type: 'text', text: JSON.stringify(itemData) } as TextContent;
   }
 }
 

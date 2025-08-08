@@ -68,7 +68,7 @@ export const AssistantMessageSchema = z.object({
   model: z.string(),
   content: z.array(ContentItemSchema),
   stop_reason: z.string().optional(),
-  stop_sequence: z.string().optional(),
+  stop_sequence: z.string().nullable().optional(),
   usage: UsageInfoSchema.optional(),
 });
 

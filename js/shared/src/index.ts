@@ -264,3 +264,12 @@ export * from './validation';
 
 // Export utility functions
 export * from './utils';
+
+// Export JSONL parser functionality
+export {
+  JsonlParser,
+  parseJsonlFile,
+  parseJsonlString,
+  type JsonlParserOptions,
+  type JsonlParseResult,
+} from './jsonl-parser';
