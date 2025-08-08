@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { randomUUID } from 'crypto';
 import WebSocketService from '../services/websocket';
 
 const router = Router();
@@ -177,6 +178,140 @@ router.get('/ip/:ipAddress/connections', (req: Request, res: Response) => {
     ipAddress: decodedIP,
     connectionCount: connections.length,
     connections,
+  });
+});
+
+// Event system endpoints
+
+// Get event statistics
+router.get('/events/stats', (req: Request, res: Response) => {
+  const webSocketService = req.app.locals.webSocketService as WebSocketService;
+  
+  if (!webSocketService) {
+    return res.status(500).json({ error: 'WebSocket service not available' });
+  }
+
+  const stats = webSocketService.getEventStats();
+  
+  // Convert Map to object for JSON serialization
+  const serializedStats = {
+    ...stats,
+    eventsByType: Object.fromEntries(stats.eventsByType)
+  };
+
+  res.json(serializedStats);
+});
+
+// Get event history
+router.get('/events/history', (req: Request, res: Response) => {
+  const webSocketService = req.app.locals.webSocketService as WebSocketService;
+  
+  if (!webSocketService) {
+    return res.status(500).json({ error: 'WebSocket service not available' });
+  }
+
+  const { 
+    types, 
+    userId, 
+    sessionId, 
+    filePath, 
+    tags,
+    page = 1, 
+    pageSize = 50 
+  } = req.query;
+
+  const filter: any = {};
+  
+  if (types) {
+    filter.types = (types as string).split(',');
+  }
+  if (userId) filter.userId = userId;
+  if (sessionId) filter.sessionId = sessionId;
+  if (filePath) filter.filePath = filePath;
+  if (tags) {
+    filter.tags = (tags as string).split(',');
+  }
+
+  const history = webSocketService.getEventHistory(
+    Object.keys(filter).length > 0 ? filter : undefined,
+    parseInt(page as string) || 1,
+    parseInt(pageSize as string) || 50
+  );
+
+  res.json(history);
+});
+
+// Publish an event via REST API (for testing/integration)
+router.post('/events/publish', async (req: Request, res: Response) => {
+  const webSocketService = req.app.locals.webSocketService as WebSocketService;
+  
+  if (!webSocketService) {
+    return res.status(500).json({ error: 'WebSocket service not available' });
+  }
+
+  const { type, data, userId, sessionId, metadata } = req.body;
+
+  if (!type || !data) {
+    return res.status(400).json({ error: 'Event type and data are required' });
+  }
+
+  const event = {
+    type,
+    data,
+    userId,
+    sessionId,
+    metadata,
+    id: randomUUID(),
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    const published = await webSocketService.publishEvent(event);
+    
+    if (published) {
+      res.json({
+        success: true,
+        message: 'Event published successfully'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Event validation failed'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to publish event'
+    });
+  }
+});
+
+// Clean up old events
+router.delete('/events/cleanup', (req: Request, res: Response) => {
+  const webSocketService = req.app.locals.webSocketService as WebSocketService;
+  
+  if (!webSocketService) {
+    return res.status(500).json({ error: 'WebSocket service not available' });
+  }
+
+  const { olderThan } = req.body;
+  
+  if (!olderThan) {
+    return res.status(400).json({ error: 'olderThan date is required' });
+  }
+
+  const cutoffDate = new Date(olderThan);
+  if (isNaN(cutoffDate.getTime())) {
+    return res.status(400).json({ error: 'Invalid date format' });
+  }
+
+  const removedCount = webSocketService.cleanupEventHistory(cutoffDate);
+
+  res.json({
+    success: true,
+    message: `Cleaned up ${removedCount} old events`,
+    removedCount
   });
 });
 

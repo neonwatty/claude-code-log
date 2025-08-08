@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import { randomUUID } from 'crypto';
 import config from '../config/env';
 import { 
   ClientToServerEvents, 
@@ -11,10 +12,12 @@ import {
   ConnectionLimits
 } from '../types/websocket';
 import { ConnectionManager } from './connectionManager';
+import { EventManager } from './eventManager';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectionManager: ConnectionManager;
+  private eventManager: EventManager;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -31,6 +34,9 @@ class WebSocketService {
 
     // Initialize connection manager
     this.connectionManager = new ConnectionManager(this.io, connectionLimits);
+    
+    // Initialize event manager
+    this.eventManager = new EventManager(this.io);
 
     this.setupEventHandlers();
   }
@@ -120,6 +126,23 @@ class WebSocketService {
           socketId: socket.id,
           userId: socket.data?.userId,
         });
+
+        // Publish user joined event
+        if (socket.data.userId) {
+          const userJoinedEvent = this.eventManager.createUserActionEvent(
+            'user:joined',
+            {
+              userId: socket.data.userId,
+              action: 'joined_session',
+              target: sessionId
+            },
+            {
+              userId: socket.data.userId,
+              sessionId: sessionId
+            }
+          );
+          this.eventManager.publishEvent(userJoinedEvent, socket);
+        }
       });
 
       socket.on('leave-session', (sessionId: string) => {
@@ -131,6 +154,23 @@ class WebSocketService {
           socketId: socket.id,
           userId: socket.data?.userId,
         });
+
+        // Publish user left event
+        if (socket.data.userId) {
+          const userLeftEvent = this.eventManager.createUserActionEvent(
+            'user:left',
+            {
+              userId: socket.data.userId,
+              action: 'left_session',
+              target: sessionId
+            },
+            {
+              userId: socket.data.userId,
+              sessionId: sessionId
+            }
+          );
+          this.eventManager.publishEvent(userLeftEvent, socket);
+        }
       });
 
       // Handle real-time updates
@@ -170,6 +210,66 @@ class WebSocketService {
         callback(token);
       });
 
+      // Event system handlers
+      socket.on('subscribe-events', (filter, callback) => {
+        const subscriptionId = this.eventManager.subscribe(socket.id, filter);
+        socket.emit('subscription-created', { subscriptionId });
+        callback(subscriptionId);
+      });
+
+      socket.on('unsubscribe-events', (subscriptionId) => {
+        const removed = this.eventManager.unsubscribe(subscriptionId);
+        if (removed) {
+          socket.emit('subscription-removed', { subscriptionId });
+        }
+      });
+
+      socket.on('publish-event', async (eventData) => {
+        // Only allow authenticated users to publish events
+        if (!socket.data.userId) {
+          socket.emit('error-message', {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required to publish events'
+          });
+          return;
+        }
+
+        // Check rate limit
+        if (!this.connectionManager.checkRateLimit(socket)) {
+          socket.emit('error-message', {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Too many events. Please slow down.'
+          });
+          return;
+        }
+
+        // Create event with user context and required fields
+        const fullEvent = {
+          ...eventData,
+          id: eventData.id || randomUUID(),
+          userId: socket.data.userId,
+          sessionId: socket.data.sessionId,
+          timestamp: eventData.timestamp || new Date().toISOString()
+        } as any;
+
+        await this.eventManager.publishEvent(fullEvent, socket);
+      });
+
+      socket.on('request-event-history', (filter, page = 1, pageSize = 50, callback) => {
+        const history = this.eventManager.getEventHistory(filter, page, pageSize);
+        if (callback) {
+          callback(history);
+        } else {
+          socket.emit('event-history' as any, history);
+        }
+      });
+
+      socket.on('request-event-replay', async (filter, startTime) => {
+        const startDate = startTime ? new Date(startTime) : undefined;
+        const replayCount = await this.eventManager.replayEvents(socket.id, filter, startDate);
+        console.log(`Replayed ${replayCount} events for socket ${socket.id}`);
+      });
+
       // Handle disconnection
       socket.on('disconnect', (reason: string) => {
         console.log(`Client ${socket.id} disconnected: ${reason}`);
@@ -186,6 +286,9 @@ class WebSocketService {
 
         // Handle connection cleanup through ConnectionManager
         this.connectionManager.handleDisconnection(socket);
+        
+        // Clean up event subscriptions
+        this.eventManager.unsubscribeSocket(socket.id);
       });
 
       // Handle errors
@@ -240,6 +343,27 @@ class WebSocketService {
 
   public updateConnectionLimits(limits: Partial<ConnectionLimits>) {
     this.connectionManager.updateLimits(limits);
+  }
+
+  // Event management methods
+  public async publishEvent(event: any, socket?: TypedSocket) {
+    return this.eventManager.publishEvent(event, socket);
+  }
+
+  public getEventStats() {
+    return this.eventManager.getEventStats();
+  }
+
+  public getEventHistory(filter?: any, page?: number, pageSize?: number) {
+    return this.eventManager.getEventHistory(filter, page, pageSize);
+  }
+
+  public addEventMiddleware(middleware: any) {
+    this.eventManager.addMiddleware(middleware);
+  }
+
+  public cleanupEventHistory(olderThan: Date) {
+    return this.eventManager.cleanupHistory(olderThan);
   }
 
   // Graceful shutdown

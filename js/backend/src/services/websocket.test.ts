@@ -255,12 +255,15 @@ describe('WebSocketService', () => {
     });
 
     it('should get connection info for a socket', () => {
-      const connectionInfo = webSocketService.getConnectionInfo(clientSocket.id);
+      expect(clientSocket.id).toBeDefined();
+      const connectionInfo = webSocketService.getConnectionInfo(clientSocket.id!);
       
       expect(connectionInfo).toBeDefined();
-      expect(connectionInfo?.socketId).toBe(clientSocket.id);
-      expect(connectionInfo?.connectionId).toBeDefined();
-      expect(connectionInfo?.connectedAt).toBeInstanceOf(Date);
+      if (connectionInfo) {
+        expect(connectionInfo.socketId).toBe(clientSocket.id);
+        expect(connectionInfo.connectionId).toBeDefined();
+        expect(connectionInfo.connectedAt).toBeInstanceOf(Date);
+      }
     });
 
     it('should handle authentication with enhanced features', () => {
