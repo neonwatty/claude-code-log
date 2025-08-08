@@ -258,3 +258,9 @@ export function isApiError(error: any): error is AppError {
 export function isUser(obj: any): obj is User {
   return obj && typeof obj.id === 'string' && typeof obj.email === 'string';
 }
+
+// Export validation schemas and functions
+export * from './validation';
+
+// Export utility functions
+export * from './utils';

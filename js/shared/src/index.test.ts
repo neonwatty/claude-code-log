@@ -165,5 +165,89 @@ describe('Shared Types and Interfaces', () => {
       expect(assistantEntry.message.content).toHaveLength(1);
       expect(assistantEntry.message.content[0].type).toBe('text');
     });
+
+    it('should handle complex content with multiple types', () => {
+      const complexEntry: AssistantTranscriptEntry = {
+        type: 'assistant',
+        parentUuid: null,
+        isSidechain: false,
+        userType: 'assistant',
+        cwd: '/project',
+        sessionId: 'session_123',
+        version: '1.0.0',
+        uuid: 'uuid_789',
+        timestamp: '2024-01-01T00:00:02Z',
+        message: {
+          id: 'msg_456',
+          type: 'message',
+          role: 'assistant',
+          model: 'claude-3-5-sonnet-20241022',
+          content: [
+            {
+              type: 'text',
+              text: 'I\'ll help you with that file.'
+            },
+            {
+              type: 'tool_use',
+              id: 'tool_789',
+              name: 'Read',
+              input: { file_path: '/test/file.txt' }
+            }
+          ],
+          usage: {
+            input_tokens: 100,
+            output_tokens: 50,
+            cache_creation_input_tokens: 0,
+            cache_read_input_tokens: 10
+          }
+        }
+      };
+
+      expect(complexEntry.message.content).toHaveLength(2);
+      expect(complexEntry.message.content[0].type).toBe('text');
+      expect(complexEntry.message.content[1].type).toBe('tool_use');
+      expect((complexEntry.message.content[1] as ToolUseContent).name).toBe('Read');
+      expect(complexEntry.message.usage?.input_tokens).toBe(100);
+    });
+
+    it('should handle tool result content with error flag', () => {
+      const toolResultContent: ToolResultContent = {
+        type: 'tool_result',
+        tool_use_id: 'tool_123',
+        content: 'Error: Command not found',
+        is_error: true
+      };
+
+      expect(toolResultContent.type).toBe('tool_result');
+      expect(toolResultContent.tool_use_id).toBe('tool_123');
+      expect(toolResultContent.is_error).toBe(true);
+    });
+
+    it('should handle image content structure', () => {
+      const imageContent: ImageContent = {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/png',
+          data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+        }
+      };
+
+      expect(imageContent.type).toBe('image');
+      expect(imageContent.source.type).toBe('base64');
+      expect(imageContent.source.media_type).toBe('image/png');
+    });
+
+    it('should handle thinking content', () => {
+      const thinkingContent: ThinkingContent = {
+        type: 'thinking',
+        thinking: 'Let me think about this step by step...',
+        signature: 'claude-3-5-sonnet'
+      };
+
+      expect(thinkingContent.type).toBe('thinking');
+      expect(thinkingContent.thinking).toBe('Let me think about this step by step...');
+      expect(thinkingContent.signature).toBe('claude-3-5-sonnet');
+    });
   });
 });
