@@ -9,18 +9,18 @@
         "testStrategy": "Verify that both backend and frontend can start successfully, TypeScript compilation works, and basic routing is functional",
         "dependencies": [],
         "priority": "high",
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
-            "id": "1.1",
+            "id": 1,
             "title": "Initialize Project Structure",
             "description": "Create the basic directory structure and configuration files",
             "details": "Set up package.json, tsconfig.json, and basic project directories for both backend and frontend. Configure TypeScript settings for both environments.",
             "testStrategy": "Verify TypeScript compilation works for both backend and frontend",
-            "status": "pending"
+            "status": "in-progress"
           },
           {
-            "id": "1.2",
+            "id": 2,
             "title": "Backend Express.js Setup",
             "description": "Set up Express.js server with TypeScript configuration",
             "details": "Install and configure Express.js with TypeScript, set up basic routing, middleware, and error handling. Use Context7 MCP server for Express.js best practices.",
@@ -28,7 +28,7 @@
             "status": "pending"
           },
           {
-            "id": "1.3",
+            "id": 3,
             "title": "Frontend Vite + Lit Setup",
             "description": "Configure Vite build system with Lit framework",
             "details": "Set up Vite with Lit framework, configure build tools, and create basic component structure. Use Context7 MCP server for Vite and Lit configuration.",
@@ -36,7 +36,7 @@
             "status": "pending"
           },
           {
-            "id": "1.4",
+            "id": 4,
             "title": "Shared TypeScript Configuration",
             "description": "Create shared TypeScript interfaces and configuration",
             "details": "Set up shared TypeScript interfaces, types, and utilities that can be used by both frontend and backend. Configure path mapping and module resolution.",
@@ -44,7 +44,7 @@
             "status": "pending"
           },
           {
-            "id": "1.5",
+            "id": 5,
             "title": "Development Tooling Setup",
             "description": "Configure development tools and scripts",
             "details": "Set up ESLint, Prettier, Husky, and development scripts for building, testing, and development workflow.",
@@ -52,7 +52,7 @@
             "status": "pending"
           },
           {
-            "id": "1.6",
+            "id": 6,
             "title": "Environment Configuration",
             "description": "Set up environment variables and configuration management",
             "details": "Configure environment variables for development, testing, and production. Set up configuration management for different environments.",
@@ -60,7 +60,7 @@
             "status": "pending"
           },
           {
-            "id": "1.7",
+            "id": 7,
             "title": "Basic Routing and API Structure",
             "description": "Create basic routing structure and API endpoints",
             "details": "Set up basic routing structure for both frontend and backend. Create placeholder API endpoints and frontend routes.",
@@ -68,7 +68,7 @@
             "status": "pending"
           },
           {
-            "id": "1.8",
+            "id": 8,
             "title": "Build and Deployment Configuration",
             "description": "Configure build processes and deployment setup",
             "details": "Set up build scripts for production, development, and testing. Configure deployment pipeline and Docker setup if needed.",
@@ -83,12 +83,14 @@
         "description": "Create shared TypeScript interfaces and data models for session data structures",
         "details": "Implement TypeScript versions of the existing Python data models (TranscriptEntry, UserMessage, AssistantMessage, etc.) with proper type safety and validation. Ensure compatibility with existing JSONL format. Use Context7 MCP server for TypeScript interfaces, validation libraries, and data modeling best practices.",
         "testStrategy": "Create unit tests for all data models, verify JSONL parsing works correctly, and test type safety across frontend and backend",
-        "dependencies": ["1"],
+        "dependencies": [
+          "1"
+        ],
         "priority": "high",
         "status": "pending",
         "subtasks": [
           {
-            "id": "2.1",
+            "id": 1,
             "title": "Base Data Models",
             "description": "Create base TypeScript interfaces for core data structures",
             "details": "Implement base interfaces for TranscriptEntry, UserMessage, AssistantMessage, and other core data types. Use Context7 MCP server for TypeScript interface best practices.",
@@ -96,7 +98,7 @@
             "status": "pending"
           },
           {
-            "id": "2.2",
+            "id": 2,
             "title": "Content Type Models",
             "description": "Implement content type interfaces for different message types",
             "details": "Create interfaces for TextContent, ToolUseContent, ToolResultContent, ThinkingContent, and ImageContent. Ensure compatibility with existing JSONL format.",
@@ -104,7 +106,7 @@
             "status": "pending"
           },
           {
-            "id": "2.3",
+            "id": 3,
             "title": "Usage and Analytics Models",
             "description": "Create interfaces for token usage and analytics data",
             "details": "Implement UsageInfo interface and analytics-related data structures. Include proper validation and type safety.",
@@ -112,7 +114,7 @@
             "status": "pending"
           },
           {
-            "id": "2.4",
+            "id": 4,
             "title": "Validation and Schema",
             "description": "Add validation schemas and runtime type checking",
             "details": "Implement validation using libraries like Zod or Joi. Create runtime type checking for data integrity. Use Context7 MCP server for validation library best practices.",
@@ -120,7 +122,7 @@
             "status": "pending"
           },
           {
-            "id": "2.5",
+            "id": 5,
             "title": "Shared Utilities",
             "description": "Create shared utility functions for data processing",
             "details": "Implement utility functions for data transformation, serialization, and common operations. Ensure type safety across all utilities.",
@@ -128,7 +130,7 @@
             "status": "pending"
           },
           {
-            "id": "2.6",
+            "id": 6,
             "title": "Type Guards and Assertions",
             "description": "Implement type guards for runtime type checking",
             "details": "Create type guard functions to safely check data types at runtime. Implement proper error handling for invalid data.",
@@ -143,12 +145,14 @@
         "description": "Implement WebSocket server for real-time communication between frontend and backend",
         "details": "Set up WebSocket server using Socket.io or native WebSocket API, implement connection management, and create event system for live session updates. Use Context7 MCP server for Socket.io, WebSocket API, and real-time communication best practices.",
         "testStrategy": "Test WebSocket connections, verify real-time updates work, and ensure proper error handling and reconnection logic",
-        "dependencies": ["1"],
+        "dependencies": [
+          "1"
+        ],
         "priority": "high",
         "status": "pending",
         "subtasks": [
           {
-            "id": "3.1",
+            "id": 1,
             "title": "WebSocket Server Setup",
             "description": "Set up WebSocket server with Socket.io or native WebSocket",
             "details": "Install and configure Socket.io or native WebSocket server. Set up basic connection handling and event system. Use Context7 MCP server for WebSocket best practices.",
@@ -156,7 +160,7 @@
             "status": "pending"
           },
           {
-            "id": "3.2",
+            "id": 2,
             "title": "Connection Management",
             "description": "Implement connection lifecycle management",
             "details": "Create connection tracking, authentication, and session management for WebSocket connections. Handle connection/disconnection events properly.",
@@ -164,7 +168,7 @@
             "status": "pending"
           },
           {
-            "id": "3.3",
+            "id": 3,
             "title": "Event System Design",
             "description": "Design and implement event system for real-time updates",
             "details": "Create event types for session updates, file changes, and user actions. Implement event broadcasting and filtering mechanisms.",
@@ -172,7 +176,7 @@
             "status": "pending"
           },
           {
-            "id": "3.4",
+            "id": 4,
             "title": "Error Handling and Recovery",
             "description": "Implement robust error handling and recovery mechanisms",
             "details": "Create error handling for connection failures, message parsing errors, and server issues. Implement automatic reconnection logic.",
@@ -180,7 +184,7 @@
             "status": "pending"
           },
           {
-            "id": "3.5",
+            "id": 5,
             "title": "Performance Optimization",
             "description": "Optimize WebSocket performance for large datasets",
             "details": "Implement message batching, compression, and efficient event distribution. Optimize for handling many concurrent connections.",
@@ -188,7 +192,7 @@
             "status": "pending"
           },
           {
-            "id": "3.6",
+            "id": 6,
             "title": "Security and Authentication",
             "description": "Add security measures and authentication for WebSocket connections",
             "details": "Implement authentication for WebSocket connections, rate limiting, and security best practices. Use Context7 MCP server for WebSocket security guidelines.",
@@ -203,12 +207,14 @@
         "description": "Implement TypeScript version of JSONL parsing and data processing",
         "details": "Convert the existing Python JSONL parsing logic to TypeScript, maintaining all functionality including message type detection, token usage tracking, and session organization.",
         "testStrategy": "Compare output with existing Python implementation, test with various JSONL file formats, and verify all message types are handled correctly",
-        "dependencies": ["2"],
+        "dependencies": [
+          "2"
+        ],
         "priority": "high",
         "status": "pending",
         "subtasks": [
           {
-            "id": "4.1",
+            "id": 1,
             "title": "JSONL File Reader",
             "description": "Implement JSONL file reading and parsing",
             "details": "Create efficient JSONL file reader that can handle large files. Implement streaming parsing for memory efficiency.",
@@ -216,7 +222,7 @@
             "status": "pending"
           },
           {
-            "id": "4.2",
+            "id": 2,
             "title": "Message Type Detection",
             "description": "Implement message type detection and parsing",
             "details": "Create logic to detect and parse different message types (user, assistant, system, summary). Handle edge cases and malformed data.",
@@ -224,7 +230,7 @@
             "status": "pending"
           },
           {
-            "id": "4.3",
+            "id": 3,
             "title": "Token Usage Tracking",
             "description": "Implement token usage parsing and aggregation",
             "details": "Parse and track token usage from assistant messages. Implement aggregation for session and project-level statistics.",
@@ -232,7 +238,7 @@
             "status": "pending"
           },
           {
-            "id": "4.4",
+            "id": 4,
             "title": "Session Organization",
             "description": "Implement session grouping and organization logic",
             "details": "Group messages by session ID, handle session metadata, and create session summaries. Maintain chronological ordering.",
@@ -240,7 +246,7 @@
             "status": "pending"
           },
           {
-            "id": "4.5",
+            "id": 5,
             "title": "Content Parsing",
             "description": "Implement content parsing for different message types",
             "details": "Parse text content, tool use, tool results, thinking content, and images. Handle markdown and code blocks.",
@@ -248,7 +254,7 @@
             "status": "pending"
           },
           {
-            "id": "4.6",
+            "id": 6,
             "title": "Performance Optimization",
             "description": "Optimize parsing performance for large datasets",
             "details": "Implement caching, lazy loading, and efficient data structures. Optimize for memory usage and parsing speed.",
@@ -263,7 +269,9 @@
         "description": "Create RESTful API endpoints for session data retrieval and caching",
         "details": "Implement API endpoints for projects, sessions, messages, and analytics. Include caching mechanisms and proper error handling.",
         "testStrategy": "Test all API endpoints with various data scenarios, verify caching works correctly, and ensure proper error responses",
-        "dependencies": ["4"],
+        "dependencies": [
+          "4"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -273,7 +281,10 @@
         "description": "Add real-time file system monitoring with Node.js fs.watch",
         "details": "Implement file system watching for JSONL files, detect new sessions, and trigger WebSocket events for live updates.",
         "testStrategy": "Test file watching with various scenarios (new files, modified files, deleted files), verify WebSocket events are triggered correctly",
-        "dependencies": ["3", "4"],
+        "dependencies": [
+          "3",
+          "4"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -283,12 +294,14 @@
         "description": "Implement Lit Web Components for session detail views and message rendering",
         "details": "Create reusable Lit components for displaying sessions, messages, and various content types. Include syntax highlighting and markdown rendering. Use Context7 MCP server for Lit, Web Components, syntax highlighting libraries, and markdown rendering best practices.",
         "testStrategy": "Test all components with different data types, verify rendering performance, and ensure accessibility compliance",
-        "dependencies": ["2"],
+        "dependencies": [
+          "2"
+        ],
         "priority": "high",
         "status": "pending",
         "subtasks": [
           {
-            "id": "7.1",
+            "id": 1,
             "title": "Base Component Architecture",
             "description": "Set up base component architecture and patterns",
             "details": "Create base component classes, define component interfaces, and establish patterns for Lit components. Use Context7 MCP server for Lit component best practices.",
@@ -296,7 +309,7 @@
             "status": "pending"
           },
           {
-            "id": "7.2",
+            "id": 2,
             "title": "Session List Component",
             "description": "Create component for displaying session lists",
             "details": "Implement Lit component for displaying session lists with summaries, timestamps, and navigation. Include filtering and sorting capabilities.",
@@ -304,7 +317,7 @@
             "status": "pending"
           },
           {
-            "id": "7.3",
+            "id": 3,
             "title": "Message Display Component",
             "description": "Create component for displaying individual messages",
             "details": "Implement component for displaying user and assistant messages with proper formatting, syntax highlighting, and markdown rendering.",
@@ -312,7 +325,7 @@
             "status": "pending"
           },
           {
-            "id": "7.4",
+            "id": 4,
             "title": "Tool Use Component",
             "description": "Create specialized component for tool use display",
             "details": "Implement component for displaying tool use, tool results, and thinking content with collapsible details and proper formatting.",
@@ -320,7 +333,7 @@
             "status": "pending"
           },
           {
-            "id": "7.5",
+            "id": 5,
             "title": "Syntax Highlighting",
             "description": "Implement syntax highlighting for code blocks",
             "details": "Add syntax highlighting for code blocks in messages. Use libraries like Prism.js or highlight.js. Use Context7 MCP server for syntax highlighting best practices.",
@@ -328,7 +341,7 @@
             "status": "pending"
           },
           {
-            "id": "7.6",
+            "id": 6,
             "title": "Markdown Rendering",
             "description": "Implement markdown rendering for message content",
             "details": "Add markdown rendering capabilities for message content. Handle tables, lists, links, and other markdown elements. Use Context7 MCP server for markdown rendering libraries.",
@@ -336,7 +349,7 @@
             "status": "pending"
           },
           {
-            "id": "7.7",
+            "id": 7,
             "title": "Accessibility Features",
             "description": "Add accessibility features to all components",
             "details": "Implement ARIA attributes, keyboard navigation, and screen reader support for all components. Ensure WCAG compliance.",
@@ -344,7 +357,7 @@
             "status": "pending"
           },
           {
-            "id": "7.8",
+            "id": 8,
             "title": "Performance Optimization",
             "description": "Optimize component rendering performance",
             "details": "Implement virtual scrolling, lazy loading, and efficient rendering for large message lists. Optimize component lifecycle and updates.",
@@ -359,7 +372,9 @@
         "description": "Add interactive timeline component with real-time updates",
         "details": "Create a zoomable, filterable timeline view of all sessions with WebSocket-driven live updates. Use Context7 MCP server for Lit Web Components, timeline libraries, and real-time data visualization best practices.",
         "testStrategy": "Test timeline with large datasets, verify zoom and filter functionality, and test real-time updates",
-        "dependencies": ["7"],
+        "dependencies": [
+          "7"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -369,7 +384,9 @@
         "description": "Create filtering and search functionality with reactive properties",
         "details": "Implement real-time filtering by message types, date ranges, and full-text search across session content.",
         "testStrategy": "Test filtering with various criteria, verify search performance with large datasets, and test reactive updates",
-        "dependencies": ["7"],
+        "dependencies": [
+          "7"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -379,7 +396,9 @@
         "description": "Build responsive layout system using Lit's template system",
         "details": "Create a responsive layout that works on desktop, tablet, and mobile devices using Lit's template system and Tailwind CSS. Use Context7 MCP server for Lit templates, Tailwind CSS, and responsive design best practices.",
         "testStrategy": "Test layout on various screen sizes, verify responsive behavior, and ensure consistent styling",
-        "dependencies": ["7"],
+        "dependencies": [
+          "7"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -389,7 +408,9 @@
         "description": "Implement Node.js child process management for Claude Code CLI integration",
         "details": "Create system for launching Claude Code sessions, managing child processes, and handling session resumption. Use Context7 MCP server for Node.js child processes, process management, and CLI integration best practices.",
         "testStrategy": "Test CLI integration with various scenarios, verify process management, and ensure proper error handling",
-        "dependencies": ["5"],
+        "dependencies": [
+          "5"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -399,7 +420,9 @@
         "description": "Create context preparation and transfer mechanisms",
         "details": "Implement systems for preparing session context, transferring data between web app and Claude Code CLI, and managing session state.",
         "testStrategy": "Test context transfer with various session types, verify data integrity, and ensure seamless user experience",
-        "dependencies": ["11"],
+        "dependencies": [
+          "11"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -409,7 +432,9 @@
         "description": "Build session branching functionality with WebSocket notifications",
         "details": "Allow users to create new sessions that branch from specific points in history, with real-time notifications.",
         "testStrategy": "Test branching with various scenarios, verify WebSocket notifications work correctly, and ensure data consistency",
-        "dependencies": ["12"],
+        "dependencies": [
+          "12"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -419,7 +444,10 @@
         "description": "Implement real-time session status updates",
         "details": "Provide live updates on session status, progress, and changes through WebSocket connections.",
         "testStrategy": "Test real-time updates with various scenarios, verify WebSocket stability, and ensure proper error handling",
-        "dependencies": ["6", "11"],
+        "dependencies": [
+          "6",
+          "11"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -429,7 +457,9 @@
         "description": "Add export and sharing capabilities with server-side processing",
         "details": "Implement export functionality for sessions in various formats (HTML, JSON, PDF) and sharing mechanisms. Use Context7 MCP server for PDF generation libraries, file handling, and export functionality best practices.",
         "testStrategy": "Test export with various formats and data sizes, verify sharing functionality, and ensure proper security",
-        "dependencies": ["5"],
+        "dependencies": [
+          "5"
+        ],
         "priority": "low",
         "status": "pending"
       },
@@ -439,7 +469,9 @@
         "description": "Implement user preferences and customization with persistent storage",
         "details": "Create system for storing and managing user preferences, themes, layouts, and default views.",
         "testStrategy": "Test preference persistence, verify customization options work correctly, and ensure data privacy",
-        "dependencies": ["5"],
+        "dependencies": [
+          "5"
+        ],
         "priority": "low",
         "status": "pending"
       },
@@ -449,7 +481,9 @@
         "description": "Create advanced filtering and analytics views with real-time updates",
         "details": "Implement analytics dashboard with token usage patterns, development insights, and cross-session analysis.",
         "testStrategy": "Test analytics with large datasets, verify real-time updates work correctly, and ensure performance",
-        "dependencies": ["9"],
+        "dependencies": [
+          "9"
+        ],
         "priority": "low",
         "status": "pending"
       },
@@ -459,7 +493,9 @@
         "description": "Add offline support with service workers and performance optimizations",
         "details": "Implement service workers for offline functionality, optimize performance for large datasets, and add caching strategies. Use Context7 MCP server for Service Workers, performance optimization, and caching best practices.",
         "testStrategy": "Test offline functionality, verify performance with large datasets, and ensure proper caching behavior",
-        "dependencies": ["7"],
+        "dependencies": [
+          "7"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -469,7 +505,9 @@
         "description": "Implement WebSocket reconnection and state synchronization",
         "details": "Create robust WebSocket reconnection logic, state synchronization mechanisms, and conflict resolution.",
         "testStrategy": "Test reconnection with various network scenarios, verify state synchronization, and ensure data consistency",
-        "dependencies": ["3"],
+        "dependencies": [
+          "3"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -479,7 +517,10 @@
         "description": "Comprehensive testing of TypeScript backend and Lit frontend",
         "details": "Create unit tests, integration tests, and end-to-end tests for both backend and frontend components. Use Context7 MCP server for Jest, Playwright, testing frameworks, and testing best practices.",
         "testStrategy": "Achieve 80%+ test coverage, verify all critical paths are tested, and ensure test reliability",
-        "dependencies": ["1", "7"],
+        "dependencies": [
+          "1",
+          "7"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -489,7 +530,10 @@
         "description": "Performance optimization and accessibility improvements",
         "details": "Optimize application performance, implement accessibility features, and ensure WCAG 2.1 AA compliance. Use Context7 MCP server for web performance optimization, accessibility guidelines, and WCAG compliance best practices.",
         "testStrategy": "Test performance with large datasets, verify accessibility compliance, and ensure responsive design",
-        "dependencies": ["7", "10"],
+        "dependencies": [
+          "7",
+          "10"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -499,7 +543,9 @@
         "description": "Create comprehensive documentation and user onboarding materials",
         "details": "Write user documentation, create onboarding tutorials, and provide developer documentation for the codebase. Use Context7 MCP server for documentation tools, technical writing best practices, and developer documentation standards.",
         "testStrategy": "Verify documentation accuracy, test onboarding flow, and ensure developer documentation is complete",
-        "dependencies": ["20"],
+        "dependencies": [
+          "20"
+        ],
         "priority": "medium",
         "status": "pending"
       },
@@ -509,7 +555,9 @@
         "description": "WebSocket connection stability and error handling",
         "details": "Implement robust error handling for WebSocket connections, connection monitoring, and graceful degradation.",
         "testStrategy": "Test WebSocket stability under various conditions, verify error handling, and ensure graceful degradation",
-        "dependencies": ["19"],
+        "dependencies": [
+          "19"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -519,7 +567,12 @@
         "description": "Prepare for beta release and user feedback collection",
         "details": "Finalize beta version, set up feedback collection mechanisms, and prepare for user testing.",
         "testStrategy": "Verify beta release readiness, test feedback collection, and ensure smooth user experience",
-        "dependencies": ["20", "21", "22", "23"],
+        "dependencies": [
+          "20",
+          "21",
+          "22",
+          "23"
+        ],
         "priority": "high",
         "status": "pending"
       },
@@ -529,14 +582,16 @@
         "description": "Implement smart code analysis and pattern recognition",
         "details": "Add advanced features like code analysis, pattern recognition, cross-session linking, and learning insights.",
         "testStrategy": "Test advanced features with various scenarios, verify accuracy of analysis, and ensure performance",
-        "dependencies": ["17"],
+        "dependencies": [
+          "17"
+        ],
         "priority": "low",
         "status": "pending"
       }
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-08T01:36:10.163Z",
+      "updated": "2025-08-08T01:48:35.387Z",
       "description": "Tasks for master context"
     }
   }
