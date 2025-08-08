@@ -12,9 +12,9 @@ describe('Frontend TypeScript Compilation', () => {
   describe('Build Process', () => {
     it('should compile TypeScript without errors', async () => {
       const { stderr } = await execAsync('npm run typecheck', {
-        cwd: resolve(__dirname, '..')
+        cwd: resolve(__dirname, '..'),
       });
-      
+
       expect(stderr).toBe('');
     }, 10000);
 
@@ -47,10 +47,10 @@ describe('Frontend TypeScript Compilation', () => {
       const indexPath = resolve(__dirname, 'index.ts');
       const { readFileSync } = require('fs');
       const content = readFileSync(indexPath, 'utf-8');
-      
+
       // Check that the import statement exists and is valid
       expect(content).toContain("import { ApiResponse } from '@app/shared'");
-      
+
       // The fact that TypeScript compilation passes (tested above) proves the import works
     });
   });
@@ -65,7 +65,7 @@ describe('Frontend TypeScript Compilation', () => {
       const htmlPath = resolve(__dirname, '../index.html');
       const { readFileSync } = require('fs');
       const content = readFileSync(htmlPath, 'utf-8');
-      
+
       expect(content).toContain('<app-root></app-root>');
       expect(content).toContain('src="/src/index.ts"');
     });

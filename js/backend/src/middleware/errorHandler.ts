@@ -21,7 +21,7 @@ export const errorHandler = (
   if (err instanceof AppError) {
     const response: ApiResponse = {
       success: false,
-      error: err.message
+      error: err.message,
     };
     return res.status(err.statusCode).json(response);
   }
@@ -29,7 +29,7 @@ export const errorHandler = (
   console.error('Unexpected error:', err);
   const response: ApiResponse = {
     success: false,
-    error: 'Internal server error'
+    error: 'Internal server error',
   };
   res.status(500).json(response);
 };
@@ -37,7 +37,7 @@ export const errorHandler = (
 export const notFoundHandler = (req: Request, res: Response) => {
   const response: ApiResponse = {
     success: false,
-    error: `Route ${req.originalUrl} not found`
+    error: `Route ${req.originalUrl} not found`,
   };
   res.status(404).json(response);
 };

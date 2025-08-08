@@ -9,9 +9,9 @@ describe('Shared Types and Interfaces', () => {
         email: 'test@example.com',
         name: 'Test User',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       expect(user).toBeDefined();
       expect(user.id).toBe('123');
       expect(user.email).toBe('test@example.com');
@@ -21,9 +21,9 @@ describe('Shared Types and Interfaces', () => {
       const response: ApiResponse<string> = {
         success: true,
         data: 'test data',
-        message: 'Success'
+        message: 'Success',
       };
-      
+
       expect(response).toBeDefined();
       expect(response.success).toBe(true);
       expect(response.data).toBe('test data');
@@ -44,9 +44,9 @@ describe('Shared Types and Interfaces', () => {
         email: 'valid@example.com',
         name: 'Valid User',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       expect(validUser.id).toBeTypeOf('string');
       expect(validUser.email).toBeTypeOf('string');
       expect(validUser.name).toBeTypeOf('string');
@@ -57,9 +57,9 @@ describe('Shared Types and Interfaces', () => {
     it('should handle optional ApiResponse properties', () => {
       const errorResponse: ApiResponse = {
         success: false,
-        error: 'Something went wrong'
+        error: 'Something went wrong',
       };
-      
+
       expect(errorResponse.data).toBeUndefined();
       expect(errorResponse.message).toBeUndefined();
       expect(errorResponse.error).toBeDefined();

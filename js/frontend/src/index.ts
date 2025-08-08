@@ -8,7 +8,10 @@ export class AppRoot extends LitElement {
     :host {
       display: block;
       padding: 16px;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        sans-serif;
     }
     h1 {
       color: #333;
@@ -33,7 +36,7 @@ export class AppRoot extends LitElement {
     try {
       const response = await fetch('http://localhost:3000/api/health');
       const data: ApiResponse = await response.json();
-      
+
       if (data.success) {
         this.serverStatus = `Server is ${data.data.status}`;
       } else {
@@ -47,9 +50,7 @@ export class AppRoot extends LitElement {
   render() {
     return html`
       <h1>TypeScript Full-Stack App</h1>
-      <div class="status">
-        Server Status: ${this.serverStatus}
-      </div>
+      <div class="status">Server Status: ${this.serverStatus}</div>
     `;
   }
 }

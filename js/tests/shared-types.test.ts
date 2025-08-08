@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  User, 
-  ApiResponse, 
-  ErrorCode, 
+import {
+  User,
+  ApiResponse,
+  ErrorCode,
   HTTP_STATUS,
   isApiError,
   isUser,
   PaginatedResponse,
-  SearchParams
+  SearchParams,
 } from '@app/shared';
 
 describe('Shared Types', () => {
@@ -17,9 +17,9 @@ describe('Shared Types', () => {
       email: 'test@example.com',
       name: 'Test User',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     expect(isUser(user)).toBe(true);
     expect(user.email).toBe('test@example.com');
   });
@@ -32,10 +32,10 @@ describe('Shared Types', () => {
         email: 'test@example.com',
         name: 'Test User',
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     };
-    
+
     expect(response.success).toBe(true);
     expect(response.data).toBeDefined();
   });
@@ -54,9 +54,9 @@ describe('Shared Types', () => {
     const error = {
       code: ErrorCode.NOT_FOUND,
       message: 'Resource not found',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
+
     expect(isApiError(error)).toBe(true);
   });
 
@@ -66,9 +66,9 @@ describe('Shared Types', () => {
       total: 0,
       page: 1,
       pageSize: 10,
-      totalPages: 0
+      totalPages: 0,
     };
-    
+
     expect(paginated.page).toBe(1);
     expect(paginated.pageSize).toBe(10);
   });
@@ -80,9 +80,9 @@ describe('Shared Types', () => {
       pageSize: 20,
       sortBy: 'name',
       sortOrder: 'asc',
-      filters: { active: true }
+      filters: { active: true },
     };
-    
+
     expect(params.query).toBe('test');
     expect(params.sortOrder).toBe('asc');
   });

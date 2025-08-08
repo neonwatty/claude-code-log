@@ -7,12 +7,12 @@ export default defineConfig({
     environment: 'happy-dom',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html']
-    }
+      reporter: ['text', 'json', 'html'],
+    },
   },
   resolve: {
     alias: {
-      '@app/shared': resolve(__dirname, '../shared/src')
-    }
-  }
+      '@app/shared': resolve(__dirname, '../shared/src'),
+    },
+  },
 });

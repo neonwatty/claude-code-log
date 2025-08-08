@@ -16,10 +16,7 @@ describe('API Tests', () => {
 
   describe('GET /api/health', () => {
     it('should return health status', async () => {
-      const res = await request(app)
-        .get('/api/health')
-        .expect('Content-Type', /json/)
-        .expect(200);
+      const res = await request(app).get('/api/health').expect('Content-Type', /json/).expect(200);
 
       expect(res.body).toHaveProperty('success', true);
       expect(res.body.data).toHaveProperty('status', 'healthy');
@@ -38,7 +35,7 @@ describe('API Tests', () => {
           .post('/api/users')
           .send({
             name: 'John Doe',
-            email: 'john@example.com'
+            email: 'john@example.com',
           })
           .expect('Content-Type', /json/)
           .expect(201);
@@ -48,7 +45,7 @@ describe('API Tests', () => {
         expect(res.body.data).toHaveProperty('id');
         expect(res.body.data).toHaveProperty('name', 'John Doe');
         expect(res.body.data).toHaveProperty('email', 'john@example.com');
-        
+
         userId = res.body.data.id;
       });
 
@@ -66,10 +63,7 @@ describe('API Tests', () => {
 
     describe('GET /api/users', () => {
       it('should return all users', async () => {
-        const res = await request(app)
-          .get('/api/users')
-          .expect('Content-Type', /json/)
-          .expect(200);
+        const res = await request(app).get('/api/users').expect('Content-Type', /json/).expect(200);
 
         expect(res.body).toHaveProperty('success', true);
         expect(Array.isArray(res.body.data)).toBe(true);
@@ -128,10 +122,7 @@ describe('API Tests', () => {
 
   describe('Error Handling', () => {
     it('should return 404 for unknown routes', async () => {
-      const res = await request(app)
-        .get('/api/unknown')
-        .expect('Content-Type', /json/)
-        .expect(404);
+      const res = await request(app).get('/api/unknown').expect('Content-Type', /json/).expect(404);
 
       expect(res.body).toHaveProperty('success', false);
       expect(res.body.error).toContain('not found');

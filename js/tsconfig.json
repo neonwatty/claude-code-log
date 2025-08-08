@@ -17,10 +17,6 @@
     "composite": true,
     "incremental": true
   },
-  "references": [
-    { "path": "./shared" },
-    { "path": "./backend" },
-    { "path": "./frontend" }
-  ],
+  "references": [{ "path": "./shared" }, { "path": "./backend" }, { "path": "./frontend" }],
   "exclude": ["node_modules", "dist"]
 }

@@ -4,15 +4,15 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
   },
   resolve: {
     alias: {
-      '@app/shared': resolve(__dirname, '../shared/src')
-    }
+      '@app/shared': resolve(__dirname, '../shared/src'),
+    },
   },
   server: {
     port: 5173,
-    open: true
-  }
+    open: true,
+  },
 });

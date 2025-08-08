@@ -1,0 +1,63 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "project": "./*/tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:prettier/recommended"
+  ],
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-misused-promises": "error",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"]
+  },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.spec.ts"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["frontend/**/*.ts"],
+      "env": {
+        "browser": true,
+        "node": false
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "coverage",
+    "*.js",
+    "*.cjs",
+    "*.mjs",
+    "vitest.config.ts",
+    "vite.config.ts",
+    "tests/**"
+  ]
+}
