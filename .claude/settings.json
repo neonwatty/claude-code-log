@@ -1,15 +1,80 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(bin/vite:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(cd:*)",
+      "Bash(mv:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(timeout:*)",
+      "Bash(claude mcp:*)",
+      "Bash(mcp:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(eslint:*)",
+      "Bash(ps:*)",
+      "Bash(echo:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(ssh:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(curl -X POST:*)",
+      "Bash(wget:*)"
+    ]
+  },
   "hooks": {
-    "PostToolUse": [
+    "Stop": [
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run ruff format"
+            "command": "afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || echo -e '\\n\\033[1;32m✓ Claude Code has finished responding\\033[0m\\n'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Ping.aiff 2>/dev/null || echo -e '\\n\\033[1;34m✓ Task completed by Claude Code\\033[0m\\n'"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Pop.aiff 2>/dev/null || echo -e '\\n\\033[1;33m• Notification from Claude Code\\033[0m\\n'"
           }
         ]
       }
     ]
+  },
+  "feedbackSurveyState": {
+    "lastShownTime": 1754131386851
   }
 }
