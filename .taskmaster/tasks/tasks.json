@@ -251,7 +251,7 @@
             "description": "Implement content parsing for different message types",
             "details": "Parse text content, tool use, tool results, thinking content, and images. Handle markdown and code blocks.",
             "testStrategy": "Test content parsing with various content types",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 6,
@@ -591,7 +591,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-09T00:06:59.685Z",
+      "updated": "2025-08-09T00:12:30.394Z",
       "description": "Tasks for master context"
     }
   }

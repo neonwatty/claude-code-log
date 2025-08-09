@@ -293,3 +293,83 @@ export {
   type MessageTypeDetectionResult,
   type MessageTypeStats,
 } from './message-detector';
+
+// Export token tracking functionality
+export {
+  trackTokenUsage,
+  trackSessionUsage,
+  aggregateTokenUsage,
+  TokenUsageTracker,
+  type TokenUsageInfo,
+  type TokenCostEstimate,
+  type SessionTokenUsage,
+  type TokenTrackerOptions,
+} from './token-tracker';
+
+// Export content parsing functionality
+export {
+  extractTextContent,
+  extractThinkingContent,
+  analyzeContentTypes,
+  parseTextContent,
+  parseToolUseContent,
+  parseToolResultContent,
+  parseThinkingContent,
+  parseImageContent,
+  parseContentItem,
+  parseMessageContent,
+  parseTranscriptEntry,
+  parseTranscriptEntries,
+  extractCommandInfo,
+  formatContentForDisplay,
+  type ParsedContent,
+  type ParsedMessage,
+  type ContentParsingOptions,
+} from './content-parser';
+
+// Export session organization functionality
+export {
+  organizeIntoSessions,
+  organizeProject,
+  findSessionsByWorkingDirectory,
+  type SessionInfo,
+  type ProjectSessions,
+  type SessionOrganizationOptions,
+} from './session-organizer';
+
+// Export performance optimization functionality
+export {
+  ParsedContentCache,
+  SessionCache,
+  LazyContentLoader,
+  ObjectPool,
+  BatchProcessor,
+  PerformanceMonitor,
+  globalContentCache,
+  globalSessionCache,
+  globalLazyLoader,
+  globalPerformanceMonitor,
+  createOptimizedContentParser,
+} from './performance-cache';
+
+// Export optimized content parsing
+export {
+  OptimizedContentParser,
+  OptimizedContentAnalyzer,
+  globalOptimizedParser,
+  parseTranscriptEntry as parseTranscriptEntryOptimized,
+  parseTranscriptEntries as parseTranscriptEntriesOptimized,
+  parseTranscriptEntriesStream,
+  optimizedParsers,
+  type OptimizedParsingOptions,
+} from './optimized-content-parser';
+
+// Export optimized session organization
+export {
+  OptimizedSessionOrganizer,
+  globalOptimizedOrganizer,
+  organizeIntoSessions as organizeIntoSessionsOptimized,
+  organizeProject as organizeProjectOptimized,
+  organizeSessionsStream,
+  type OptimizedSessionOptions,
+} from './optimized-session-organizer';
