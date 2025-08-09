@@ -273,3 +273,23 @@ export {
   type JsonlParserOptions,
   type JsonlParseResult,
 } from './jsonl-parser';
+
+// Export message type detection functionality
+export {
+  detectMessageType,
+  detectAndParseMessage,
+  detectMessageTypes,
+  getMessageTypeStats,
+  filterByMessageType,
+  isUserMessage,
+  isAssistantMessage,
+  isSummaryMessage,
+  isSystemMessage,
+  classifyMessageContent,
+  validateMessageSequence,
+  summarizeDetectionResults,
+  MESSAGE_TYPES,
+  type MessageType,
+  type MessageTypeDetectionResult,
+  type MessageTypeStats,
+} from './message-detector';
