@@ -286,7 +286,8 @@
           "4"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "done",
+        "subtasks": []
       },
       {
         "id": 7,
@@ -591,7 +592,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-09T00:32:37.728Z",
+      "updated": "2025-08-09T21:28:13.910Z",
       "description": "Tasks for master context"
     }
   }

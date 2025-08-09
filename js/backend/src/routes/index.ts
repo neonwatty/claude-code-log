@@ -8,6 +8,7 @@ import sessionsRoutes from './sessions';
 import analyticsRoutes from './analytics';
 import messagesRoutes from './messages';
 import cacheRoutes from './cache';
+import fileMonitoringRoutes from './fileMonitoring';
 import { cacheConfigs } from '../middleware/cache';
 
 const router = Router();
@@ -16,6 +17,7 @@ const router = Router();
 router.use('/health', healthRoutes);
 router.use('/websocket', websocketRoutes);
 router.use('/cache', cacheRoutes);
+router.use('/file-monitoring', fileMonitoringRoutes);
 
 // Routes with short caching (2 minutes) - frequently changing data
 router.use('/users', cacheConfigs.short, userRoutes);

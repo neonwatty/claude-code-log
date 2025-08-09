@@ -24,6 +24,11 @@ export interface Config {
     secret?: string;
     expiresIn?: string;
   };
+  fileMonitoring?: {
+    enabled?: boolean;
+    watchPaths?: string[];
+    debounceMs?: number;
+  };
 }
 
 function getEnvVar(name: string, defaultValue?: string): string {
@@ -49,6 +54,11 @@ export const config: Config = {
   jwt: {
     secret: getOptionalEnvVar('JWT_SECRET'),
     expiresIn: getOptionalEnvVar('JWT_EXPIRES_IN'),
+  },
+  fileMonitoring: {
+    enabled: getOptionalEnvVar('FILE_MONITORING_ENABLED') === 'true',
+    watchPaths: getOptionalEnvVar('FILE_MONITORING_PATHS')?.split(',').map(p => p.trim()) || [],
+    debounceMs: parseInt(getOptionalEnvVar('FILE_MONITORING_DEBOUNCE') || '300', 10),
   },
 };
 
