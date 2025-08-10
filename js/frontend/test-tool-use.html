@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Use Component Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      margin: 50px 0;
+    }
+    
+    .error {
+      color: #e74c3c;
+      background: #fdf0ef;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e74c3c;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tool Use Component Demo</h1>
+  <div class="loading">Loading components...</div>
+  
+  <div id="demo-container">
+    <!-- Demo component will be inserted here -->
+  </div>
+
+  <script type="module">
+    try {
+      // Import the demo component
+      const { ToolUseDemo } = await import('./src/components/tool-use/ToolUseDemo.js');
+      
+      // Remove loading message
+      document.querySelector('.loading').remove();
+      
+      // Create and append the demo component
+      const demoContainer = document.getElementById('demo-container');
+      const demoComponent = document.createElement('tool-use-demo');
+      demoContainer.appendChild(demoComponent);
+      
+    } catch (error) {
+      console.error('Failed to load components:', error);
+      document.querySelector('.loading').innerHTML = `
+        <div class="error">
+          <strong>Error loading components:</strong><br>
+          ${error.message}
+          <br><br>
+          <em>Make sure to build the project first with: npm run build</em>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

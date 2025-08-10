@@ -742,7 +742,7 @@ export class SessionList extends BaseComponent {
 
   private handleSortChange(event: Event) {
     const select = event.target as HTMLSelectElement;
-    const [field, direction] = select.value.split('-') as [keyof SessionSummary, 'asc' | 'desc'];
+    const [field, direction] = select.value.split('-') as [SessionSort['field'], 'asc' | 'desc'];
     
     this.sort = { field, direction };
     this.emitSortChange();

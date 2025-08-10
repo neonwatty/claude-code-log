@@ -1,7 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ApiResponse } from '@app/shared';
-import './components/users';
+// import './components/users';
+import './components/message-display';
+import './components/tool-use';
+import './components/syntax-highlighter';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
@@ -92,8 +95,12 @@ export class AppRoot extends LitElement {
           <h2>Welcome to the Application</h2>
           <p>This is the home page of your TypeScript full-stack application.</p>
         `;
-      case 'users':
-        return html`<app-users></app-users>`;
+      case 'messages':
+        return html`<message-display-demo></message-display-demo>`;
+      case 'tools':
+        return html`<tool-use-demo></tool-use-demo>`;
+      case 'syntax':
+        return html`<syntax-highlighter-demo></syntax-highlighter-demo>`;
       case 'about':
         return html`
           <h2>About</h2>
@@ -113,7 +120,9 @@ export class AppRoot extends LitElement {
       
       <nav class="nav">
         <a href="#home" class="${this.currentRoute === 'home' ? 'active' : ''}">Home</a>
-        <a href="#users" class="${this.currentRoute === 'users' ? 'active' : ''}">Users</a>
+        <a href="#messages" class="${this.currentRoute === 'messages' ? 'active' : ''}">Messages</a>
+        <a href="#tools" class="${this.currentRoute === 'tools' ? 'active' : ''}">Tools</a>
+        <a href="#syntax" class="${this.currentRoute === 'syntax' ? 'active' : ''}">Syntax</a>
         <a href="#about" class="${this.currentRoute === 'about' ? 'active' : ''}">About</a>
       </nav>
 

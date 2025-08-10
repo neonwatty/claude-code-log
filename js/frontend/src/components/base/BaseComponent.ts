@@ -28,7 +28,7 @@ export abstract class BaseComponent extends LitElement {
    * ARIA label for accessibility
    */
   @property({ type: String, attribute: 'aria-label' })
-  ariaLabel?: string;
+  ariaLabel: string | null = null;
 
   /**
    * Whether the component should use dark theme

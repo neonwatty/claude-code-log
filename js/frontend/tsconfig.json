@@ -14,6 +14,6 @@
     "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
+  "exclude": ["node_modules", "dist", "src/**/__tests_disabled__/**/*", "src/**/__tests__/**/*", "src/test-runner.ts", "src/components/users.ts"],
   "references": [{ "path": "../shared" }]
 }
