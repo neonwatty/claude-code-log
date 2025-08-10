@@ -293,7 +293,7 @@ export function generateUsageTimeline(entries: TranscriptEntry[]): TokenUsageTim
   const timeline: TokenUsageTimepoint[] = [];
   
   Object.values(sessionGroups).forEach(sessionEntries => {
-    const sessionId = sessionEntries[0]?.sessionId || '';
+    const sessionId = (sessionEntries[0] && 'sessionId' in sessionEntries[0]) ? sessionEntries[0].sessionId : '';
     let cumulativeUsage: ExtendedUsageInfo = {
       input_tokens: 0,
       output_tokens: 0,

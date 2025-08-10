@@ -1,10 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
-import request from 'supertest';
-import express from 'express';
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import sessionsRoutes from './sessions';
-import { sessionErrorHandler } from '../middleware/sessionValidation';
 
 // Mock the shared module to avoid actual JSONL parsing
 vi.mock('@app/shared', () => ({
@@ -103,20 +97,29 @@ vi.mock('@app/shared', () => ({
       },
     },
   ]),
-  findSessionsByWorkingDirectory: vi.fn().mockResolvedValue([]),
+  findSessionsByWorkingDirectory: vi.fn().mockResolvedValue([
+    {
+      sessionId: 'test-session-1',
+      messageCount: 2,
+      workingDirectory: '/test/directory',
+      timeRange: {
+        start: '2025-01-01T10:00:00Z',
+        end: '2025-01-01T10:00:30Z',
+      },
+    }
+  ]),
 }));
 
-// Mock fs module
-vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs');
-  return {
-    ...actual,
-    promises: {
-      readdir: vi.fn().mockResolvedValue(['test1.jsonl', 'test2.jsonl', 'other.txt']),
-      stat: vi.fn().mockResolvedValue({ isDirectory: () => true }),
-    },
-  };
-});
+// Now import the other modules after mocks are set up
+import request from 'supertest';
+import express from 'express';
+import { promises as fs } from 'fs';
+import { join } from 'path';
+import sessionsRoutes from './sessions';
+import { sessionErrorHandler } from '../middleware/sessionValidation';
+
+// Import SessionService for mocking
+import { SessionService } from './sessions';
 
 describe('Sessions API', () => {
   let app: express.Application;
@@ -130,6 +133,86 @@ describe('Sessions API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock SessionService methods with proper return data
+    vi.spyOn(SessionService, 'parseJsonlFiles').mockResolvedValue({
+      entries: [
+        {
+          type: 'user',
+          timestamp: '2025-01-01T10:00:00Z',
+          sessionId: 'test-session-1',
+          uuid: 'user-1',
+          message: { role: 'user', content: 'Hello' },
+          cwd: '/test/directory',
+        },
+        {
+          type: 'assistant',
+          timestamp: '2025-01-01T10:00:30Z',
+          sessionId: 'test-session-1',
+          uuid: 'assistant-1',
+          message: {
+            id: 'assistant-1',
+            role: 'assistant',
+            model: 'claude-3-sonnet',
+            content: [{ type: 'text', text: 'Hello back!' }],
+            usage: { input_tokens: 10, output_tokens: 15 },
+          },
+          cwd: '/test/directory',
+        },
+      ],
+      errors: [],
+      fileCount: 2,
+    });
+
+    vi.spyOn(SessionService, 'organizeSessions').mockResolvedValue([
+      {
+        sessionId: 'test-session-1',
+        messageCount: 2,
+        userMessageCount: 1,
+        assistantMessageCount: 1,
+        summaryCount: 0,
+        workingDirectory: '/test/directory',
+        timeRange: {
+          start: '2025-01-01T10:00:00Z',
+          end: '2025-01-01T10:00:30Z',
+        },
+        totalTokens: 25,
+        tokenUsage: {
+          total_tokens: 25,
+          input_tokens: 10,
+          output_tokens: 15,
+        },
+        entries: [] // Will be populated by the test data above
+      }
+    ]);
+
+    vi.spyOn(SessionService, 'organizeProject').mockResolvedValue({
+      totalSessions: 1,
+      totalMessages: 2,
+      workingDirectories: ['/test/directory'],
+      dateRange: {
+        start: '2025-01-01T10:00:00Z',
+        end: '2025-01-01T10:00:30Z',
+      },
+      sessions: [] // Will be populated by organizeSessions mock
+    });
+
+    vi.spyOn(SessionService, 'parseMessages').mockResolvedValue([
+      {
+        role: 'user',
+        content: 'Hello',
+        timestamp: '2025-01-01T10:00:00Z',
+        sessionId: 'test-session-1',
+      },
+      {
+        role: 'assistant', 
+        content: 'Hello back!',
+        timestamp: '2025-01-01T10:00:30Z',
+        sessionId: 'test-session-1',
+      }
+    ]);
+
+    // The findSessionsByWorkingDirectory is already mocked at the top level
   });
 
   describe('POST /api/sessions/parse', () => {
@@ -183,13 +266,10 @@ describe('Sessions API', () => {
     });
 
     it('should handle parsing errors', async () => {
-      // Mock a parsing error
-      const mockJsonlParser = vi.mocked(
-        (await import('@app/shared')).JsonlParser
+      // Override the SessionService mock to simulate a parsing error
+      vi.spyOn(SessionService, 'parseJsonlFiles').mockRejectedValueOnce(
+        new Error('Failed to parse JSONL files: Parsing failed')
       );
-      mockJsonlParser.mockImplementationOnce(() => ({
-        parseFile: vi.fn().mockRejectedValue(new Error('Parsing failed')),
-      }) as any);
 
       const response = await request(app)
         .post('/api/sessions/parse')
@@ -396,8 +476,10 @@ describe('Sessions API', () => {
 
   describe('Error handling', () => {
     it('should handle file system errors gracefully', async () => {
-      // Mock fs.readdir to throw an error
-      vi.mocked(fs.readdir).mockRejectedValueOnce(new Error('Permission denied'));
+      // Mock SessionService to throw a file system error
+      vi.spyOn(SessionService, 'parseJsonlFiles').mockRejectedValueOnce(
+        new Error('Permission denied')
+      );
 
       const response = await request(app)
         .post('/api/sessions/parse')
@@ -411,13 +493,10 @@ describe('Sessions API', () => {
     });
 
     it('should handle JSON parsing errors', async () => {
-      // Mock parsing to return invalid data
-      const mockJsonlParser = vi.mocked(
-        (await import('@app/shared')).JsonlParser
+      // Mock SessionService to fail during organize
+      vi.spyOn(SessionService, 'parseJsonlFiles').mockRejectedValueOnce(
+        new Error('Failed to parse JSONL files: Invalid JSON')
       );
-      mockJsonlParser.mockImplementationOnce(() => ({
-        parseFile: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
-      }) as any);
 
       const response = await request(app)
         .post('/api/sessions/organize')

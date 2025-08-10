@@ -22,6 +22,7 @@ import {
   createOptimizedContentParser,
   BatchProcessor,
   ObjectPool,
+  ParsedContentCache,
 } from './performance-cache';
 
 /**
@@ -72,9 +73,17 @@ export class OptimizedContentParser {
   private options: Required<OptimizedParsingOptions>;
   private batchProcessor: BatchProcessor<TranscriptEntry, ParsedMessage>;
   private contentItemCache: Map<string, ParsedContent[]> = new Map();
+  private cache: ParsedContentCache;
   
   constructor(options: OptimizedParsingOptions = {}) {
     this.options = { ...DEFAULT_OPTIMIZED_OPTIONS, ...options };
+    
+    // Use custom cache instance if maxCacheSize is different from default
+    if (options.maxCacheSize !== undefined && options.maxCacheSize !== DEFAULT_OPTIMIZED_OPTIONS.maxCacheSize) {
+      this.cache = new ParsedContentCache(this.options.maxCacheSize);
+    } else {
+      this.cache = globalContentCache;
+    }
     
     this.batchProcessor = new BatchProcessor(
       (batch) => this.processBatch(batch),
@@ -93,7 +102,7 @@ export class OptimizedContentParser {
     try {
       if (this.options.useCache) {
         const cacheKey = this.generateCacheKey(entry);
-        const cached = globalContentCache.get(cacheKey);
+        const cached = this.cache.get(cacheKey);
         if (cached) {
           return cached;
         }
@@ -103,7 +112,7 @@ export class OptimizedContentParser {
       
       if (this.options.useCache) {
         const cacheKey = this.generateCacheKey(entry);
-        globalContentCache.set(cacheKey, result);
+        this.cache.set(cacheKey, result);
       }
 
       return result;
@@ -199,7 +208,7 @@ export class OptimizedContentParser {
   getPerformanceStats() {
     return {
       ...globalPerformanceMonitor.getMetrics(),
-      cacheStats: globalContentCache.getStats(),
+      cacheStats: this.cache.getStats(),
       contentCacheSize: this.contentItemCache.size,
     };
   }
@@ -208,7 +217,7 @@ export class OptimizedContentParser {
    * Clear all caches
    */
   clearCaches(): void {
-    globalContentCache.clear();
+    this.cache.clear();
     globalLazyLoader.clearCache();
     this.contentItemCache.clear();
   }
@@ -239,8 +248,8 @@ export class OptimizedContentParser {
     // Use a combination of unique identifiers for cache key
     const keyParts = [
       entry.type,
-      entry.uuid,
-      entry.timestamp,
+      'uuid' in entry ? entry.uuid : entry.leafUuid || 'no-uuid',
+      'timestamp' in entry ? entry.timestamp : 'no-timestamp',
       this.options.enableMarkdown ? 'md' : 'txt',
       this.options.extractToolInfo ? 'tools' : 'notool',
     ];
@@ -341,7 +350,7 @@ export const optimizedParsers = {
       enableMarkdown: false,
       extractToolInfo: false,
     }),
-    (entry) => `preview-${entry.uuid}`,
+    (entry) => `preview-${'uuid' in entry ? entry.uuid : entry.leafUuid}`,
     100
   ),
 
@@ -354,7 +363,7 @@ export const optimizedParsers = {
       extractToolInfo: true,
       enableMarkdown: true,
     }),
-    (entry) => `full-${entry.uuid}`,
+    (entry) => `full-${'uuid' in entry ? entry.uuid : entry.leafUuid}`,
     50
   ),
 
@@ -367,7 +376,7 @@ export const optimizedParsers = {
       maxPreviewLength: 50,
       useCache: true,
     }),
-    (entry) => `memory-${entry.uuid}`,
+    (entry) => `memory-${'uuid' in entry ? entry.uuid : entry.leafUuid}`,
     200
   ),
 };

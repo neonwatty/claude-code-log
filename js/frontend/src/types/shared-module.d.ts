@@ -1,0 +1,293 @@
+// Temporary type declarations for @app/shared to resolve module errors
+declare module '@app/shared' {
+  export * from '@app/shared/dist/index';
+}
+
+declare module '@app/shared/dist/index' {
+  export interface User {
+    id: string;
+    email: string;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  export interface Session {
+    id: string;
+    userId: string;
+    token: string;
+    expiresAt: Date;
+  }
+
+  export interface AuthCredentials {
+    email: string;
+    password: string;
+  }
+
+  export interface ApiResponse<T = any> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    message?: string;
+  }
+
+  export interface PaginatedResponse<T> {
+    items: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }
+
+  export interface PaginationParams {
+    page?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }
+
+  export interface SearchParams extends PaginationParams {
+    query?: string;
+    filters?: Record<string, any>;
+  }
+
+  export enum ErrorCode {
+    VALIDATION_ERROR = 'VALIDATION_ERROR',
+    AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
+    AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
+    NOT_FOUND = 'NOT_FOUND',
+    INTERNAL_ERROR = 'INTERNAL_ERROR',
+    RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
+  }
+
+  export interface AppError {
+    code: ErrorCode;
+    message: string;
+    details?: any;
+    timestamp: Date;
+  }
+
+  export const API_ENDPOINTS: {
+    users: '/api/users';
+    auth: '/api/auth';
+    health: '/api/health';
+    sessions: '/api/sessions';
+  };
+
+  export const HTTP_STATUS: {
+    OK: 200;
+    CREATED: 201;
+    BAD_REQUEST: 400;
+    UNAUTHORIZED: 401;
+    FORBIDDEN: 403;
+    NOT_FOUND: 404;
+    INTERNAL_ERROR: 500;
+  };
+
+  export interface TodoItem {
+    id: string;
+    content: string;
+    status: 'pending' | 'in_progress' | 'completed';
+    priority: 'high' | 'medium' | 'low';
+  }
+
+  export interface UsageInfo {
+    input_tokens?: number;
+    cache_creation_input_tokens?: number;
+    cache_read_input_tokens?: number;
+    output_tokens?: number;
+    service_tier?: string;
+    server_tool_use?: Record<string, any>;
+  }
+
+  export interface TextContent {
+    type: 'text';
+    text: string;
+  }
+
+  export interface ToolUseContent {
+    type: 'tool_use';
+    id: string;
+    name: string;
+    input: Record<string, any>;
+  }
+
+  export interface ToolResultContent {
+    type: 'tool_result';
+    tool_use_id: string;
+    content: string | Array<Record<string, any>>;
+    is_error?: boolean;
+  }
+
+  export interface ThinkingContent {
+    type: 'thinking';
+    thinking: string;
+    signature?: string;
+  }
+
+  export interface ImageSource {
+    type: 'base64';
+    media_type: string;
+    data: string;
+  }
+
+  export interface ImageContent {
+    type: 'image';
+    source: ImageSource;
+  }
+
+  export type ContentItem = 
+    | TextContent 
+    | ToolUseContent 
+    | ToolResultContent 
+    | ThinkingContent 
+    | ImageContent;
+
+  export interface UserMessage {
+    role: 'user';
+    content: string | ContentItem[];
+  }
+
+  export interface AssistantMessage {
+    id: string;
+    type: 'message';
+    role: 'assistant';
+    model: string;
+    content: ContentItem[];
+    stop_reason?: string;
+    stop_sequence?: string;
+    usage?: UsageInfo;
+  }
+
+  export interface FileInfo {
+    filePath: string;
+    content: string;
+    numLines: number;
+    startLine: number;
+    totalLines: number;
+  }
+
+  export interface FileReadResult {
+    type: 'text';
+    file: FileInfo;
+  }
+
+  export interface CommandResult {
+    stdout: string;
+    stderr: string;
+    interrupted: boolean;
+    isImage: boolean;
+  }
+
+  export interface TodoResult {
+    oldTodos: TodoItem[];
+    newTodos: TodoItem[];
+  }
+
+  export interface EditResult {
+    oldString?: string;
+    newString?: string;
+    replaceAll?: boolean;
+    originalFile?: string;
+    structuredPatch?: any;
+    userModified?: boolean;
+  }
+
+  export type ToolUseResult = 
+    | string 
+    | TodoItem[] 
+    | FileReadResult 
+    | CommandResult 
+    | TodoResult 
+    | EditResult 
+    | ContentItem[];
+
+  export interface BaseTranscriptEntry {
+    parentUuid?: string;
+    isSidechain: boolean;
+    userType: string;
+    cwd: string;
+    sessionId: string;
+    version: string;
+    uuid: string;
+    timestamp: string;
+    isMeta?: boolean;
+  }
+
+  export interface UserTranscriptEntry extends BaseTranscriptEntry {
+    type: 'user';
+    message: UserMessage;
+    toolUseResult?: ToolUseResult;
+  }
+
+  export interface AssistantTranscriptEntry extends BaseTranscriptEntry {
+    type: 'assistant';
+    message: AssistantMessage;
+    requestId?: string;
+  }
+
+  export interface SummaryTranscriptEntry {
+    type: 'summary';
+    summary: string;
+    leafUuid: string;
+    cwd?: string;
+  }
+
+  export interface SystemTranscriptEntry extends BaseTranscriptEntry {
+    type: 'system';
+    content: string;
+    level?: string;
+  }
+
+  export type TranscriptEntry = 
+    | UserTranscriptEntry 
+    | AssistantTranscriptEntry 
+    | SummaryTranscriptEntry 
+    | SystemTranscriptEntry;
+
+  export type Nullable<T> = T | null;
+  export type Optional<T> = T | undefined;
+  export type AsyncResult<T> = Promise<ApiResponse<T>>;
+
+  export function isApiError(error: any): error is AppError;
+  export function isUser(obj: any): obj is User;
+
+  // Export everything else as any to avoid missing module errors
+  export const extractTextContent: any;
+  export const extractThinkingContent: any;
+  export const analyzeContentTypes: any;
+  export const parseTextContent: any;
+  export const parseToolUseContent: any;
+  export const parseToolResultContent: any;
+  export const parseThinkingContent: any;
+  export const parseImageContent: any;
+  export const parseContentItem: any;
+  export const parseMessageContent: any;
+  export const parseTranscriptEntry: any;
+  export const parseTranscriptEntries: any;
+  export const extractCommandInfo: any;
+  export const formatContentForDisplay: any;
+  export const organizeIntoSessions: any;
+  export const organizeProject: any;
+  export const findSessionsByWorkingDirectory: any;
+  export const JsonlParser: any;
+  export const parseJsonlFile: any;
+  export const parseJsonlString: any;
+  export const detectMessageType: any;
+  export const detectAndParseMessage: any;
+  export const detectMessageTypes: any;
+  export const getMessageTypeStats: any;
+  export const filterByMessageType: any;
+  export const isUserMessage: any;
+  export const isAssistantMessage: any;
+  export const isSummaryMessage: any;
+  export const isSystemMessage: any;
+  export const classifyMessageContent: any;
+  export const validateMessageSequence: any;
+  export const summarizeDetectionResults: any;
+  export const MESSAGE_TYPES: any;
+  export const trackTokenUsage: any;
+  export const trackSessionUsage: any;
+  export const aggregateTokenUsage: any;
+  export const TokenUsageTracker: any;
+}

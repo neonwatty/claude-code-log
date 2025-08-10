@@ -59,6 +59,7 @@
     ]
   },
   "dependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.46.2",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   }

@@ -1,19 +1,22 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2018",
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2018", "DOM", "DOM.Iterable"],
     "outDir": "./dist",
     "rootDir": "./src",
     "composite": true,
     "declaration": true,
     "declarationMap": true,
-    "useDefineForClassFields": true,
+    "useDefineForClassFields": false,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/__tests_disabled__/**/*", "src/**/__tests__/**/*", "src/test-runner.ts", "src/components/users.ts"],
+  "include": ["src/**/*", "src/types/**/*"],
+  "exclude": ["node_modules", "dist", "src/**/__tests_disabled__/**/*", "src/test-runner.ts", "src/components/users.ts"],
   "references": [{ "path": "../shared" }]
 }

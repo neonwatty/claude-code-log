@@ -150,8 +150,8 @@ export class OptimizedSessionOrganizer {
       const sessionInfo = await this.createOptimizedSessionInfo(sessionId, sessionEntries);
       yield sessionInfo;
       
-      // Release memory after yielding
-      this.releaseSessionInfo(sessionInfo);
+      // Note: Don't release session info back to pool as the caller might still need the data
+      // The caller should handle cleanup if needed
     }
   }
 
@@ -303,7 +303,7 @@ export class OptimizedSessionOrganizer {
     
     for (const entry of entries) {
       const sessionId = entry.type === 'summary' 
-        ? (entry as SummaryTranscriptEntry).sessionId || 'unknown'
+        ? 'unknown'
         : entry.sessionId;
         
       if (!sessions.has(sessionId)) {
@@ -429,7 +429,7 @@ export class OptimizedSessionOrganizer {
    * Extract session summary efficiently with caching
    */
   private extractSessionSummaryEfficient(entries: TranscriptEntry[]): string {
-    const summaryKey = `summary-${entries.length}-${entries[0]?.uuid || 'unknown'}`;
+    const summaryKey = `summary-${entries.length}-${entries[0] && 'uuid' in entries[0] ? entries[0].uuid : 'unknown'}`;
     const cached = this.summaryCache.get(summaryKey);
     if (cached) return cached;
 
@@ -478,8 +478,9 @@ export class OptimizedSessionOrganizer {
     // Create a simple hash-like key based on entry count and first/last UUIDs
     if (entries.length === 0) return 'empty';
     
-    const first = entries[0].uuid;
-    const last = entries[entries.length - 1].uuid;
+    const first = 'uuid' in entries[0] ? entries[0].uuid : (entries[0] as SummaryTranscriptEntry).leafUuid;
+    const lastEntry = entries[entries.length - 1];
+    const last = 'uuid' in lastEntry ? lastEntry.uuid : (lastEntry as SummaryTranscriptEntry).leafUuid;
     return `${entries.length}-${first}-${last}`;
   }
 }

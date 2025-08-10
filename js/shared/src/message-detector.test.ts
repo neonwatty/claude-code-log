@@ -21,7 +21,7 @@ function createValidUserMessage(overrides: Record<string, any> = {}) {
   return {
     type: 'user',
     timestamp: '2025-07-03T15:50:07.874717Z',
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',
@@ -40,7 +40,7 @@ function createValidAssistantMessage(overrides: Record<string, any> = {}) {
   return {
     type: 'assistant',
     timestamp: '2025-07-03T15:52:07.874717Z',
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',
@@ -73,7 +73,7 @@ function createValidSystemMessage(overrides: Record<string, any> = {}) {
   return {
     type: 'system',
     timestamp: '2025-07-03T15:50:07.874717Z',
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'external',
     cwd: '/tmp',
@@ -142,7 +142,7 @@ describe('Message Type Detection', () => {
 
     it('should handle invalid message structure', () => {
       const invalidData = createValidUserMessage();
-      delete invalidData.timestamp; // Make it invalid
+      delete (invalidData as any).timestamp; // Make it invalid
       
       const result = detectMessageType(invalidData);
 

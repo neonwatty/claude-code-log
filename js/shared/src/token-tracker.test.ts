@@ -15,13 +15,14 @@ import {
   type ModelPricing,
 } from './token-tracker';
 import { detectMessageType } from './message-detector';
+import { type ToolUseContent, type ThinkingContent } from './index';
 
 // Test data helpers
 function createAssistantMessage(usage: any, overrides: Record<string, any> = {}) {
   return {
     type: 'assistant',
     timestamp: '2025-07-03T15:52:07.874717Z',
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',
@@ -44,7 +45,7 @@ function createUserMessage(overrides: Record<string, any> = {}) {
   return {
     type: 'user',
     timestamp: '2025-07-03T15:50:07.874717Z',
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',
@@ -326,7 +327,7 @@ describe('Token Tracker', () => {
         content: [
           { type: 'text', text: 'Let me use a tool' },
           { type: 'tool_use', id: 'tool1', name: 'Read', input: {} }
-        ],
+        ] as any[],
       };
       
       const thinkingMsg = createAssistantMessage({
@@ -340,7 +341,7 @@ describe('Token Tracker', () => {
         content: [
           { type: 'thinking', thinking: 'Let me think...' },
           { type: 'text', text: 'Here is my response' }
-        ],
+        ] as any[],
       };
       
       const entries = [

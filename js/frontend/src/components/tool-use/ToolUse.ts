@@ -475,6 +475,20 @@ export class ToolUse extends BaseComponent {
   @state()
   private thinkingExpanded = false;
 
+  constructor() {
+    super();
+    // Fallback for test environment where decorators might fail
+    if (typeof this.compact === 'undefined') {
+      this.compact = false;
+    }
+    if (typeof this.collapsible === 'undefined') {
+      this.collapsible = true;
+    }
+    if (typeof this.defaultCollapsed === 'undefined') {
+      this.defaultCollapsed = false;
+    }
+  }
+
   protected firstUpdated() {
     this.expanded = !this.defaultCollapsed;
   }

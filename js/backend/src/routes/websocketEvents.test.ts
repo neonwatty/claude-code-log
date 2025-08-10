@@ -33,25 +33,48 @@ describe('WebSocket Event System REST API', () => {
     });
   });
 
-  afterEach(() => {
-    return new Promise<void>((resolve) => {
+  afterEach(async () => {
+    // Comprehensive cleanup with timeout protection
+    const cleanup = async () => {
+      // Force close WebSocket service
       if (webSocketService) {
-        webSocketService.close().then(() => {
-          if (httpServer) {
-            httpServer.close(() => {
-              resolve();
-            });
-          } else {
-            resolve();
-          }
-        });
-      } else if (httpServer) {
-        httpServer.close(() => {
-          resolve();
-        });
-      } else {
-        resolve();
+        try {
+          await webSocketService.close();
+        } catch (error) {
+          console.warn('WebSocket service close error:', error);
+        }
       }
+      
+      // Force close HTTP server
+      if (httpServer?.listening) {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('HTTP server close timeout'));
+          }, 2000);
+          
+          httpServer.close((err) => {
+            clearTimeout(timeout);
+            if (err) reject(err);
+            else resolve();
+          });
+        }).catch(error => {
+          console.warn('HTTP server close error:', error);
+          httpServer.closeAllConnections?.();
+        });
+      }
+      
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 10));
+    };
+    
+    // Apply overall timeout to cleanup
+    await Promise.race([
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('WebSocket routes cleanup timeout')), 3000)
+      )
+    ]).catch(error => {
+      console.warn('WebSocket routes cleanup failed:', error);
     });
   });
 

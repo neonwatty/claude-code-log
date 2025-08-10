@@ -16,7 +16,7 @@ function createUserMessage(sessionId: string, timestamp: string, content: string
   return {
     type: 'user',
     timestamp,
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd,
@@ -34,7 +34,7 @@ function createAssistantMessage(sessionId: string, timestamp: string, content: s
   return {
     type: 'assistant',
     timestamp,
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd,

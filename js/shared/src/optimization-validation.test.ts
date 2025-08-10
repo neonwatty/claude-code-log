@@ -34,7 +34,7 @@ function generateValidationEntries(count: number): TranscriptEntry[] {
       entries.push({
         type: 'user',
         timestamp: new Date(Date.now() + i * 1000).toISOString(),
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',
@@ -50,7 +50,7 @@ function generateValidationEntries(count: number): TranscriptEntry[] {
       entries.push({
         type: 'assistant',
         timestamp: new Date(Date.now() + i * 1000).toISOString(),
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',

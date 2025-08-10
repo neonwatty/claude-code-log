@@ -57,20 +57,51 @@ describe('FileSystemMonitor', () => {
   });
 
   afterEach(async () => {
-    // Stop monitor and clean up
-    if (monitor) {
-      await monitor.stop();
-    }
-
-    // Clean up test files
-    try {
-      const files = await fs.readdir(testDir);
-      for (const file of files) {
-        await fs.unlink(join(testDir, file));
+    // Comprehensive cleanup with timeout protection
+    const cleanup = async () => {
+      // Stop monitor first
+      if (monitor) {
+        try {
+          if (monitor.getStatus().isRunning) {
+            await monitor.stop();
+          }
+        } catch (error) {
+          console.warn('Monitor stop error:', error);
+        }
       }
-    } catch (error) {
-      // Directory might be empty, that's ok
-    }
+      
+      // Remove all event listeners to prevent memory leaks
+      if (monitor) {
+        monitor.removeAllListeners();
+      }
+
+      // Clean up test files
+      try {
+        const files = await fs.readdir(testDir);
+        await Promise.all(files.map(file => 
+          fs.unlink(join(testDir, file)).catch(() => {})
+        ));
+      } catch (error) {
+        // Directory might be empty or not exist, that's ok
+      }
+      
+      // Clear all timers and mocks
+      vi.clearAllTimers();
+      vi.clearAllMocks();
+      
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 10));
+    };
+    
+    // Apply overall timeout to cleanup
+    await Promise.race([
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('FileSystemMonitor cleanup timeout')), 3000)
+      )
+    ]).catch(error => {
+      console.warn('FileSystemMonitor cleanup failed:', error);
+    });
   });
 
   describe('constructor', () => {

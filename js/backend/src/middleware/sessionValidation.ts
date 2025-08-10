@@ -200,7 +200,12 @@ export const validateDirectoryExists = async (req: Request, res: Response, next:
       }
 
       // Store file count for later use
-      req.context = { ...req.context, jsonlFileCount: jsonlFiles.length };
+      req.context = { 
+        startTime: Date.now(),
+        requestId: req.context?.requestId || Math.random().toString(36).substring(2),
+        ...req.context, 
+        jsonlFileCount: jsonlFiles.length 
+      };
     } catch (fsError) {
       throw new FileSystemError(
         `Cannot read directory: ${directoryPath}`,
@@ -303,12 +308,12 @@ export function createRateLimiter(limiter: RateLimiter, keyGenerator: (req: Requ
  */
 export const rateLimiters = {
   parse: createRateLimiter(parseRateLimiter, req => 
-    req.ip + ':' + (req.body?.directoryPath || req.query?.directoryPath || 'unknown')
+    (req.ip || 'unknown') + ':' + (req.body?.directoryPath || req.query?.directoryPath || 'unknown')
   ),
   analytics: createRateLimiter(analyticsRateLimiter, req => 
-    req.ip + ':' + (req.body?.directoryPath || req.query?.directoryPath || 'unknown')
+    (req.ip || 'unknown') + ':' + (req.body?.directoryPath || req.query?.directoryPath || 'unknown')
   ),
-  general: createRateLimiter(new RateLimiter(20, 60000), req => req.ip), // 20 requests per minute
+  general: createRateLimiter(new RateLimiter(20, 60000), req => req.ip || 'unknown'), // 20 requests per minute
 };
 
 /**
@@ -320,7 +325,7 @@ export const addRequestContext = (req: Request, res: Response, next: NextFunctio
     requestId: Math.random().toString(36).substring(2),
   };
   
-  res.set('X-Request-ID', req.context.requestId);
+  res.set('X-Request-ID', req.context!.requestId);
   next();
 };
 

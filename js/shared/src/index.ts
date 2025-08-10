@@ -155,7 +155,7 @@ export interface AssistantMessage {
   model: string;
   content: ContentItem[];
   stop_reason?: string;
-  stop_sequence?: string;
+  stop_sequence?: string | null;
   usage?: UsageInfo;
 }
 
@@ -203,7 +203,7 @@ export type ToolUseResult =
   | ContentItem[];
 
 export interface BaseTranscriptEntry {
-  parentUuid?: string;
+  parentUuid?: string | null;
   isSidechain: boolean;
   userType: string;
   cwd: string;
@@ -296,14 +296,15 @@ export {
 
 // Export token tracking functionality
 export {
-  trackTokenUsage,
+  extractTokenUsage,
   trackSessionUsage,
-  aggregateTokenUsage,
-  TokenUsageTracker,
-  type TokenUsageInfo,
-  type TokenCostEstimate,
+  aggregateUsage,
+  trackProjectUsage,
+  type ExtendedUsageInfo,
   type SessionTokenUsage,
-  type TokenTrackerOptions,
+  type ProjectTokenUsage,
+  type TokenUsageTimepoint,
+  type TokenUsageByType,
 } from './token-tracker';
 
 // Export content parsing functionality

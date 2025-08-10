@@ -358,7 +358,7 @@ export class SyntaxHighlighter extends BaseComponent {
   /**
    * Theme for syntax highlighting
    */
-  @property({ type: String })
+  @property({ type: String, reflect: true })
   theme: SyntaxTheme = 'auto';
 
   /**
@@ -424,6 +424,44 @@ export class SyntaxHighlighter extends BaseComponent {
   @state()
   private isLargeContent = false;
 
+  constructor() {
+    super();
+    // Fallback for test environment where decorators might fail
+    if (typeof this.code === 'undefined') {
+      this.code = '';
+    }
+    if (typeof this.language === 'undefined') {
+      this.language = '';
+    }
+    if (typeof this.theme === 'undefined') {
+      this.theme = 'auto';
+    }
+    if (typeof this.lineNumbers === 'undefined') {
+      this.lineNumbers = false;
+    }
+    if (typeof this.showHeader === 'undefined') {
+      this.showHeader = true;
+    }
+    if (typeof this.copyable === 'undefined') {
+      this.copyable = true;
+    }
+    if (typeof this.compact === 'undefined') {
+      this.compact = false;
+    }
+    if (typeof this.maxHeight === 'undefined') {
+      this.maxHeight = '';
+    }
+    if (typeof this.highlightLines === 'undefined') {
+      this.highlightLines = [];
+    }
+    if (typeof this.detection === 'undefined') {
+      this.detection = 'auto';
+    }
+    if (typeof this.wrapLines === 'undefined') {
+      this.wrapLines = false;
+    }
+  }
+
   protected updated(changedProperties: Map<string, any>) {
     if (changedProperties.has('code') || 
         changedProperties.has('language') || 
@@ -431,6 +469,20 @@ export class SyntaxHighlighter extends BaseComponent {
       this.highlightCode();
     }
 
+    if (changedProperties.has('theme')) {
+      this.updateTheme();
+    }
+  }
+
+  protected firstUpdated(changedProperties: Map<string, any>) {
+    super.firstUpdated(changedProperties);
+    // Ensure theme is set on first render
+    this.updateTheme();
+  }
+
+  protected willUpdate(changedProperties: Map<PropertyKey, unknown>) {
+    super.willUpdate(changedProperties);
+    // Also update theme before render if theme property changed
     if (changedProperties.has('theme')) {
       this.updateTheme();
     }
@@ -664,6 +716,9 @@ export class SyntaxHighlighter extends BaseComponent {
 
   connectedCallback() {
     super.connectedCallback();
+    
+    // Set initial theme attribute
+    this.updateTheme();
     
     // Listen for theme changes
     if (this.theme === 'auto') {

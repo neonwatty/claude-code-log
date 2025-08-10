@@ -4,11 +4,20 @@ import { resolve } from 'path';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'happy-dom',
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
+  },
+  // Remove esbuild config and rely on TypeScript configuration
+  // which already has proper decorator settings
+  define: {
+    // Ensure proper decorator support and test environment
+    'process.env.NODE_ENV': '"test"',
+    // Lit development mode configuration for tests
+    'process.env.LIT_DEV_MODE': 'true',
   },
   resolve: {
     alias: {

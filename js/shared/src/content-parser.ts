@@ -75,9 +75,7 @@ const DEFAULT_OPTIONS: Required<ContentParsingOptions> = {
  * HTML escape utility function
  */
 function escapeHtml(text: string): string {
-  const div = document?.createElement('div') || { textContent: '' };
-  div.textContent = text;
-  return div.innerHTML || text
+  return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

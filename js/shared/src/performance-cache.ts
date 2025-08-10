@@ -41,7 +41,9 @@ export class ParsedContentCache {
     // Remove oldest entries if at capacity
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, {
@@ -86,7 +88,9 @@ export class SessionCache {
   set(key: string, value: SessionInfo[]): void {
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, {
@@ -157,7 +161,7 @@ export class LazyContentLoader {
 
   private generateKey(entry: TranscriptEntry): string {
     // Generate unique key based on entry content
-    return `${entry.type}-${entry.uuid}-${entry.timestamp}`;
+    return `${entry.type}-${'uuid' in entry ? entry.uuid : entry.leafUuid || 'no-uuid'}-${'timestamp' in entry ? entry.timestamp : 'no-timestamp'}`;
   }
 
   clearCache(): void {

@@ -9,7 +9,7 @@ function createUserEntry(id: string, text: string, timestamp = '2025-07-03T15:50
   return {
     type: 'user',
     timestamp,
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',
@@ -27,7 +27,7 @@ function createAssistantEntry(id: string, text: string, timestamp = '2025-07-03T
   return {
     type: 'assistant',
     timestamp,
-    parentUuid: null,
+    parentUuid: undefined,
     isSidechain: false,
     userType: 'human',
     cwd: '/tmp',

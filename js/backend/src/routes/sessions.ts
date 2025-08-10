@@ -14,13 +14,21 @@ import {
   OptimizedSessionOptions,
   OptimizedParsingOptions,
 } from '@app/shared';
+import { 
+  validateSchema, 
+  sessionValidationSchemas, 
+  validateDirectoryExists,
+  addRequestContext,
+  trackResponseTime,
+  sessionErrorHandler
+} from '../middleware/sessionValidation';
 
 const router = Router();
 
 /**
  * Session service for handling JSONL parsing and session organization
  */
-class SessionService {
+export class SessionService {
   private static cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
   
   /**
@@ -82,7 +90,7 @@ class SessionService {
         try {
           const result = await parser.parseFile(filePath);
           allEntries.push(...result.entries);
-          allErrors.push(...result.errors.map(err => ({ ...err, file })));
+          allErrors.push(...result.errors.map((err: any) => ({ ...err, file })));
         } catch (error) {
           allErrors.push({
             file,
@@ -219,7 +227,7 @@ function validateDirectoryPath(req: Request, res: Response, next: NextFunction) 
  * GET /api/sessions/parse
  * Parse JSONL files from a directory and return raw entries
  */
-router.post('/parse', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/parse', validateSchema(sessionValidationSchemas.directoryPath), async (req: Request, res: Response) => {
   try {
     const { directoryPath } = req.body;
     
@@ -247,7 +255,7 @@ router.post('/parse', validateDirectoryPath, async (req: Request, res: Response)
  * POST /api/sessions/organize
  * Organize entries into sessions
  */
-router.post('/organize', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/organize', validateSchema(sessionValidationSchemas.sessionOptions), async (req: Request, res: Response) => {
   try {
     const { directoryPath, options = {} } = req.body;
     
@@ -262,7 +270,7 @@ router.post('/organize', validateDirectoryPath, async (req: Request, res: Respon
       data: {
         sessions,
         totalSessions: sessions.length,
-        totalMessages: sessions.reduce((sum, s) => sum + s.messageCount, 0),
+        totalMessages: sessions.reduce((sum: number, s: any) => sum + s.messageCount, 0),
         parsingErrors: parseResult.errors,
       },
     });
@@ -278,7 +286,7 @@ router.post('/organize', validateDirectoryPath, async (req: Request, res: Respon
  * POST /api/sessions/project
  * Get project-level organization and analytics
  */
-router.post('/project', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/project', validateSchema(sessionValidationSchemas.directoryPath), async (req: Request, res: Response) => {
   try {
     const { directoryPath } = req.body;
     
@@ -363,7 +371,7 @@ router.get('/:sessionId', async (req: Request, res: Response) => {
  * POST /api/sessions/directory
  * Get sessions filtered by working directory
  */
-router.post('/directory', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/directory', validateSchema(sessionValidationSchemas.workingDirectoryFilter), async (req: Request, res: Response) => {
   try {
     const { directoryPath, workingDirectory } = req.body;
     
@@ -389,7 +397,7 @@ router.post('/directory', validateDirectoryPath, async (req: Request, res: Respo
         sessions: filteredSessions,
         workingDirectory,
         totalSessions: filteredSessions.length,
-        totalMessages: filteredSessions.reduce((sum, s) => sum + s.messageCount, 0),
+        totalMessages: filteredSessions.reduce((sum: number, s: any) => sum + s.messageCount, 0),
       },
     });
   } catch (error) {
@@ -426,7 +434,7 @@ router.delete('/cache', (req: Request, res: Response) => {
  */
 router.get('/cache/status', (req: Request, res: Response) => {
   try {
-    const cacheEntries = Array.from((SessionService as any).cache.entries());
+    const cacheEntries = Array.from((SessionService as any).cache.entries()) as [string, any][];
     const cacheStatus = {
       size: cacheEntries.length,
       entries: cacheEntries.map(([key, entry]: [string, any]) => ({
@@ -449,5 +457,8 @@ router.get('/cache/status', (req: Request, res: Response) => {
     });
   }
 });
+
+// Add error handler middleware
+router.use(sessionErrorHandler);
 
 export default router;

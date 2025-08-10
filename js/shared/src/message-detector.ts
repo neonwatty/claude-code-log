@@ -176,11 +176,11 @@ export function classifyMessageContent(entry: TranscriptEntry): {
   complexity: 'simple' | 'moderate' | 'complex';
 } {
   const result = {
-    category: 'conversational' as const,
+    category: 'conversational' as 'conversational' | 'tool-use' | 'meta' | 'system-notification',
     hasToolUse: false,
     hasThinking: false,
     hasImages: false,
-    complexity: 'simple' as const,
+    complexity: 'simple' as 'simple' | 'moderate' | 'complex',
   };
 
   // Handle different message types

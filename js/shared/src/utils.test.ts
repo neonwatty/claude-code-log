@@ -100,7 +100,7 @@ describe('Utility Functions', () => {
     it('should parse valid user transcript entry', () => {
       const userData = {
         type: 'user',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/project',
@@ -122,7 +122,7 @@ describe('Utility Functions', () => {
     it('should parse valid assistant transcript entry', () => {
       const assistantData = {
         type: 'assistant',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'assistant',
         cwd: '/project',
@@ -157,7 +157,7 @@ describe('Utility Functions', () => {
       const entries: TranscriptEntry[] = [
         {
           type: 'assistant',
-          parentUuid: null,
+          parentUuid: undefined,
           isSidechain: false,
           userType: 'assistant',
           cwd: '/project',
@@ -176,7 +176,7 @@ describe('Utility Functions', () => {
         } as AssistantTranscriptEntry,
         {
           type: 'assistant',
-          parentUuid: null,
+          parentUuid: undefined,
           isSidechain: false,
           userType: 'assistant',
           cwd: '/project',

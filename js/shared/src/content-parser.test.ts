@@ -309,7 +309,7 @@ describe('Content Parser', () => {
       const userEntry = {
         type: 'user',
         timestamp: '2025-07-03T15:50:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',
@@ -339,7 +339,7 @@ describe('Content Parser', () => {
       const assistantEntry = {
         type: 'assistant',
         timestamp: '2025-07-03T15:51:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',
@@ -378,7 +378,7 @@ describe('Content Parser', () => {
       const systemEntry = {
         type: 'system',
         timestamp: '2025-07-03T15:52:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',
@@ -402,7 +402,7 @@ describe('Content Parser', () => {
       const sidechainEntry = {
         type: 'assistant',
         timestamp: '2025-07-03T15:53:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: true, // This makes it a sidechain message
         userType: 'human',
         cwd: '/tmp',
@@ -430,7 +430,7 @@ describe('Content Parser', () => {
       const userEntry = {
         type: 'user',
         timestamp: '2025-07-03T15:50:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',

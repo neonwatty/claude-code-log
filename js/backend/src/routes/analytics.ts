@@ -2,21 +2,25 @@ import { Router } from 'express';
 import { Request, Response, NextFunction } from 'express';
 import { 
   JsonlParser,
-  aggregateTokenUsage,
-  TokenUsageTracker,
+  aggregateUsage,
   organizeIntoSessionsOptimized,
   parseTranscriptEntriesOptimized,
   SessionInfo,
-  TokenUsageInfo,
+  ExtendedUsageInfo,
   SessionTokenUsage,
 } from '@app/shared';
+import { 
+  validateSchema, 
+  sessionValidationSchemas, 
+  sessionErrorHandler
+} from '../middleware/sessionValidation';
 
 const router = Router();
 
 /**
  * Analytics service for processing session and usage data
  */
-class AnalyticsService {
+export class AnalyticsService {
   private static cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
   
   /**
@@ -71,8 +75,12 @@ class AnalyticsService {
       const filePath = join(directoryPath, file);
       try {
         const result = await parser.parseFile(filePath);
-        allEntries.push(...result.entries);
-        allErrors.push(...result.errors.map(err => ({ ...err, file })));
+        if (result.entries && Array.isArray(result.entries)) {
+          allEntries.push(...result.entries);
+        }
+        if (result.errors && Array.isArray(result.errors)) {
+          allErrors.push(...result.errors.map((err: any) => ({ ...err, file })));
+        }
       } catch (error) {
         allErrors.push({
           file,
@@ -83,7 +91,7 @@ class AnalyticsService {
       }
     }
 
-    return { entries: allEntries, errors: allErrors, fileCount: jsonlFiles.length };
+    return { entries: allEntries || [], errors: allErrors || [], fileCount: jsonlFiles.length };
   }
 
   /**
@@ -114,17 +122,23 @@ class AnalyticsService {
     if (cached) return cached;
 
     try {
+      if (!entries || !Array.isArray(entries)) {
+        throw new Error(`Invalid entries parameter: expected array, got ${typeof entries}`);
+      }
+      
       // Organize into sessions
       const sessions = await organizeIntoSessionsOptimized(entries, {
         includeTokenUsage: true,
         useCache: true,
       });
+      
 
       // Calculate total usage
-      const totalUsage = aggregateTokenUsage(entries);
+      const validEntries = entries.filter(entry => entry && typeof entry === 'object');
+      const totalUsage = aggregateUsage(validEntries);
 
       // Session breakdown
-      const sessionBreakdown = sessions.map(session => ({
+      const sessionBreakdown = sessions.map((session: any) => ({
         sessionId: session.sessionId,
         usage: session.tokenUsage || {
           input_tokens: 0,
@@ -138,7 +152,7 @@ class AnalyticsService {
       // Daily usage aggregation
       const dailyMap = new Map<string, { usage: SessionTokenUsage; sessionIds: Set<string> }>();
       
-      sessions.forEach(session => {
+      sessions.forEach((session: any) => {
         if (session.timeRange.start && session.tokenUsage) {
           const date = session.timeRange.start.toISOString().split('T')[0];
           
@@ -293,10 +307,10 @@ class AnalyticsService {
       let totalMessageLength = 0;
       let messageCount = 0;
 
-      messages.forEach(message => {
+      messages.forEach((message: any) => {
         // Tool usage
         if (message.hasToolUse) {
-          message.parsedContent.forEach(content => {
+          message.parsedContent.forEach((content: any) => {
             if (content.type === 'tool_use' && content.metadata?.toolName) {
               toolUsageMap.set(
                 content.metadata.toolName,
@@ -308,8 +322,8 @@ class AnalyticsService {
 
         // Message length
         const textContent = message.parsedContent
-          .filter(c => c.type === 'text' || c.type === 'markdown')
-          .map(c => c.content)
+          .filter((c: any) => c.type === 'text' || c.type === 'markdown')
+          .map((c: any) => c.content)
           .join(' ');
         totalMessageLength += textContent.length;
         messageCount++;
@@ -347,7 +361,7 @@ class AnalyticsService {
       const sessionDurations: number[] = [];
       const sessionMessageCounts: number[] = [];
 
-      sessions.forEach(session => {
+      sessions.forEach((session: any) => {
         sessionMessageCounts.push(session.messageCount);
         
         if (session.timeRange.start && session.timeRange.end) {
@@ -464,39 +478,16 @@ class AnalyticsService {
   }
 }
 
-/**
- * Middleware for validating directory path
- */
-function validateDirectoryPath(req: Request, res: Response, next: NextFunction) {
-  const { directoryPath } = req.body;
-  
-  if (!directoryPath || typeof directoryPath !== 'string') {
-    return res.status(400).json({
-      success: false,
-      error: 'Directory path is required and must be a string',
-    });
-  }
-  
-  if (directoryPath.includes('..') || directoryPath.includes('~')) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid directory path',
-    });
-  }
-  
-  next();
-}
 
 /**
  * POST /api/analytics/tokens
  * Get comprehensive token usage analytics
  */
-router.post('/tokens', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/tokens', validateSchema(sessionValidationSchemas.directoryPath), async (req: Request, res: Response) => {
   try {
     const { directoryPath } = req.body;
-    
     const parseResult = await AnalyticsService.parseJsonlFiles(directoryPath);
-    const analytics = await AnalyticsService.calculateTokenAnalytics(parseResult.entries);
+    const analytics = await AnalyticsService.calculateTokenAnalytics(parseResult.entries || []);
     
     res.json({
       success: true,
@@ -521,7 +512,7 @@ router.post('/tokens', validateDirectoryPath, async (req: Request, res: Response
  * POST /api/analytics/patterns
  * Get usage patterns and insights
  */
-router.post('/patterns', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/patterns', validateSchema(sessionValidationSchemas.directoryPath), async (req: Request, res: Response) => {
   try {
     const { directoryPath } = req.body;
     
@@ -551,7 +542,7 @@ router.post('/patterns', validateDirectoryPath, async (req: Request, res: Respon
  * POST /api/analytics/summary
  * Get high-level summary analytics
  */
-router.post('/summary', validateDirectoryPath, async (req: Request, res: Response) => {
+router.post('/summary', validateSchema(sessionValidationSchemas.directoryPath), async (req: Request, res: Response) => {
   try {
     const { directoryPath } = req.body;
     
@@ -626,5 +617,8 @@ router.delete('/cache', (req: Request, res: Response) => {
     });
   }
 });
+
+// Add error handler middleware
+router.use(sessionErrorHandler);
 
 export default router;

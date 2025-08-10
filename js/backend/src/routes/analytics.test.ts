@@ -4,6 +4,7 @@ import express from 'express';
 import { promises as fs } from 'fs';
 import analyticsRoutes from './analytics';
 import { sessionErrorHandler } from '../middleware/sessionValidation';
+import { AnalyticsService } from './analytics';
 
 // Mock the shared module
 vi.mock('@app/shared', () => ({
@@ -90,24 +91,14 @@ vi.mock('@app/shared', () => ({
       },
     },
   ]),
-  aggregateTokenUsage: vi.fn().mockReturnValue({
+  aggregateUsage: vi.fn().mockReturnValue({
     input_tokens: 100,
     output_tokens: 150,
     total_tokens: 250,
   }),
 }));
 
-// Mock fs module
-vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs');
-  return {
-    ...actual,
-    promises: {
-      readdir: vi.fn().mockResolvedValue(['test1.jsonl', 'test2.jsonl']),
-      stat: vi.fn().mockResolvedValue({ isDirectory: () => true }),
-    },
-  };
-});
+// AnalyticsService will be mocked at the service level in beforeEach
 
 describe('Analytics API', () => {
   let app: express.Application;
@@ -121,6 +112,106 @@ describe('Analytics API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock AnalyticsService methods
+    vi.spyOn(AnalyticsService, 'parseJsonlFiles').mockResolvedValue({
+      entries: [
+        {
+          type: 'user',
+          timestamp: '2025-01-01T10:00:00Z',
+          sessionId: 'test-session-1',
+          uuid: 'user-1',
+          message: { role: 'user', content: 'Hello' },
+          cwd: '/test/directory',
+        },
+        {
+          type: 'assistant',
+          timestamp: '2025-01-01T10:00:30Z',
+          sessionId: 'test-session-1',
+          uuid: 'assistant-1',
+          message: {
+            id: 'assistant-1',
+            role: 'assistant',
+            model: 'claude-3-sonnet-20240229',
+            content: [
+              { type: 'text', text: 'Hello back!' },
+              { type: 'tool_use', id: 'tool1', name: 'Read', input: { file_path: '/test.txt' } }
+            ],
+            usage: { input_tokens: 100, output_tokens: 150 },
+          },
+          cwd: '/test/directory',
+        },
+      ],
+      errors: [],
+      fileCount: 2,
+    });
+
+    vi.spyOn(AnalyticsService, 'calculateTokenAnalytics').mockResolvedValue({
+      totalUsage: {
+        input_tokens: 100,
+        output_tokens: 150,
+        total_tokens: 250,
+      },
+      sessionBreakdown: [
+        {
+          sessionId: 'test-session-1',
+          usage: { input_tokens: 100, output_tokens: 150, total_tokens: 250 },
+          messageCount: 2,
+          timeRange: {
+            start: '2025-01-01T10:00:00Z',
+            end: '2025-01-01T10:00:30Z',
+          },
+        }
+      ],
+      dailyUsage: [
+        {
+          date: '2025-01-01',
+          usage: { input_tokens: 100, output_tokens: 150, total_tokens: 250 },
+          messageCount: 2,
+        }
+      ],
+      modelBreakdown: {
+        'claude-3-sonnet-20240229': {
+          usage: { input_tokens: 100, output_tokens: 150, total_tokens: 250 },
+          messageCount: 1,
+        }
+      },
+      costEstimates: {
+        total: 0.15,
+        byDay: [{ date: '2025-01-01', cost: 0.15 }],
+        byModel: { 'claude-3-sonnet-20240229': 0.15 },
+      },
+    });
+
+    vi.spyOn(AnalyticsService, 'calculateUsagePatterns').mockResolvedValue({
+      timePatterns: {
+        hourlyDistribution: [
+          { hour: 10, messageCount: 2, tokenCount: 250 }
+        ],
+        dayOfWeekDistribution: [
+          { day: 1, dayName: 'Monday', messageCount: 2 }
+        ],
+        monthlyTrends: [
+          { month: '2025-01', messageCount: 2, sessionCount: 1 }
+        ],
+      },
+      contentPatterns: {
+        avgMessageLength: 50,
+        toolUsageFrequency: { 'Read': 1 },
+        mostActiveDirectories: [
+          { directory: '/test/directory', messageCount: 2, sessionCount: 1 }
+        ],
+      },
+      sessionPatterns: {
+        avgSessionLength: 2,
+        sessionDurationDistribution: [
+          { range: '0-30min', count: 1 }
+        ],
+        messagesPerSession: [
+          { range: '1-5', count: 1 }
+        ],
+      },
+    });
   });
 
   describe('POST /api/analytics/tokens', () => {
@@ -184,7 +275,7 @@ describe('Analytics API', () => {
     it('should handle analytics calculation errors', async () => {
       // Mock an error in token usage aggregation
       const mockAggregate = vi.mocked(
-        (await import('@app/shared')).aggregateTokenUsage
+        (await import('@app/shared')).aggregateUsage
       );
       mockAggregate.mockImplementationOnce(() => {
         throw new Error('Calculation failed');
@@ -492,7 +583,7 @@ describe('Analytics API', () => {
       }) as any);
 
       const mockAggregate = vi.mocked(
-        (await import('@app/shared')).aggregateTokenUsage
+        (await import('@app/shared')).aggregateUsage
       );
       mockAggregate.mockReturnValueOnce({
         input_tokens: 0,

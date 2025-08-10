@@ -261,6 +261,23 @@ export class ThinkingDisplay extends BaseComponent {
   @state()
   private textExpanded = false;
 
+  constructor() {
+    super();
+    // Fallback for test environment where decorators might fail
+    if (typeof this.collapsible === 'undefined') {
+      this.collapsible = true;
+    }
+    if (typeof this.defaultCollapsed === 'undefined') {
+      this.defaultCollapsed = true;
+    }
+    if (typeof this.compact === 'undefined') {
+      this.compact = false;
+    }
+    if (typeof this.truncateThreshold === 'undefined') {
+      this.truncateThreshold = 500;
+    }
+  }
+
   protected firstUpdated() {
     this.expanded = !this.defaultCollapsed;
   }

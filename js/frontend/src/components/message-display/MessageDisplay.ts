@@ -21,8 +21,10 @@ import {
   AssistantMessage,
   UserMessage
 } from '@app/shared';
-import { marked } from 'marked';
 import hljs from 'highlight.js/lib/core';
+import '../markdown-renderer/MarkdownRenderer';
+import { AriaRoles, AriaAttributes, KeyboardKeys, FocusManager, announce, A11yConfig, generateId } from '../utils/accessibility';
+import { useFocusManagement, skipLinkManager } from '../utils/focus-management';
 // Import common languages
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -418,6 +420,72 @@ export class MessageDisplay extends BaseComponent {
         display: none;
       }
 
+      /* Screen reader only content */
+      .sr-only {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      /* Focus management */
+      .message-container:focus {
+        outline: 2px solid var(--color-border-focus);
+        outline-offset: 2px;
+      }
+
+      /* Enhanced button accessibility */
+      .collapse-toggle:focus,
+      .section-header:focus {
+        outline: 2px solid var(--color-border-focus);
+        outline-offset: 2px;
+        background: var(--color-background-tertiary);
+      }
+
+      /* Improve section navigation */
+      .section-header {
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        border: none;
+        background: var(--color-background-secondary);
+        width: 100%;
+        text-align: left;
+        padding: var(--space-sm) var(--space-md);
+      }
+
+      .section-header:hover {
+        background: var(--color-background-tertiary);
+      }
+
+      .section-header:focus-visible {
+        outline: 2px solid var(--color-border-focus);
+        outline-offset: -2px;
+      }
+
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        .message-container {
+          border: 2px solid;
+        }
+        
+        .collapse-toggle,
+        .section-header {
+          border: 1px solid;
+        }
+      }
+
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
       @media (max-width: 768px) {
         .message-header {
           flex-direction: column;
@@ -475,15 +543,30 @@ export class MessageDisplay extends BaseComponent {
   @state()
   private collapsedSections = new Set<string>();
 
-  protected updated(changedProperties: Map<string, any>) {
-    if (changedProperties.has('entry') && this.entry) {
-      this.processMessage();
-    }
-  }
+  @state()
+  private messageId = generateId('message');
+
+  @state()
+  private headerId = generateId('message-header');
+
+  @state()
+  private contentId = generateId('message-content');
+
+  private focusManager = useFocusManagement(`message-${this.messageIndex}`, this, 2);
+
 
   render() {
     if (!this.entry || !this.metadata) {
-      return html`<div class="message-container">Loading...</div>`;
+      return html`
+        <div 
+          class="message-container"
+          role="${AriaRoles.STATUS}"
+          aria-live="polite"
+          aria-label="${A11yConfig.LABELS.LOADING} message"
+        >
+          Loading...
+        </div>
+      `;
     }
 
     const containerClasses = {
@@ -493,8 +576,19 @@ export class MessageDisplay extends BaseComponent {
       'selected': this.selected,
     };
 
+    const messageLabel = this.getMessageLabel();
+
     return html`
-      <div class="${classMap(containerClasses)}">
+      <div 
+        id="${this.messageId}"
+        class="${classMap(containerClasses)}"
+        role="${AriaRoles.ARTICLE}"
+        aria-labelledby="${this.headerId}"
+        aria-describedby="${this.contentId}"
+        tabindex="0"
+        @keydown=${this.handleMessageKeydown}
+        @focus=${this.handleMessageFocus}
+      >
         ${this.renderHeader()}
         ${this.renderContent()}
       </div>
@@ -504,36 +598,56 @@ export class MessageDisplay extends BaseComponent {
   private renderHeader() {
     if (!this.metadata) return '';
 
+    const collapseButtonId = generateId('collapse-btn');
+
     return html`
-      <div class="message-header">
+      <header 
+        id="${this.headerId}"
+        class="message-header"
+        role="${AriaRoles.BANNER}"
+      >
         <div class="message-info">
-          <div class="message-role ${this.entry?.type}">
+          <div 
+            class="message-role ${this.entry?.type}"
+            role="${AriaRoles.STATUS}"
+            aria-label="Message from ${this.entry?.type}"
+          >
             ${this.entry?.type}
           </div>
-          <div class="message-timestamp">
+          <time 
+            class="message-timestamp"
+            datetime="${this.metadata.timestamp.toISOString()}"
+            aria-label="Sent at ${this.formatTimestamp(this.metadata.timestamp)}"
+          >
             ${this.formatTimestamp(this.metadata.timestamp)}
-          </div>
+          </time>
         </div>
-        <div class="message-meta">
+        <div class="message-meta" role="group" aria-label="Message metadata">
           ${this.renderBadges()}
           ${this.processedContent.length > 1 ? html`
             <button 
+              id="${collapseButtonId}"
               class="collapse-toggle ${this.collapsed ? 'collapsed' : ''}"
+              type="button"
+              aria-expanded="${!this.collapsed}"
+              aria-controls="${this.contentId}"
+              aria-label="${this.collapsed ? A11yConfig.LABELS.EXPAND : A11yConfig.LABELS.COLLAPSE} message content"
               @click=${this.toggleCollapse}
-              title="${this.collapsed ? 'Expand' : 'Collapse'} message"
+              @keydown=${this.handleCollapseKeydown}
             >
-              ▼
+              <span aria-hidden="true">▼</span>
+              <span class="sr-only">${this.collapsed ? 'Expand' : 'Collapse'} message</span>
             </button>
           ` : ''}
         </div>
-      </div>
+      </header>
     `;
   }
 
   private renderBadges() {
     if (!this.metadata) return '';
 
-    const badges = [];
+    const badges: any[] = [];
 
     if (this.metadata.hasToolUse) {
       badges.push(html`<div class="badge tools">Tools</div>`);
@@ -561,7 +675,14 @@ export class MessageDisplay extends BaseComponent {
     };
 
     return html`
-      <div class="${classMap(contentClasses)}">
+      <div 
+        id="${this.contentId}"
+        class="${classMap(contentClasses)}"
+        role="${AriaRoles.REGION}"
+        aria-label="Message content"
+        aria-hidden="${this.collapsed}"
+        @keydown=${this.handleContentKeydown}
+      >
         ${this.processedContent.map((content, index) => this.renderContentItem(content, index))}
       </div>
     `;
@@ -569,19 +690,40 @@ export class MessageDisplay extends BaseComponent {
 
   private renderContentItem(content: ProcessedContent, index: number) {
     const sectionId = `section-${index}`;
+    const headerId = `${sectionId}-header`;
+    const contentSectionId = `${sectionId}-content`;
     const isCollapsed = this.collapsedSections.has(sectionId);
 
     if (content.collapsible) {
+      const title = this.getContentTitle(content);
+      
       return html`
-        <div class="content-item collapsible-section">
-          <div 
+        <div 
+          class="content-item collapsible-section"
+          role="${AriaRoles.REGION}"
+          aria-labelledby="${headerId}"
+        >
+          <button 
+            id="${headerId}"
             class="section-header"
+            type="button"
+            role="button"
+            aria-expanded="${!isCollapsed}"
+            aria-controls="${contentSectionId}"
+            aria-label="${isCollapsed ? A11yConfig.LABELS.EXPAND : A11yConfig.LABELS.COLLAPSE} ${title}"
             @click=${() => this.toggleSection(sectionId)}
+            @keydown=${(e: KeyboardEvent) => this.handleSectionKeydown(e, sectionId)}
           >
-            <div class="section-title">${this.getContentTitle(content)}</div>
-            <div class="collapse-toggle ${isCollapsed ? 'collapsed' : ''}">▼</div>
-          </div>
-          <div class="section-content ${isCollapsed ? 'collapsed' : ''}">
+            <div class="section-title">${title}</div>
+            <div class="collapse-toggle ${isCollapsed ? 'collapsed' : ''}" aria-hidden="true">▼</div>
+          </button>
+          <div 
+            id="${contentSectionId}"
+            class="section-content ${isCollapsed ? 'collapsed' : ''}"
+            role="${AriaRoles.REGION}"
+            aria-hidden="${isCollapsed}"
+            aria-labelledby="${headerId}"
+          >
             ${this.renderContentByType(content)}
           </div>
         </div>
@@ -589,7 +731,11 @@ export class MessageDisplay extends BaseComponent {
     }
 
     return html`
-      <div class="content-item">
+      <div 
+        class="content-item"
+        role="${AriaRoles.REGION}"
+        aria-label="${this.getContentTitle(content)}"
+      >
         ${this.renderContentByType(content)}
       </div>
     `;
@@ -619,7 +765,12 @@ export class MessageDisplay extends BaseComponent {
   private renderTextContent(content: ProcessedContent) {
     return html`
       <div class="text-content">
-        ${unsafeHTML(this.processTextForDisplay(content.content as string))}
+        <markdown-renderer
+          .content=${content.content as string}
+          .gfm=${true}
+          .breaks=${false}
+          .sanitize=${true}
+        ></markdown-renderer>
       </div>
     `;
   }
@@ -685,7 +836,12 @@ export class MessageDisplay extends BaseComponent {
         <div class="thinking-header">
           💭 Thinking
         </div>
-        <div>${thinking.thinking}</div>
+        <markdown-renderer
+          .content=${thinking.thinking}
+          .gfm=${true}
+          .breaks=${true}
+          .sanitize=${true}
+        ></markdown-renderer>
       </div>
     `;
   }
@@ -860,37 +1016,221 @@ export class MessageDisplay extends BaseComponent {
     }
   }
 
-  private processTextForDisplay(text: string): string {
-    try {
-      // Use marked for full markdown processing
-      const result = marked.parse(text);
-      return typeof result === 'string' ? result : String(result);
-    } catch (err) {
-      console.warn('Markdown parsing failed, falling back to basic processing:', err);
-      // Fallback to basic processing
-      return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\n/g, '<br>');
-    }
-  }
 
   private formatTimestamp(timestamp: Date): string {
     return timestamp.toLocaleTimeString();
   }
 
-  private toggleCollapse() {
-    this.collapsed = !this.collapsed;
-  }
 
   private toggleSection(sectionId: string) {
-    if (this.collapsedSections.has(sectionId)) {
+    const wasCollapsed = this.collapsedSections.has(sectionId);
+    
+    if (wasCollapsed) {
       this.collapsedSections.delete(sectionId);
     } else {
       this.collapsedSections.add(sectionId);
     }
+    
     this.requestUpdate();
+    
+    // Announce the state change to screen readers
+    const action = wasCollapsed ? 'expanded' : 'collapsed';
+    const title = this.getContentTitle(this.processedContent.find((_, i) => `section-${i}` === sectionId)!);
+    announce(`${title} ${action}`, 'polite');
+  }
+
+  // Accessibility methods
+
+  private getMessageLabel(): string {
+    if (!this.entry) return 'Message';
+    
+    const role = this.entry.type;
+    const index = this.messageIndex > 0 ? ` ${this.messageIndex + 1}` : '';
+    const timestamp = this.metadata ? this.formatTimestamp(this.metadata.timestamp) : '';
+    
+    return `${role} message${index}${timestamp ? ` at ${timestamp}` : ''}`;
+  }
+
+  private handleMessageKeydown(event: KeyboardEvent) {
+    switch (event.key) {
+      case KeyboardKeys.ENTER:
+      case KeyboardKeys.SPACE:
+        // Toggle collapse if message has collapsible content
+        if (this.processedContent.length > 1) {
+          this.toggleCollapse();
+          event.preventDefault();
+        }
+        break;
+        
+      case KeyboardKeys.ESCAPE:
+        // Move focus to parent container or clear selection
+        const parentElement = this.closest('session-list') as HTMLElement;
+        if (parentElement) {
+          parentElement.focus();
+        }
+        break;
+        
+      case KeyboardKeys.ARROW_DOWN:
+      case KeyboardKeys.ARROW_UP:
+        // Navigate between messages (delegate to parent)
+        event.stopPropagation(); // Let parent handle this
+        break;
+    }
+  }
+
+  private handleMessageFocus(event: FocusEvent) {
+    // Announce message when focused
+    const label = this.getMessageLabel();
+    const contentInfo = this.getContentSummary();
+    announce(`${label}. ${contentInfo}`, 'polite');
+  }
+
+  private handleCollapseKeydown(event: KeyboardEvent) {
+    switch (event.key) {
+      case KeyboardKeys.ENTER:
+      case KeyboardKeys.SPACE:
+        this.toggleCollapse();
+        event.preventDefault();
+        break;
+    }
+  }
+
+  private handleContentKeydown(event: KeyboardEvent) {
+    // Handle navigation within collapsed sections
+    if (event.key === KeyboardKeys.TAB) {
+      // Allow normal tab navigation
+      return;
+    }
+    
+    // Focus management for collapsible sections
+    const collapsibleSections = this.shadowRoot?.querySelectorAll('.section-header');
+    if (!collapsibleSections?.length) return;
+    
+    const currentFocused = event.target as HTMLElement;
+    const focusedIndex = Array.from(collapsibleSections).indexOf(currentFocused);
+    
+    switch (event.key) {
+      case KeyboardKeys.ARROW_DOWN:
+        if (focusedIndex < collapsibleSections.length - 1) {
+          (collapsibleSections[focusedIndex + 1] as HTMLElement).focus();
+          event.preventDefault();
+        }
+        break;
+        
+      case KeyboardKeys.ARROW_UP:
+        if (focusedIndex > 0) {
+          (collapsibleSections[focusedIndex - 1] as HTMLElement).focus();
+          event.preventDefault();
+        }
+        break;
+    }
+  }
+
+  private handleSectionKeydown(event: KeyboardEvent, sectionId: string) {
+    switch (event.key) {
+      case KeyboardKeys.ENTER:
+      case KeyboardKeys.SPACE:
+        this.toggleSection(sectionId);
+        event.preventDefault();
+        break;
+        
+      case KeyboardKeys.ARROW_RIGHT:
+        // Expand section
+        if (this.collapsedSections.has(sectionId)) {
+          this.toggleSection(sectionId);
+          event.preventDefault();
+        }
+        break;
+        
+      case KeyboardKeys.ARROW_LEFT:
+        // Collapse section
+        if (!this.collapsedSections.has(sectionId)) {
+          this.toggleSection(sectionId);
+          event.preventDefault();
+        }
+        break;
+    }
+  }
+
+  private getContentSummary(): string {
+    if (!this.processedContent.length) return 'No content';
+    
+    const types = this.processedContent.map(content => content.type);
+    const counts = types.reduce((acc, type) => {
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const summary = Object.entries(counts)
+      .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
+      .join(', ');
+      
+    return `Contains ${summary}`;
+  }
+
+  protected updated(changedProperties: Map<string, any>) {
+    super.updated(changedProperties);
+    
+    // Process message when entry changes (original logic)
+    if (changedProperties.has('entry') && this.entry) {
+      this.processMessage();
+    }
+    
+    // Update ARIA attributes when state changes
+    if (changedProperties.has('collapsed')) {
+      const collapseButton = this.shadowRoot?.querySelector('.collapse-toggle');
+      if (collapseButton) {
+        collapseButton.setAttribute(AriaAttributes.EXPANDED, (!this.collapsed).toString());
+        
+        // Announce state change
+        const action = this.collapsed ? 'collapsed' : 'expanded';
+        announce(`Message content ${action}`, 'polite');
+      }
+    }
+    
+    // Announce when content changes
+    if (changedProperties.has('processedContent')) {
+      const summary = this.getContentSummary();
+      // Delay to avoid conflicts with other announcements
+      setTimeout(() => {
+        announce(summary, 'polite');
+      }, 200);
+    }
+  }
+
+  private toggleCollapse() {
+    this.collapsed = !this.collapsed;
+    
+    // Focus management: ensure focus stays on toggle button
+    const toggleButton = this.shadowRoot?.querySelector('.collapse-toggle') as HTMLElement;
+    if (toggleButton && document.activeElement !== toggleButton) {
+      // Small delay to allow DOM update
+      setTimeout(() => toggleButton.focus(), 0);
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    
+    // Register for focus management
+    this.focusManager.register();
+    
+    // Register skip link for important messages
+    if (this.entry?.type === 'assistant') {
+      skipLinkManager.registerTarget(
+        `message-${this.messageIndex}`,
+        this,
+        `Skip to assistant message ${this.messageIndex + 1}`
+      );
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    
+    // Unregister from focus management
+    this.focusManager.unregister();
+    skipLinkManager.unregisterTarget(`message-${this.messageIndex}`);
   }
 }
 

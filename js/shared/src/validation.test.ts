@@ -100,7 +100,7 @@ describe('Validation Schemas', () => {
     it('should validate UserTranscriptEntry', () => {
       const validUserEntry = {
         type: 'user',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/project',
@@ -122,7 +122,7 @@ describe('Validation Schemas', () => {
     it('should validate AssistantTranscriptEntry', () => {
       const validAssistantEntry = {
         type: 'assistant',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'assistant',
         cwd: '/project',
@@ -165,7 +165,7 @@ describe('Validation Schemas', () => {
     it('should handle complex content arrays', () => {
       const entryWithComplexContent = {
         type: 'assistant',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'assistant',
         cwd: '/project',

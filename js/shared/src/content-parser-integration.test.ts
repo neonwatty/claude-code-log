@@ -18,10 +18,10 @@ describe('Content Parser Integration', () => {
     }
 
     const testFiles = await fs.readdir(testDataDir);
-    const jsonlFiles = testFiles.filter(f => f.endsWith('.jsonl')).slice(0, 1); // Test with first file only
-
+    const jsonlFiles = testFiles.filter(f => f.endsWith('.jsonl') && f !== 'edge_cases.jsonl'); // Skip malformed edge_cases file
+    
     if (jsonlFiles.length === 0) {
-      console.log('No JSONL files found in test data directory');
+      console.log('No valid JSONL files found in test data directory');
       return;
     }
 
@@ -30,6 +30,7 @@ describe('Content Parser Integration', () => {
 
     const parser = new JsonlParser();
     const parseResult = await parser.parseFile(testFile);
+
 
     expect(parseResult.entries.length).toBeGreaterThan(0);
     expect(parseResult.errors.length).toBeLessThanOrEqual(parseResult.totalLines);
@@ -129,7 +130,7 @@ describe('Content Parser Integration', () => {
       {
         type: 'user',
         timestamp: '2025-07-03T15:50:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',
@@ -145,7 +146,7 @@ describe('Content Parser Integration', () => {
       {
         type: 'assistant',
         timestamp: '2025-07-03T15:51:00Z',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/tmp',

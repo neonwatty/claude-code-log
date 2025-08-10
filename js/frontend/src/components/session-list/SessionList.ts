@@ -12,6 +12,8 @@ import {
   DisplayMode 
 } from '../types/session-types';
 import './SessionListItem';
+import { AriaRoles, AriaAttributes, KeyboardKeys, ListNavigation, FocusManager, announce, A11yConfig, generateId } from '../utils/accessibility';
+import { useFocusManagement, skipLinkManager } from '../utils/focus-management';
 
 /**
  * Session list component with filtering, sorting, and pagination
@@ -286,6 +288,26 @@ export class SessionList extends BaseComponent {
         border-color: var(--color-primary);
       }
 
+      /* Screen reader only content */
+      .sr-only {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      /* Focus management */
+      .session-list-container:focus-within {
+        outline: none;
+      }
+
+      /* List navigation indicators */
+      .sessions-list[aria-activedescendant] {
+        outline: 2px solid var(--color-border-focus);
+        outline-offset: 2px;
+      }
+
       @media (max-width: 768px) {
         .header-row {
           flex-direction: column;
@@ -307,6 +329,14 @@ export class SessionList extends BaseComponent {
 
         .sessions-grid {
           grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     `,
@@ -384,6 +414,23 @@ export class SessionList extends BaseComponent {
   @state()
   private activeFilters: string[] = [];
 
+  @state()
+  private focusedItemIndex = -1;
+
+  @state()
+  private listId = generateId('session-list');
+
+  @state()
+  private searchId = generateId('search');
+
+  @state()
+  private sortId = generateId('sort');
+
+  @state()
+  private statusId = generateId('status');
+
+  private focusManager = useFocusManagement('session-list', this, 1);
+
   render() {
     const filteredSessions = this.getFilteredSessions();
     const paginatedSessions = this.paginated 
@@ -391,8 +438,25 @@ export class SessionList extends BaseComponent {
       : filteredSessions;
 
     return html`
-      <div class="session-list-container">
+      <div 
+        class="session-list-container"
+        role="${AriaRoles.REGION}"
+        aria-label="Session list"
+        @keydown=${this.handleContainerKeydown}
+      >
         ${this.renderHeader()}
+        
+        <!-- Status region for screen readers -->
+        <div 
+          id="${this.statusId}"
+          role="${AriaRoles.STATUS}"
+          aria-live="polite"
+          aria-atomic="true"
+          style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"
+        >
+          ${this.getStatusMessage(filteredSessions.length)}
+        </div>
+
         ${this.loading ? this.renderLoading() : ''}
         ${this.error ? this.renderError() : ''}
         ${!this.loading && !this.error ? this.renderSessionsList(paginatedSessions) : ''}
@@ -453,18 +517,30 @@ export class SessionList extends BaseComponent {
 
   private renderSearch() {
     return html`
-      <div class="search-box">
-        <div class="search-icon">🔍</div>
+      <div class="search-box" role="search">
+        <div class="search-icon" aria-hidden="true">🔍</div>
         <input
+          id="${this.searchId}"
           class="search-input"
-          type="text"
+          type="search"
+          role="${AriaRoles.SEARCHBOX}"
           placeholder="Search sessions..."
+          aria-label="Search through sessions"
+          aria-describedby="${this.statusId}"
+          autocomplete="off"
+          spellcheck="false"
           .value=${this.searchQuery}
           @input=${this.handleSearchInput}
           @keydown=${this.handleSearchKeydown}
         />
         ${this.searchQuery ? html`
-          <button class="clear-search" @click=${this.clearSearch} title="Clear search">
+          <button 
+            class="clear-search" 
+            @click=${this.clearSearch} 
+            aria-label="${A11yConfig.LABELS.CLOSE} search"
+            title="Clear search"
+            type="button"
+          >
             ✕
           </button>
         ` : ''}
@@ -475,7 +551,14 @@ export class SessionList extends BaseComponent {
   private renderFilterControls() {
     return html`
       <div class="filter-controls">
-        <select class="sort-select" @change=${this.handleSortChange}>
+        <label for="${this.sortId}" class="sr-only">Sort sessions</label>
+        <select 
+          id="${this.sortId}"
+          class="sort-select" 
+          aria-label="${A11yConfig.LABELS.SORT} sessions"
+          aria-describedby="${this.statusId}"
+          @change=${this.handleSortChange}
+        >
           <option value="startTime-desc" ?selected=${this.sort.field === 'startTime' && this.sort.direction === 'desc'}>
             Newest first
           </option>
@@ -526,17 +609,30 @@ export class SessionList extends BaseComponent {
     const containerClass = this.displayMode === 'minimal' ? 'sessions-grid' : 'sessions-list';
 
     return html`
-      <div class="${containerClass}">
+      <div 
+        id="${this.listId}"
+        class="${containerClass}"
+        role="${AriaRoles.LIST}"
+        aria-label="${sessions.length} session${sessions.length !== 1 ? 's' : ''}"
+        aria-describedby="${this.statusId}"
+        @keydown=${this.handleListKeydown}
+        @focus=${this.handleListFocus}
+        @blur=${this.handleListBlur}
+      >
         ${repeat(
           sessions,
           (session) => session.sessionId,
-          (session) => html`
+          (session, index) => html`
             <session-list-item
               .session=${session}
               ?selected=${session.sessionId === this.selectedSessionId}
               ?compact=${this.displayMode === 'compact'}
               ?detailed=${this.displayMode === 'detailed'}
+              aria-posinset="${index + 1}"
+              aria-setsize="${sessions.length}"
+              role="${AriaRoles.LISTITEM}"
               @session-selected=${this.handleSessionSelected}
+              @focus=${() => this.handleItemFocus(index)}
             ></session-list-item>
           `
         )}
@@ -615,7 +711,7 @@ export class SessionList extends BaseComponent {
   }
 
   private renderPageNumbers(totalPages: number, currentPage: number) {
-    const pages = [];
+    const pages: any[] = [];
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     const endPage = Math.min(totalPages, startPage + maxVisible - 1);
@@ -795,6 +891,227 @@ export class SessionList extends BaseComponent {
       page, 
       pageSize: this.pagination.pageSize 
     });
+  }
+
+  // Accessibility methods
+
+  private getStatusMessage(sessionCount: number): string {
+    if (this.loading) return A11yConfig.LABELS.LOADING;
+    if (this.error) return `${A11yConfig.LABELS.ERROR}: ${this.error}`;
+    
+    let message = `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
+    
+    if (this.searchQuery) {
+      message += ` matching "${this.searchQuery}"`;
+    }
+    
+    if (this.activeFilters.length > 0) {
+      message += ` with filters applied`;
+    }
+    
+    return message;
+  }
+
+  private handleContainerKeydown(event: KeyboardEvent) {
+    // Handle container-level keyboard shortcuts
+    switch (event.key) {
+      case KeyboardKeys.ESCAPE:
+        // Clear search or filters
+        if (this.searchQuery) {
+          this.clearSearch();
+          event.preventDefault();
+        }
+        break;
+        
+      case 'f':
+      case 'F':
+        // Focus search when Ctrl+F or just F is pressed
+        if (event.ctrlKey || event.metaKey) {
+          const searchInput = this.shadowRoot?.querySelector('#' + this.searchId) as HTMLInputElement;
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+            event.preventDefault();
+          }
+        }
+        break;
+    }
+  }
+
+  private handleListKeydown(event: KeyboardEvent) {
+    const sessions = this.paginated 
+      ? this.getPaginatedSessions(this.getFilteredSessions())
+      : this.getFilteredSessions();
+      
+    if (sessions.length === 0) return;
+
+    const listElement = this.shadowRoot?.getElementById(this.listId);
+    if (!listElement) return;
+
+    const currentFocused = this.shadowRoot?.activeElement as HTMLElement;
+    
+    // Use our ListNavigation utility for arrow key handling
+    if (ListNavigation.handleArrowKeys(event, listElement, currentFocused, {
+      vertical: true,
+      horizontal: false,
+      wrap: true,
+      home: true,
+      end: true
+    })) {
+      return; // Event was handled
+    }
+
+    // Handle other navigation keys
+    switch (event.key) {
+      case KeyboardKeys.ENTER:
+      case KeyboardKeys.SPACE:
+        // Activate the focused item
+        if (this.focusedItemIndex >= 0 && this.focusedItemIndex < sessions.length) {
+          const session = sessions[this.focusedItemIndex];
+          this.handleSessionSelected(new CustomEvent('session-selected', {
+            detail: { sessionId: session.sessionId }
+          }));
+          event.preventDefault();
+        }
+        break;
+        
+      case KeyboardKeys.TAB:
+        // Allow tab to move focus out of the list
+        break;
+        
+      default:
+        // Handle type-ahead search
+        this.handleTypeAhead(event.key);
+        break;
+    }
+  }
+
+  private handleListFocus(event: FocusEvent) {
+    // When list gains focus, ensure we have a focused item
+    if (this.focusedItemIndex === -1) {
+      this.focusedItemIndex = 0;
+      this.updateActivedescendant();
+    }
+  }
+
+  private handleListBlur(event: FocusEvent) {
+    // Optional: Clear focus indicators when list loses focus
+    // this.focusedItemIndex = -1;
+    // this.updateActivedescendant();
+  }
+
+  private handleItemFocus(index: number) {
+    this.focusedItemIndex = index;
+    this.updateActivedescendant();
+  }
+
+  private updateActivedescendant() {
+    const listElement = this.shadowRoot?.getElementById(this.listId);
+    if (!listElement) return;
+
+    if (this.focusedItemIndex >= 0) {
+      const sessions = this.paginated 
+        ? this.getPaginatedSessions(this.getFilteredSessions())
+        : this.getFilteredSessions();
+        
+      if (this.focusedItemIndex < sessions.length) {
+        const focusedSession = sessions[this.focusedItemIndex];
+        const itemId = `session-${focusedSession.sessionId}`;
+        listElement.setAttribute(AriaAttributes.ACTIVEDESCENDANT, itemId);
+        
+        // Announce the focused item
+        const session = focusedSession;
+        const announcement = `Session ${this.focusedItemIndex + 1} of ${sessions.length}: ${session.sessionId}`;
+        announce(announcement, 'polite');
+      }
+    } else {
+      listElement.removeAttribute(AriaAttributes.ACTIVEDESCENDANT);
+    }
+  }
+
+  private typeAheadBuffer = '';
+  private typeAheadTimeout: number | null = null;
+
+  private handleTypeAhead(key: string) {
+    // Clear previous timeout
+    if (this.typeAheadTimeout) {
+      clearTimeout(this.typeAheadTimeout);
+    }
+
+    // Add to buffer
+    this.typeAheadBuffer += key.toLowerCase();
+
+    // Find matching session
+    const sessions = this.paginated 
+      ? this.getPaginatedSessions(this.getFilteredSessions())
+      : this.getFilteredSessions();
+
+    const matchIndex = sessions.findIndex(session => 
+      session.sessionId.toLowerCase().startsWith(this.typeAheadBuffer) ||
+      session.title?.toLowerCase().startsWith(this.typeAheadBuffer)
+    );
+
+    if (matchIndex !== -1) {
+      this.focusedItemIndex = matchIndex;
+      this.updateActivedescendant();
+      
+      // Focus the actual item element
+      const itemElement = this.shadowRoot?.querySelector(`session-list-item:nth-child(${matchIndex + 1})`) as HTMLElement;
+      itemElement?.focus();
+    }
+
+    // Clear buffer after delay
+    this.typeAheadTimeout = window.setTimeout(() => {
+      this.typeAheadBuffer = '';
+      this.typeAheadTimeout = null;
+    }, 1000);
+  }
+
+  protected updated(changedProperties: Map<string, any>) {
+    super.updated(changedProperties);
+    
+    // Announce status changes to screen readers
+    if (changedProperties.has('sessions') || 
+        changedProperties.has('loading') || 
+        changedProperties.has('error') ||
+        changedProperties.has('searchQuery')) {
+      
+      const sessions = this.getFilteredSessions();
+      const statusMessage = this.getStatusMessage(sessions.length);
+      
+      // Delay announcement to avoid conflicts
+      setTimeout(() => {
+        announce(statusMessage, 'polite');
+      }, 100);
+    }
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    
+    // Register for global focus management
+    this.focusManager.register();
+    
+    // Register skip link for quick navigation
+    skipLinkManager.registerTarget('session-list', this, 'Skip to session list');
+    
+    // Set up global keyboard listeners if needed
+    this.addEventListener('keydown', this.handleContainerKeydown);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    
+    // Unregister from focus management
+    this.focusManager.unregister();
+    skipLinkManager.unregisterTarget('session-list');
+    
+    // Clean up timeout
+    if (this.typeAheadTimeout) {
+      clearTimeout(this.typeAheadTimeout);
+    }
+    
+    this.removeEventListener('keydown', this.handleContainerKeydown);
   }
 }
 

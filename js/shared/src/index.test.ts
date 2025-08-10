@@ -8,7 +8,10 @@ import {
   AssistantTranscriptEntry,
   UsageInfo,
   TextContent,
-  ToolUseContent
+  ToolUseContent,
+  ToolResultContent,
+  ImageContent,
+  ThinkingContent
 } from './index';
 
 describe('Shared Types and Interfaces', () => {
@@ -118,7 +121,7 @@ describe('Shared Types and Interfaces', () => {
     it('should create valid UserTranscriptEntry', () => {
       const userEntry: UserTranscriptEntry = {
         type: 'user',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'human',
         cwd: '/project',
@@ -140,7 +143,7 @@ describe('Shared Types and Interfaces', () => {
     it('should create valid AssistantTranscriptEntry', () => {
       const assistantEntry: AssistantTranscriptEntry = {
         type: 'assistant',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'assistant',
         cwd: '/project',
@@ -169,7 +172,7 @@ describe('Shared Types and Interfaces', () => {
     it('should handle complex content with multiple types', () => {
       const complexEntry: AssistantTranscriptEntry = {
         type: 'assistant',
-        parentUuid: null,
+        parentUuid: undefined,
         isSidechain: false,
         userType: 'assistant',
         cwd: '/project',

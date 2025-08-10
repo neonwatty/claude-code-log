@@ -72,7 +72,7 @@ class MessageService {
       try {
         const result = await parser.parseFile(filePath);
         allEntries.push(...result.entries);
-        allErrors.push(...result.errors.map(err => ({ ...err, file })));
+        allErrors.push(...result.errors.map((err: any) => ({ ...err, file })));
       } catch (error) {
         allErrors.push({
           file,
@@ -159,7 +159,7 @@ class MessageService {
 
       if (criteria.toolName) {
         filteredMessages = filteredMessages.filter(m => 
-          m.parsedContent.some(c => 
+          m.parsedContent.some((c: any) => 
             c.type === 'tool_use' && 
             c.metadata?.toolName?.toLowerCase().includes(criteria.toolName!.toLowerCase())
           )
@@ -169,7 +169,7 @@ class MessageService {
       if (criteria.textSearch) {
         const searchTerm = criteria.textSearch.toLowerCase();
         filteredMessages = filteredMessages.filter(m =>
-          m.parsedContent.some(c =>
+          m.parsedContent.some((c: any) =>
             c.content.toLowerCase().includes(searchTerm)
           )
         );
@@ -250,7 +250,7 @@ class MessageService {
       stats.messageTypes[message.messageType] = (stats.messageTypes[message.messageType] || 0) + 1;
 
       // Content types
-      if (message.parsedContent.some(c => c.type === 'text' || c.type === 'markdown')) {
+      if (message.parsedContent.some((c: any) => c.type === 'text' || c.type === 'markdown')) {
         stats.contentTypes.hasText++;
       }
       if (message.hasToolUse) {
@@ -264,7 +264,7 @@ class MessageService {
       }
 
       // Tool usage
-      message.parsedContent.forEach(content => {
+      message.parsedContent.forEach((content: any) => {
         if (content.type === 'tool_use' && content.metadata?.toolName) {
           const toolName = content.metadata.toolName;
           stats.contentTypes.toolUsage[toolName] = (stats.contentTypes.toolUsage[toolName] || 0) + 1;
@@ -272,7 +272,7 @@ class MessageService {
       });
 
       // Content length
-      const contentLength = message.parsedContent.reduce((sum, c) => sum + c.content.length, 0);
+      const contentLength = message.parsedContent.reduce((sum: number, c: any) => sum + c.content.length, 0);
       totalContentLength += contentLength;
 
       // Token stats

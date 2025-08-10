@@ -53,29 +53,69 @@ describe('FileSystemMonitor Integration Tests', () => {
   });
 
   afterAll(async () => {
-    // Stop file monitoring
-    if (fileSystemMonitor) {
-      await fileSystemMonitor.stop();
-    }
+    // Comprehensive cleanup with timeout protection
+    const cleanup = async () => {
+      // Stop file monitoring first
+      if (fileSystemMonitor?.getStatus().isRunning) {
+        try {
+          await fileSystemMonitor.stop();
+        } catch (error) {
+          console.warn('FileSystemMonitor stop error:', error);
+        }
+      }
 
-    // Close WebSocket service
-    if (webSocketService) {
-      await webSocketService.close();
-    }
+      // Remove all listeners
+      if (fileSystemMonitor) {
+        fileSystemMonitor.removeAllListeners();
+      }
 
-    // Close HTTP server
-    if (httpServer) {
-      await new Promise<void>((resolve) => {
-        httpServer.close(() => resolve());
-      });
-    }
+      // Close WebSocket service
+      if (webSocketService) {
+        try {
+          await webSocketService.close();
+        } catch (error) {
+          console.warn('WebSocket service close error:', error);
+        }
+      }
 
-    // Clean up test directory
-    try {
-      await fs.rmdir(testDir, { recursive: true });
-    } catch (error) {
-      // Directory might not exist or be in use, that's ok
-    }
+      // Close HTTP server with force
+      if (httpServer?.listening) {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('HTTP server close timeout'));
+          }, 2000);
+          
+          httpServer.close((err) => {
+            clearTimeout(timeout);
+            if (err) reject(err);
+            else resolve();
+          });
+        }).catch(error => {
+          console.warn('HTTP server close error:', error);
+          httpServer.closeAllConnections?.();
+        });
+      }
+
+      // Clean up test directory
+      try {
+        await fs.rm(testDir, { recursive: true, force: true });
+      } catch (error) {
+        // Directory might not exist or be in use, that's ok
+      }
+      
+      // Clear timers
+      vi.clearAllTimers();
+    };
+
+    // Apply overall timeout to cleanup
+    await Promise.race([
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Integration test cleanup timeout')), 5000)
+      )
+    ]).catch(error => {
+      console.warn('Integration test cleanup failed:', error);
+    });
   });
 
   beforeEach(async () => {
@@ -120,22 +160,44 @@ describe('FileSystemMonitor Integration Tests', () => {
   });
 
   afterEach(async () => {
-    // Disconnect WebSocket client
-    if (clientSocket && clientSocket.connected) {
-      clientSocket.disconnect();
-    }
-
-    // Clean up test files
-    try {
-      const files = await fs.readdir(testDir);
-      for (const file of files) {
-        if (file.endsWith('.jsonl')) {
-          await fs.unlink(join(testDir, file));
-        }
+    // Comprehensive afterEach cleanup
+    const cleanup = async () => {
+      // Disconnect WebSocket client
+      if (clientSocket?.connected) {
+        clientSocket.disconnect();
+        clientSocket.close();
       }
-    } catch (error) {
-      // Directory might be empty, that's ok
-    }
+
+      // Clean up test files
+      try {
+        const files = await fs.readdir(testDir);
+        await Promise.all(files.map(file => {
+          if (file.endsWith('.jsonl')) {
+            return fs.unlink(join(testDir, file)).catch(() => {});
+          }
+          return Promise.resolve();
+        }));
+      } catch (error) {
+        // Directory might be empty, that's ok
+      }
+      
+      // Clear all timers and mocks
+      vi.clearAllTimers();
+      vi.clearAllMocks();
+      
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 10));
+    };
+
+    // Apply timeout to afterEach cleanup
+    await Promise.race([
+      cleanup(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Integration afterEach cleanup timeout')), 2000)
+      )
+    ]).catch(error => {
+      console.warn('Integration afterEach cleanup failed:', error);
+    });
   });
 
   describe('End-to-end file monitoring workflow', () => {
