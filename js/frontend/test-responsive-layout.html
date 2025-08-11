@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Layout System Test</title>
+  
+  <!-- Import the responsive layout components -->
+  <script type="module" src="./src/components/layout/ResponsiveLayout.js"></script>
+  <script type="module" src="./src/components/layout/ResponsiveNav.js"></script>
+  <script type="module" src="./src/components/layout/ResponsiveTimelineWrapper.js"></script>
+  <script type="module" src="./src/components/layout/ResponsiveSessionWrapper.js"></script>
+  
+  <!-- Import timeline and session components for full testing -->
+  <script type="module" src="./src/components/timeline/TimelineView.js"></script>
+  <script type="module" src="./src/components/session-list/SessionList.js"></script>
+  
+  <style>
+    /* Global styles for the test page */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+    }
+
+    /* Viewport size indicator */
+    .viewport-indicator {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      pointer-events: none;
+    }
+
+    /* Performance metrics */
+    .performance-metrics {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+      max-width: 200px;
+    }
+
+    /* Test controls */
+    .test-controls {
+      position: fixed;
+      top: 60px;
+      left: 10px;
+      z-index: 9999;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+    }
+
+    .test-controls h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .test-controls label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+    }
+
+    .test-controls input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .test-controls button {
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 8px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .test-controls button:hover {
+      background: #0056b3;
+    }
+
+    /* Demo content styles */
+    .demo-section {
+      margin-bottom: 40px;
+    }
+
+    .demo-header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-header h2 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 24px;
+    }
+
+    .demo-header p {
+      margin: 0;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Grid demo items */
+    .grid-item {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .grid-item h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .grid-item p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    /* Sample content for layout testing */
+    .sample-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 16px;
+    }
+
+    .sample-card h4 {
+      margin: 0 0 12px 0;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .sample-card p {
+      margin: 0;
+      color: #666;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* Responsive test breakpoints visualization */
+    .breakpoint-test {
+      display: none;
+      padding: 12px;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 4px;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 639px) {
+      .breakpoint-test.mobile { display: block; }
+    }
+
+    @media (min-width: 640px) and (max-width: 767px) {
+      .breakpoint-test.small { display: block; }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .breakpoint-test.medium { display: block; }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .breakpoint-test.large { display: block; }
+    }
+
+    @media (min-width: 1280px) {
+      .breakpoint-test.extra-large { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Viewport and Performance Indicators -->
+  <div class="viewport-indicator" id="viewportIndicator">
+    Loading...
+  </div>
+  
+  <div class="performance-metrics" id="performanceMetrics">
+    <div>Loading performance metrics...</div>
+  </div>
+
+  <!-- Test Controls -->
+  <div class="test-controls" id="testControls">
+    <h3>🧪 Test Controls</h3>
+    <label>
+      <input type="checkbox" id="debugMode" checked> Debug Mode
+    </label>
+    <label>
+      <input type="checkbox" id="showSidebar" checked> Show Sidebar
+    </label>
+    <label>
+      <input type="checkbox" id="darkMode"> Dark Mode
+    </label>
+    <button onclick="simulateResize()">Simulate Mobile</button>
+    <button onclick="resetViewport()">Reset Viewport</button>
+    <button onclick="toggleControls()">Hide Controls</button>
+  </div>
+
+  <!-- Responsive Layout Test -->
+  <responsive-layout 
+    id="mainLayout"
+    layout-template="default" 
+    debug="true"
+    has-sidebar="true"
+  >
+    <!-- Header Content -->
+    <div slot="header">
+      <responsive-nav 
+        id="mainNav"
+        brand="Responsive Layout Test"
+        brand-href="#"
+      >
+        <span slot="brand-icon">🧪</span>
+      </responsive-nav>
+    </div>
+
+    <!-- Sidebar Content -->
+    <div slot="sidebar">
+      <div style="padding: 20px;">
+        <h3 style="margin: 0 0 16px 0; color: #333;">Navigation</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="#layout-demo" style="padding: 8px 12px; text-decoration: none; color: #666; background: #f5f5f5; border-radius: 4px;">Layout Examples</a>
+          <a href="#timeline-demo" style="padding: 8px 12px; text-decoration: none; color: #666; background: #f5f5f5; border-radius: 4px;">Timeline Demo</a>
+          <a href="#sessions-demo" style="padding: 8px 12px; text-decoration: none; color: #666; background: #f5f5f5; border-radius: 4px;">Sessions Demo</a>
+          <a href="#grid-demo" style="padding: 8px 12px; text-decoration: none; color: #666; background: #f5f5f5; border-radius: 4px;">Grid Layouts</a>
+          <a href="#performance" style="padding: 8px 12px; text-decoration: none; color: #666; background: #f5f5f5; border-radius: 4px;">Performance</a>
+        </div>
+        
+        <h3 style="margin: 24px 0 16px 0; color: #333;">Layout Tests</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button onclick="testLayoutTemplate('default')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Default</button>
+          <button onclick="testLayoutTemplate('grid')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Grid</button>
+          <button onclick="testLayoutTemplate('flex')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Flexbox</button>
+          <button onclick="testLayoutTemplate('sidebar-left')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Sidebar Left</button>
+          <button onclick="testLayoutTemplate('sidebar-right')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Sidebar Right</button>
+          <button onclick="testLayoutTemplate('full-width')" style="padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Full Width</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div style="padding: 20px;">
+      <!-- Breakpoint Indicators -->
+      <div class="breakpoint-test mobile">📱 Mobile View (< 640px)</div>
+      <div class="breakpoint-test small">📱 Small View (640px - 767px)</div>
+      <div class="breakpoint-test medium">💻 Medium View (768px - 1023px)</div>
+      <div class="breakpoint-test large">🖥️ Large View (1024px - 1279px)</div>
+      <div class="breakpoint-test extra-large">🖥️ Extra Large View (≥ 1280px)</div>
+
+      <!-- Layout Examples Section -->
+      <section id="layout-demo" class="demo-section">
+        <div class="demo-header">
+          <h2>Responsive Layout Examples</h2>
+          <p>Test different layout templates and responsive behaviors. Switch between templates using the sidebar controls or resize your browser window.</p>
+        </div>
+        
+        <!-- Grid Layout Demo -->
+        <div id="gridLayoutDemo" style="display: none;">
+          <h3>Grid Layout Template</h3>
+          <div id="gridContent">
+            <div class="grid-item">
+              <h3>Item 1</h3>
+              <p>Responsive grid item that adapts to screen size</p>
+            </div>
+            <div class="grid-item">
+              <h3>Item 2</h3>
+              <p>Columns adjust automatically based on breakpoints</p>
+            </div>
+            <div class="grid-item">
+              <h3>Item 3</h3>
+              <p>Mobile: 1 col, Tablet: 2 cols, Desktop: 3-4 cols</p>
+            </div>
+            <div class="grid-item">
+              <h3>Item 4</h3>
+              <p>CSS Grid with responsive column templates</p>
+            </div>
+            <div class="grid-item">
+              <h3>Item 5</h3>
+              <p>Configurable gap and auto-rows properties</p>
+            </div>
+            <div class="grid-item">
+              <h3>Item 6</h3>
+              <p>Hover effects and smooth transitions</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Layout Demo -->
+        <div id="defaultLayoutDemo">
+          <div class="sample-card">
+            <h4>🏠 Default Layout Template</h4>
+            <p>This is the standard layout with header, sidebar, main content, and footer. The sidebar is responsive and collapses to a mobile-friendly format on smaller screens.</p>
+          </div>
+          <div class="sample-card">
+            <h4>📱 Mobile Responsiveness</h4>
+            <p>On mobile devices (< 640px), the sidebar stacks vertically and the layout becomes mobile-first. Navigation transforms to a hamburger menu.</p>
+          </div>
+          <div class="sample-card">
+            <h4>🎨 Theming System</h4>
+            <p>All components use CSS custom properties for consistent theming. Dark mode and high contrast themes are supported.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timeline Demo Section -->
+      <section id="timeline-demo" class="demo-section">
+        <div class="demo-header">
+          <h2>Responsive Timeline Component</h2>
+          <p>Timeline component that adapts its display based on screen size. Mobile shows cards, tablet shows horizontal scroll, desktop shows full timeline.</p>
+        </div>
+        
+        <responsive-timeline-wrapper 
+          id="timelineDemo"
+          title="Session Timeline Demo"
+        >
+        </responsive-timeline-wrapper>
+      </section>
+
+      <!-- Sessions Demo Section -->
+      <section id="sessions-demo" class="demo-section">
+        <div class="demo-header">
+          <h2>Responsive Session List</h2>
+          <p>Session list with adaptive layouts: mobile cards, tablet grid, desktop table. Includes search, filtering, and responsive controls.</p>
+        </div>
+        
+        <responsive-session-wrapper 
+          id="sessionsDemo"
+          title="Sessions Demo"
+        >
+        </responsive-session-wrapper>
+      </section>
+
+      <!-- Performance Testing Section -->
+      <section id="performance" class="demo-section">
+        <div class="demo-header">
+          <h2>Performance Metrics</h2>
+          <p>Monitor layout performance, reflows, and responsive transition smoothness. Metrics are updated in real-time.</p>
+        </div>
+        
+        <div id="performanceDetails" style="background: white; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 14px;">
+          Loading performance data...
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer Content -->
+    <div slot="footer">
+      <div style="text-align: center; color: #666; font-size: 14px;">
+        <p>🧪 Responsive Layout System Test Page • Resize window to test breakpoints • Check console for debug info</p>
+      </div>
+    </div>
+  </responsive-layout>
+
+  <script>
+    // Demo data for timeline and sessions
+    const sampleSessions = [
+      {
+        sessionId: '550e8400-e29b-41d4-a716-446655440001',
+        title: 'Frontend Development Session',
+        startTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        endTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        isActive: false,
+        cwd: '/Users/developer/projects/web-app',
+        summary: 'Working on responsive layout components and CSS grid implementation',
+        tags: ['frontend', 'css', 'responsive']
+      },
+      {
+        sessionId: '550e8400-e29b-41d4-a716-446655440002',
+        title: 'API Integration',
+        startTime: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+        endTime: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+        isActive: false,
+        cwd: '/Users/developer/projects/backend-api',
+        summary: 'Setting up REST API endpoints and database connections',
+        tags: ['backend', 'api', 'database']
+      },
+      {
+        sessionId: '550e8400-e29b-41d4-a716-446655440003',
+        title: 'Current Active Session',
+        startTime: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+        isActive: true,
+        cwd: '/Users/developer/projects/claude-code-log',
+        summary: 'Testing responsive layout system and creating demo components',
+        tags: ['testing', 'demo', 'responsive']
+      },
+      {
+        sessionId: '550e8400-e29b-41d4-a716-446655440004',
+        title: 'Debug Session',
+        startTime: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+        endTime: new Date(Date.now() - 5.5 * 60 * 60 * 1000), // 5.5 hours ago
+        isActive: false,
+        cwd: '/Users/developer/projects/debug-tools',
+        summary: 'Investigating performance issues in timeline component',
+        tags: ['debug', 'performance', 'optimization']
+      }
+    ];
+
+    const navItems = [
+      { label: 'Dashboard', href: '#dashboard', icon: '📊' },
+      { label: 'Sessions', href: '#sessions', icon: '📝', active: true },
+      { label: 'Timeline', href: '#timeline', icon: '⏰' },
+      { label: 'Settings', href: '#settings', icon: '⚙️' },
+      { label: 'Help', href: '#help', icon: '❓' }
+    ];
+
+    // Initialize components
+    document.addEventListener('DOMContentLoaded', function() {
+      const layout = document.getElementById('mainLayout');
+      const nav = document.getElementById('mainNav');
+      const timeline = document.getElementById('timelineDemo');
+      const sessions = document.getElementById('sessionsDemo');
+      
+      // Set up navigation
+      nav.items = navItems;
+      
+      // Set up demo data
+      timeline.sessions = sampleSessions;
+      sessions.sessions = sampleSessions;
+      
+      // Initialize viewport indicator
+      updateViewportIndicator();
+      
+      // Initialize performance monitoring
+      initPerformanceMonitoring();
+      
+      // Set up event listeners
+      window.addEventListener('resize', updateViewportIndicator);
+      
+      // Layout change listeners
+      layout.addEventListener('breakpoint-change', function(e) {
+        console.log('Breakpoint changed:', e.detail);
+        updateViewportIndicator();
+      });
+      
+      // Navigation event listeners
+      nav.addEventListener('nav-click', function(e) {
+        console.log('Nav clicked:', e.detail);
+      });
+      
+      // Timeline event listeners
+      timeline.addEventListener('session-selected', function(e) {
+        console.log('Timeline session selected:', e.detail);
+      });
+      
+      // Sessions event listeners
+      sessions.addEventListener('session-selected', function(e) {
+        console.log('Session selected:', e.detail);
+      });
+      
+      // Control event listeners
+      document.getElementById('debugMode').addEventListener('change', function(e) {
+        layout.debug = e.target.checked;
+      });
+      
+      document.getElementById('showSidebar').addEventListener('change', function(e) {
+        layout.hasSidebar = e.target.checked;
+      });
+      
+      document.getElementById('darkMode').addEventListener('change', function(e) {
+        document.body.toggleAttribute('dark-theme', e.target.checked);
+      });
+    });
+    
+    function updateViewportIndicator() {
+      const indicator = document.getElementById('viewportIndicator');
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      let breakpoint = 'mobile';
+      if (width >= 1280) breakpoint = 'xl';
+      else if (width >= 1024) breakpoint = 'lg';
+      else if (width >= 768) breakpoint = 'md';
+      else if (width >= 640) breakpoint = 'sm';
+      
+      indicator.innerHTML = `
+        <div>${width}×${height}px</div>
+        <div>Breakpoint: ${breakpoint}</div>
+        <div>DPR: ${window.devicePixelRatio}</div>
+      `;
+    }
+    
+    function initPerformanceMonitoring() {
+      const metrics = document.getElementById('performanceMetrics');
+      const details = document.getElementById('performanceDetails');
+      
+      function updateMetrics() {
+        const memory = performance.memory || {};
+        const navigation = performance.getEntriesByType('navigation')[0] || {};
+        
+        const memoryMB = Math.round((memory.usedJSHeapSize || 0) / 1024 / 1024 * 100) / 100;
+        const loadTime = Math.round((navigation.loadEventEnd - navigation.navigationStart) || 0);
+        
+        metrics.innerHTML = `
+          <div>Memory: ${memoryMB}MB</div>
+          <div>Load: ${loadTime}ms</div>
+          <div>FPS: ${getFPS()}</div>
+        `;
+        
+        details.innerHTML = `
+          <div><strong>Performance Metrics</strong></div>
+          <div>Memory Usage: ${memoryMB}MB</div>
+          <div>Load Time: ${loadTime}ms</div>
+          <div>DOM Nodes: ${document.querySelectorAll('*').length}</div>
+          <div>Event Listeners: ${getEventListenerCount()}</div>
+          <div>Last Update: ${new Date().toLocaleTimeString()}</div>
+        `;
+      }
+      
+      updateMetrics();
+      setInterval(updateMetrics, 2000);
+    }
+    
+    function getFPS() {
+      return '60'; // Placeholder - would need proper FPS monitoring
+    }
+    
+    function getEventListenerCount() {
+      return document.querySelectorAll('[data-listener]').length || 'N/A';
+    }
+    
+    function testLayoutTemplate(template) {
+      const layout = document.getElementById('mainLayout');
+      layout.setAttribute('layout-template', template);
+      
+      // Show appropriate demo content
+      const defaultDemo = document.getElementById('defaultLayoutDemo');
+      const gridDemo = document.getElementById('gridLayoutDemo');
+      
+      if (template === 'grid') {
+        defaultDemo.style.display = 'none';
+        gridDemo.style.display = 'block';
+      } else {
+        defaultDemo.style.display = 'block';
+        gridDemo.style.display = 'none';
+      }
+      
+      console.log('Layout template changed to:', template);
+    }
+    
+    function simulateResize() {
+      // Simulate mobile viewport
+      document.body.style.width = '375px';
+      document.body.style.margin = '0 auto';
+      document.body.style.border = '2px solid #007bff';
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+    }
+    
+    function resetViewport() {
+      document.body.style.width = '';
+      document.body.style.margin = '';
+      document.body.style.border = '';
+      window.dispatchEvent(new Event('resize'));
+    }
+    
+    function toggleControls() {
+      const controls = document.getElementById('testControls');
+      const isHidden = controls.style.display === 'none';
+      controls.style.display = isHidden ? 'block' : 'none';
+    }
+    
+    // Console info
+    console.log('%c🧪 Responsive Layout Test Page', 'background: #007bff; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold;');
+    console.log('Available test functions:');
+    console.log('- testLayoutTemplate(template) - Test different layout templates');
+    console.log('- simulateResize() - Simulate mobile viewport');
+    console.log('- resetViewport() - Reset to normal viewport');
+    console.log('- toggleControls() - Show/hide test controls');
+    console.log('Try resizing your browser window to see responsive behavior!');
+  </script>
+</body>
+</html>
