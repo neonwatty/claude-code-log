@@ -25,6 +25,7 @@ import hljs from 'highlight.js/lib/core';
 import '../markdown-renderer/MarkdownRenderer';
 import { AriaRoles, AriaAttributes, KeyboardKeys, FocusManager, announce, A11yConfig, generateId } from '../utils/accessibility';
 import { useFocusManagement, skipLinkManager } from '../utils/focus-management';
+import { useLazyLoading, createLazyLoadingConfig } from '../utils/lazy-loading';
 // Import common languages
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
@@ -553,6 +554,19 @@ export class MessageDisplay extends BaseComponent {
   private contentId = generateId('message-content');
 
   private focusManager = useFocusManagement(`message-${this.messageIndex}`, this, 2);
+
+  private contentLazyLoader = useLazyLoading(this, createLazyLoadingConfig({
+    strategy: 'intersection',
+    batchSize: 2,
+    loadDelay: 100,
+  }));
+
+  private performanceOptimizations = {
+    shouldUpdateContent: true,
+    contentChangeDebounceId: null as number | null,
+    isVisible: false,
+    measurementCache: new Map<string, number>(),
+  };
 
 
   render() {
@@ -1170,10 +1184,15 @@ export class MessageDisplay extends BaseComponent {
 
   protected updated(changedProperties: Map<string, any>) {
     super.updated(changedProperties);
+
+    // Optimize updates based on visibility
+    if (!this.performanceOptimizations.isVisible && !this.shouldAlwaysUpdate(changedProperties)) {
+      return;
+    }
     
     // Process message when entry changes (original logic)
     if (changedProperties.has('entry') && this.entry) {
-      this.processMessage();
+      this.debouncedProcessMessage();
     }
     
     // Update ARIA attributes when state changes
@@ -1196,6 +1215,65 @@ export class MessageDisplay extends BaseComponent {
         announce(summary, 'polite');
       }, 200);
     }
+
+    // Setup lazy loading for content items
+    if (changedProperties.has('processedContent')) {
+      this.setupContentLazyLoading();
+    }
+  }
+
+  private shouldAlwaysUpdate(changedProperties: Map<string, any>): boolean {
+    // Always update for accessibility-related changes
+    return changedProperties.has('selected') || 
+           changedProperties.has('collapsed') ||
+           changedProperties.has('messageIndex');
+  }
+
+  private debouncedProcessMessage = this.debounce(() => {
+    if (this.performanceOptimizations.shouldUpdateContent) {
+      this.processMessage();
+    }
+  }, 16); // ~60fps
+
+  private setupContentLazyLoading() {
+    if (this.processedContent.length === 0) return;
+
+    // Add heavy content items to lazy loader
+    this.processedContent.forEach((content, index) => {
+      if (this.isHeavyContent(content)) {
+        const itemId = `content-${this.messageId}-${index}`;
+        this.contentLazyLoader.addItem(itemId, content, {
+          priority: content.type === 'thinking' ? 0 : 1, // Lower priority for thinking content
+          loader: () => this.loadContentData(content),
+        });
+      }
+    });
+  }
+
+  private isHeavyContent(content: ProcessedContent): boolean {
+    return content.type === 'tool_result' || 
+           content.type === 'thinking' ||
+           content.type === 'image' ||
+           (content.type === 'code' && (content.content as string).length > 1000);
+  }
+
+  private async loadContentData(content: ProcessedContent): Promise<void> {
+    // Simulate processing heavy content
+    return new Promise(resolve => {
+      const delay = content.type === 'image' ? 300 : 100;
+      setTimeout(resolve, delay);
+    });
+  }
+
+  private debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): (...args: Parameters<T>) => void {
+    let timeout: number;
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeout);
+      timeout = window.setTimeout(() => func(...args), wait);
+    };
   }
 
   private toggleCollapse() {
@@ -1222,6 +1300,53 @@ export class MessageDisplay extends BaseComponent {
         this,
         `Skip to assistant message ${this.messageIndex + 1}`
       );
+    }
+
+    // Setup visibility tracking for performance optimization
+    this.setupVisibilityTracking();
+
+    // Enable content loading optimizations
+    this.enableContentOptimizations();
+  }
+
+  private setupVisibilityTracking() {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          this.performanceOptimizations.isVisible = entry.isIntersecting;
+          
+          if (entry.isIntersecting && !this.performanceOptimizations.shouldUpdateContent) {
+            // Component became visible, enable content updates
+            this.performanceOptimizations.shouldUpdateContent = true;
+            if (this.entry && this.processedContent.length === 0) {
+              this.processMessage();
+            }
+          }
+        });
+      },
+      {
+        rootMargin: '100px 0px',
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(this);
+  }
+
+  private enableContentOptimizations() {
+    // Defer processing of non-critical content when not visible
+    if (this.entry && !this.performanceOptimizations.isVisible) {
+      this.performanceOptimizations.shouldUpdateContent = false;
+      
+      // Process basic metadata immediately
+      this.metadata = this.createMetadata();
+      
+      // Defer heavy content processing
+      requestIdleCallback(() => {
+        if (this.performanceOptimizations.isVisible) {
+          this.processMessage();
+        }
+      });
     }
   }
 

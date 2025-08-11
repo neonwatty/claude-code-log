@@ -14,6 +14,8 @@ import {
 import './SessionListItem';
 import { AriaRoles, AriaAttributes, KeyboardKeys, ListNavigation, FocusManager, announce, A11yConfig, generateId } from '../utils/accessibility';
 import { useFocusManagement, skipLinkManager } from '../utils/focus-management';
+import { useVirtualScroll, createVirtualScrollConfig } from '../utils/virtual-scroll';
+import { useLazyLoading, createLazyLoadingConfig } from '../utils/lazy-loading';
 
 /**
  * Session list component with filtering, sorting, and pagination
@@ -210,10 +212,38 @@ export class SessionList extends BaseComponent {
         gap: var(--space-sm);
       }
 
+      .sessions-list.virtual {
+        overflow-y: auto;
+        position: relative;
+      }
+
+      .virtual-spacer {
+        pointer-events: none;
+        user-select: none;
+      }
+
       .sessions-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         gap: var(--space-md);
+      }
+
+      .session-item-container {
+        min-height: 120px; /* Match virtual scroll item height */
+        transition: opacity var(--transition-fast);
+      }
+
+      .session-item-container.loading {
+        opacity: 0.6;
+      }
+
+      .loading-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
       }
 
       .empty-state {
@@ -408,6 +438,18 @@ export class SessionList extends BaseComponent {
   @property({ type: Boolean })
   paginated = true;
 
+  /**
+   * Whether to enable virtual scrolling for performance
+   */
+  @property({ type: Boolean })
+  virtualScrolling = false;
+
+  /**
+   * Whether to enable lazy loading
+   */
+  @property({ type: Boolean })
+  lazyLoading = false;
+
   @state()
   private searchQuery = '';
 
@@ -431,11 +473,23 @@ export class SessionList extends BaseComponent {
 
   private focusManager = useFocusManagement('session-list', this, 1);
 
+  private virtualScroll = useVirtualScroll(this, createVirtualScrollConfig({
+    itemHeight: 120, // Estimated session item height
+    overscan: 3,
+    containerHeight: 600,
+  }));
+
+  private lazyLoader = useLazyLoading(this, createLazyLoadingConfig({
+    strategy: 'intersection',
+    batchSize: 5,
+    loadDelay: 50,
+  }));
+
   render() {
     const filteredSessions = this.getFilteredSessions();
-    const paginatedSessions = this.paginated 
-      ? this.getPaginatedSessions(filteredSessions)
-      : filteredSessions;
+    const sessionsToRender = this.virtualScrolling 
+      ? filteredSessions // Virtual scrolling handles its own pagination
+      : (this.paginated ? this.getPaginatedSessions(filteredSessions) : filteredSessions);
 
     return html`
       <div 
@@ -459,8 +513,8 @@ export class SessionList extends BaseComponent {
 
         ${this.loading ? this.renderLoading() : ''}
         ${this.error ? this.renderError() : ''}
-        ${!this.loading && !this.error ? this.renderSessionsList(paginatedSessions) : ''}
-        ${this.paginated && !this.loading && !this.error ? this.renderPagination(filteredSessions.length) : ''}
+        ${!this.loading && !this.error ? this.renderSessionsList(sessionsToRender, filteredSessions) : ''}
+        ${this.paginated && !this.virtualScrolling && !this.loading && !this.error ? this.renderPagination(filteredSessions.length) : ''}
       </div>
     `;
   }
@@ -601,13 +655,48 @@ export class SessionList extends BaseComponent {
     `;
   }
 
-  private renderSessionsList(sessions: SessionSummary[]) {
+  private renderSessionsList(sessions: SessionSummary[], allSessions?: SessionSummary[]) {
     if (sessions.length === 0) {
       return this.renderEmptyState();
     }
 
     const containerClass = this.displayMode === 'minimal' ? 'sessions-grid' : 'sessions-list';
+    const isVirtual = this.virtualScrolling && sessions.length > 20; // Enable virtual scrolling for large lists
 
+    if (isVirtual) {
+      return this.renderVirtualizedSessionsList(sessions, containerClass);
+    }
+
+    return this.renderRegularSessionsList(sessions, containerClass);
+  }
+
+  private renderVirtualizedSessionsList(sessions: SessionSummary[], containerClass: string) {
+    // Setup virtual scrolling
+    this.virtualScroll.setItems(sessions, (session) => session.sessionId);
+    const virtualContent = this.virtualScroll.renderVirtualizedList(
+      (virtualItem) => this.renderSessionItem(virtualItem.data, virtualItem.index, sessions.length)
+    );
+
+    return html`
+      <div 
+        id="${this.listId}"
+        class="${containerClass} virtual"
+        role="${AriaRoles.LIST}"
+        aria-label="${sessions.length} session${sessions.length !== 1 ? 's' : ''} (virtual scrolling enabled)"
+        aria-describedby="${this.statusId}"
+        style="${virtualContent.containerStyle}"
+        @keydown=${this.handleListKeydown}
+        @focus=${this.handleListFocus}
+        @blur=${this.handleListBlur}
+      >
+        ${virtualContent.beforeSpacer}
+        ${virtualContent.items}
+        ${virtualContent.afterSpacer}
+      </div>
+    `;
+  }
+
+  private renderRegularSessionsList(sessions: SessionSummary[], containerClass: string) {
     return html`
       <div 
         id="${this.listId}"
@@ -622,22 +711,63 @@ export class SessionList extends BaseComponent {
         ${repeat(
           sessions,
           (session) => session.sessionId,
-          (session, index) => html`
-            <session-list-item
-              .session=${session}
-              ?selected=${session.sessionId === this.selectedSessionId}
-              ?compact=${this.displayMode === 'compact'}
-              ?detailed=${this.displayMode === 'detailed'}
-              aria-posinset="${index + 1}"
-              aria-setsize="${sessions.length}"
-              role="${AriaRoles.LISTITEM}"
-              @session-selected=${this.handleSessionSelected}
-              @focus=${() => this.handleItemFocus(index)}
-            ></session-list-item>
-          `
+          (session, index) => this.renderSessionItem(session, index, sessions.length)
         )}
       </div>
     `;
+  }
+
+  private renderSessionItem(session: SessionSummary, index: number, totalCount: number) {
+    const sessionId = session.sessionId;
+    const isLoading = this.lazyLoading && this.lazyLoader.getItem(sessionId)?.state === 'loading';
+    const hasError = this.lazyLoading && this.lazyLoader.getItem(sessionId)?.state === 'error';
+
+    if (this.lazyLoading) {
+      // Add to lazy loader if not already added
+      const existingItem = this.lazyLoader.getItem(sessionId);
+      if (!existingItem) {
+        this.lazyLoader.addItem(sessionId, session, {
+          priority: session.isActive ? 1 : 0,
+          loader: () => this.loadSessionData(session),
+        });
+      }
+    }
+
+    return html`
+      <div 
+        class="session-item-container ${isLoading ? 'loading' : ''}"
+        data-session-id="${sessionId}"
+      >
+        ${hasError ? html`
+          <div class="loading-indicator">
+            <span>Failed to load session</span>
+            <button @click=${() => this.lazyLoader.loadItem(sessionId)}>Retry</button>
+          </div>
+        ` : isLoading ? html`
+          <div class="loading-indicator">Loading session...</div>
+        ` : html`
+          <session-list-item
+            .session=${session}
+            ?selected=${session.sessionId === this.selectedSessionId}
+            ?compact=${this.displayMode === 'compact'}
+            ?detailed=${this.displayMode === 'detailed'}
+            aria-posinset="${index + 1}"
+            aria-setsize="${totalCount}"
+            role="${AriaRoles.LISTITEM}"
+            @session-selected=${this.handleSessionSelected}
+            @focus=${() => this.handleItemFocus(index)}
+          ></session-list-item>
+        `}
+      </div>
+    `;
+  }
+
+  private async loadSessionData(session: SessionSummary): Promise<void> {
+    // Simulate loading session data (replace with actual data loading)
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200));
+    
+    // Emit event for successful loading
+    this.emitEvent('session-loaded', { sessionId: session.sessionId });
   }
 
   private renderEmptyState() {
@@ -1070,6 +1200,16 @@ export class SessionList extends BaseComponent {
   protected updated(changedProperties: Map<string, any>) {
     super.updated(changedProperties);
     
+    // Setup virtual scrolling container when needed
+    if (changedProperties.has('virtualScrolling') || changedProperties.has('sessions')) {
+      this.updateVirtualScrolling();
+    }
+
+    // Setup lazy loading observers
+    if (changedProperties.has('lazyLoading') || changedProperties.has('sessions')) {
+      this.updateLazyLoading();
+    }
+    
     // Announce status changes to screen readers
     if (changedProperties.has('sessions') || 
         changedProperties.has('loading') || 
@@ -1086,6 +1226,38 @@ export class SessionList extends BaseComponent {
     }
   }
 
+  private updateVirtualScrolling() {
+    if (this.virtualScrolling) {
+      // Find the scroll container and set it up
+      const container = this.shadowRoot?.querySelector('.sessions-list.virtual') as HTMLElement;
+      if (container) {
+        this.virtualScroll.setScrollContainer(container);
+        
+        // Update configuration based on display mode
+        const itemHeight = this.displayMode === 'compact' ? 80 : 120;
+        this.virtualScroll.updateConfig({ 
+          itemHeight,
+          containerHeight: Math.min(600, window.innerHeight * 0.6)
+        });
+      }
+    }
+  }
+
+  private updateLazyLoading() {
+    if (this.lazyLoading) {
+      // Setup observers for visible session items
+      this.updateComplete.then(() => {
+        const items = this.shadowRoot?.querySelectorAll('[data-session-id]');
+        items?.forEach(item => {
+          const sessionId = item.getAttribute('data-session-id');
+          if (sessionId) {
+            this.lazyLoader.observeElement(item, sessionId);
+          }
+        });
+      });
+    }
+  }
+
   connectedCallback() {
     super.connectedCallback();
     
@@ -1097,6 +1269,41 @@ export class SessionList extends BaseComponent {
     
     // Set up global keyboard listeners if needed
     this.addEventListener('keydown', this.handleContainerKeydown);
+
+    // Enable performance optimizations for large lists
+    this.enablePerformanceOptimizations();
+  }
+
+  private enablePerformanceOptimizations() {
+    // Auto-enable virtual scrolling for large datasets
+    if (this.sessions.length > 50 && !this.virtualScrolling) {
+      console.log('Auto-enabling virtual scrolling for large dataset');
+      this.virtualScrolling = true;
+    }
+
+    // Auto-enable lazy loading for complex sessions
+    if (this.sessions.length > 20 && !this.lazyLoading) {
+      console.log('Auto-enabling lazy loading for performance');
+      this.lazyLoading = true;
+    }
+
+    // Optimize rendering frequency
+    this.throttleUpdates();
+  }
+
+  private throttleUpdates() {
+    let updateScheduled = false;
+    const originalRequestUpdate = this.requestUpdate.bind(this);
+    
+    this.requestUpdate = () => {
+      if (!updateScheduled) {
+        updateScheduled = true;
+        requestAnimationFrame(() => {
+          originalRequestUpdate();
+          updateScheduled = false;
+        });
+      }
+    };
   }
 
   disconnectedCallback() {
