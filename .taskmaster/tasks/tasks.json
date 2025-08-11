@@ -377,7 +377,63 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Timeline Data Model and WebSocket Events",
+            "description": "Define TypeScript interfaces for timeline data structures and WebSocket event types",
+            "dependencies": [],
+            "details": "Create interfaces in shared/src/models/ for TimelineEntry, TimelineFilter, TimelineZoomLevel, and TimelineUpdateEvent. Define WebSocket event types for timeline updates (timeline:update, timeline:zoom, timeline:filter). Extend existing session models to include timeline-specific metadata like timestamps, duration, and event markers.",
+            "status": "pending",
+            "testStrategy": "Unit tests for data model validation, type safety checks for WebSocket events, and integration tests with existing session models"
+          },
+          {
+            "id": 2,
+            "title": "Implement Timeline Lit Component Structure",
+            "description": "Build the base Lit Web Component for timeline visualization with zoom and pan controls",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Create timeline-view.ts in js/frontend/src/components/timeline/ using Lit's LitElement. Implement properties for timeRange, zoomLevel, sessions array, and activeFilters. Add methods for handleZoom, handlePan, and calculateViewport. Use CSS Grid or Flexbox for responsive layout with a horizontal timeline axis and session tracks.",
+            "status": "pending",
+            "testStrategy": "Component rendering tests with different viewport sizes, zoom level boundary tests, pan gesture tests, and performance tests with 100+ sessions"
+          },
+          {
+            "id": 3,
+            "title": "Add Timeline Filtering and Search",
+            "description": "Implement filtering controls for session type, status, date range, and text search",
+            "dependencies": [
+              "8.2"
+            ],
+            "details": "Create timeline-filters.ts component with filter UI controls for session status (active/completed/failed), date range picker, session type selector, and text search. Implement filter state management using Lit's reactive properties. Add debounced search and filter application logic. Emit filter-changed events to parent timeline component.",
+            "status": "pending",
+            "testStrategy": "Test filter combinations, verify debounce timing, test filter persistence across zoom/pan, and validate search performance with large datasets"
+          },
+          {
+            "id": 4,
+            "title": "Integrate WebSocket Real-time Updates",
+            "description": "Connect timeline to WebSocket server for live session updates and synchronization",
+            "dependencies": [
+              "8.2",
+              "8.3"
+            ],
+            "details": "Extend WebSocketManager in js/frontend/src/services/ to handle timeline-specific events. Implement subscription to session:created, session:updated, and session:deleted events. Add automatic timeline repositioning for new sessions. Implement optimistic UI updates with rollback on connection loss. Add visual indicators for real-time updates (pulse animations, badges).",
+            "status": "pending",
+            "testStrategy": "Test WebSocket reconnection handling, verify update batching under high load, test conflict resolution for concurrent updates, and validate memory management for long-running connections"
+          },
+          {
+            "id": 5,
+            "title": "Add Timeline Interactions and Export",
+            "description": "Implement click handlers, tooltips, context menus, and export functionality",
+            "dependencies": [
+              "8.4"
+            ],
+            "details": "Add click handlers to open session details in modal or side panel. Implement hover tooltips showing session summary using Lit's @query and template refs. Add right-click context menu for session actions (view, export, delete). Implement timeline export as PNG/SVG using canvas or SVG serialization. Add keyboard navigation (arrow keys for pan, +/- for zoom).",
+            "status": "pending",
+            "testStrategy": "Test interaction responsiveness, verify tooltip positioning at viewport edges, test export quality at different zoom levels, and validate keyboard accessibility compliance"
+          }
+        ]
       },
       {
         "id": 9,
@@ -389,7 +445,63 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Filter State Management with Lit Reactive Properties",
+            "description": "Implement reactive state management for all filter types using Lit's reactive properties and controllers",
+            "dependencies": [],
+            "details": "Create a FilterController class extending ReactiveController to manage filter state including message type filters (user/assistant/system), date range filters (start/end dates), search query state, and active filter combinations. Use @state() decorators for reactive properties and implement methods for updating filter criteria. Store filter state in sessionStorage for persistence across page reloads.",
+            "status": "pending",
+            "testStrategy": "Test reactive property updates trigger re-renders, verify filter state persistence in sessionStorage, test filter combination logic, and validate controller lifecycle methods"
+          },
+          {
+            "id": 2,
+            "title": "Build Filter UI Components with Material Design",
+            "description": "Create filter UI components using Lit and Material Web Components for user interaction",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Develop FilterPanel component with md-filled-text-field for search input with debouncing, md-filter-chip components for message type selection (user/assistant/system/error), md-date-picker or custom date range selector for temporal filtering, and md-icon-button for clearing filters. Implement keyboard shortcuts for quick filter access (Cmd+F for search, etc). Style components to match existing Material Design theme and ensure responsive layout.",
+            "status": "pending",
+            "testStrategy": "Test UI component rendering and interactions, verify keyboard shortcuts work correctly, test responsive behavior on different screen sizes, and validate Material Design compliance"
+          },
+          {
+            "id": 3,
+            "title": "Implement Message Filtering Logic and Search Algorithm",
+            "description": "Create efficient filtering and search algorithms for message data with performance optimization",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Implement filterMessages() method that applies all active filters efficiently using Array.filter() with combined predicates. Create full-text search using String.includes() with case-insensitive matching for message content, tool names, and error messages. Add message type filtering by role property. Implement date range filtering using timestamp comparisons. Use memoization with WeakMap to cache filtered results and improve performance for repeated filter operations.",
+            "status": "pending",
+            "testStrategy": "Test filtering with large datasets (1000+ messages), verify search matches across all text fields, test date range edge cases, measure and optimize filter performance"
+          },
+          {
+            "id": 4,
+            "title": "Integrate Filters with Session List and Timeline Components",
+            "description": "Connect filter functionality to existing session-list and timeline-view components with reactive updates",
+            "dependencies": [
+              "9.2",
+              "9.3"
+            ],
+            "details": "Modify session-list component to accept FilterController instance and apply filters to displayed sessions. Update timeline-view to filter messages based on active criteria. Implement @watch() decorators to trigger re-renders when filter state changes. Add visual indicators showing active filter count in UI. Ensure smooth animations when filtering using CSS transitions. Maintain scroll position when filters are applied/removed.",
+            "status": "pending",
+            "testStrategy": "Test filter integration with both components, verify reactive updates occur instantly, test scroll position preservation, and validate visual feedback for active filters"
+          },
+          {
+            "id": 5,
+            "title": "Add Search Highlighting and Filter Analytics",
+            "description": "Implement search result highlighting and analytics for filter usage patterns",
+            "dependencies": [
+              "9.4"
+            ],
+            "details": "Create highlightSearchTerms() method using mark.js or custom implementation to highlight matched text in message content. Add search result count display and 'no results' state handling. Implement filter analytics tracking which filters are used most frequently. Add performance metrics for search operations using Performance API. Create exportable filter presets for common search patterns. Add URL state synchronization for shareable filtered views.",
+            "status": "pending",
+            "testStrategy": "Test highlighting works with special characters and HTML entities, verify analytics data collection, test URL state synchronization, and validate performance metrics accuracy"
+          }
+        ]
       },
       {
         "id": 10,
@@ -401,7 +513,63 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Responsive Layout Component Base",
+            "description": "Implement base ResponsiveLayout Lit component with breakpoint detection and reactive properties",
+            "dependencies": [],
+            "details": "Create a new Lit component at js/frontend/src/components/layout/ResponsiveLayout.ts that extends LitElement. Implement responsive breakpoint detection using ResizeObserver or matchMedia APIs. Define reactive properties for current breakpoint (mobile/tablet/desktop) and expose them via @property decorators. Set up Tailwind CSS breakpoint constants matching sm:, md:, lg:, xl: breakpoints. Create a base template structure with header, main content area, and optional sidebar slots using Lit's slot system.",
+            "status": "pending",
+            "testStrategy": "Test breakpoint detection logic with different viewport sizes, verify reactive property updates trigger re-renders, ensure slot content is properly projected"
+          },
+          {
+            "id": 2,
+            "title": "Implement Grid and Flexbox Layout Templates",
+            "description": "Create responsive grid and flexbox layout templates using Lit's template system and Tailwind utilities",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Within the ResponsiveLayout component, implement conditional template rendering based on breakpoint. Create mobile-first grid layouts using Tailwind's grid classes (grid-cols-1, sm:grid-cols-2, lg:grid-cols-3). Implement flexbox layouts for navigation and sidebar areas with proper flex-direction changes on mobile. Use Lit's conditional rendering with ${when()} or ternary operators to switch between layout templates. Apply responsive padding/margin using Tailwind's spacing utilities (p-2, md:p-4, lg:p-6).",
+            "status": "pending",
+            "testStrategy": "Verify grid columns adjust correctly at each breakpoint, test flexbox direction changes on mobile, ensure spacing scales appropriately"
+          },
+          {
+            "id": 3,
+            "title": "Build Responsive Navigation Component",
+            "description": "Create responsive navigation that transforms between desktop navbar and mobile hamburger menu",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create js/frontend/src/components/layout/ResponsiveNav.ts component. Implement desktop horizontal navigation bar using Tailwind flex utilities. Create mobile hamburger menu with slide-out drawer using Lit's @state for menu open/closed state. Add smooth transitions using Tailwind's transition utilities (transition-transform, duration-300). Implement keyboard navigation support and ARIA attributes for accessibility. Use Lit's @query decorator to reference DOM elements for focus management.",
+            "status": "pending",
+            "testStrategy": "Test hamburger menu toggle functionality, verify keyboard navigation works, ensure ARIA attributes are correct, test transition animations"
+          },
+          {
+            "id": 4,
+            "title": "Implement Responsive Timeline and Session Components",
+            "description": "Adapt existing timeline and session components to be fully responsive within the layout system",
+            "dependencies": [
+              "10.2",
+              "10.3"
+            ],
+            "details": "Modify existing timeline component (js/frontend/src/components/timeline/TimelineComponent.ts) to use responsive Tailwind classes. Implement stacked layout for mobile with collapsible sections. Add horizontal scrolling for wide content on mobile using overflow-x-auto. Update session list and session view components to work within responsive grid. Implement responsive table layouts that transform to card layouts on mobile using Tailwind's hidden/block utilities at different breakpoints.",
+            "status": "pending",
+            "testStrategy": "Test timeline renders correctly at all breakpoints, verify collapsible sections work on mobile, ensure session components adapt layout appropriately"
+          },
+          {
+            "id": 5,
+            "title": "Create Responsive Testing Page and Documentation",
+            "description": "Build comprehensive test page demonstrating all responsive layouts and document usage patterns",
+            "dependencies": [
+              "10.4"
+            ],
+            "details": "Create js/frontend/test-responsive-layout.html page that showcases all responsive components. Include viewport size indicator showing current breakpoint for testing. Add examples of all layout variations (grid, flex, sidebar, no-sidebar). Create inline documentation comments in components explaining responsive patterns used. Set up visual regression testing markers for key breakpoints (320px, 768px, 1024px, 1440px). Include performance metrics for layout shifts and reflow events.",
+            "status": "pending",
+            "testStrategy": "Manually test on actual devices (iPhone, iPad, desktop), use browser DevTools device emulation, verify no layout shifts occur during responsive transitions"
+          }
+        ]
       },
       {
         "id": 11,
@@ -413,7 +581,64 @@
           "5"
         ],
         "priority": "high",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Node.js child process spawning infrastructure",
+            "description": "Create core infrastructure for spawning and managing Claude Code CLI child processes",
+            "dependencies": [],
+            "details": "Implement a ProcessManager class in js/backend/src/services/process-manager.ts that handles spawning Claude Code CLI processes using Node.js child_process.spawn(). Include process lifecycle management (start, stop, restart), environment variable handling, working directory configuration, and process ID tracking. Follow the existing service patterns seen in js/backend/src/services/websocket-service.ts.",
+            "status": "pending",
+            "testStrategy": "Create unit tests for ProcessManager class testing spawn operations, process termination, environment variable passing, and error handling for invalid commands or missing executables"
+          },
+          {
+            "id": 2,
+            "title": "Implement stdout/stderr stream handling and parsing",
+            "description": "Create stream handlers for capturing and parsing Claude Code CLI output",
+            "dependencies": [
+              "11.1"
+            ],
+            "details": "Develop StreamHandler class to capture stdout/stderr from child processes, implement buffering and line-by-line parsing, detect and parse different output types (JSON responses, markdown, tool use), and handle ANSI escape codes. Create event emitters for parsed output that can be consumed by WebSocket service. Store in js/backend/src/services/stream-handler.ts following existing TypeScript patterns.",
+            "status": "pending",
+            "testStrategy": "Test stream parsing with various Claude Code output formats, verify ANSI code handling, test buffer overflow scenarios, and ensure proper event emission for different output types"
+          },
+          {
+            "id": 3,
+            "title": "Build session state persistence and recovery system",
+            "description": "Implement session state persistence for Claude Code CLI process resumption",
+            "dependencies": [
+              "11.1",
+              "11.2"
+            ],
+            "details": "Create SessionStateManager in js/backend/src/services/session-state.ts that persists active session data including process IDs, working directories, environment variables, and command history to SQLite database. Implement recovery mechanism to restore sessions after application restart, handle orphaned processes, and clean up stale sessions. Use the existing database patterns from js/backend/src/database/.",
+            "status": "pending",
+            "testStrategy": "Test session persistence across application restarts, verify orphaned process cleanup, test recovery with various session states, and ensure database transactions are atomic"
+          },
+          {
+            "id": 4,
+            "title": "Create WebSocket integration for real-time CLI output",
+            "description": "Integrate child process management with existing WebSocket infrastructure",
+            "dependencies": [
+              "11.2",
+              "11.3"
+            ],
+            "details": "Extend js/backend/src/services/websocket-service.ts to handle Claude Code CLI events including process spawn/exit, stdout/stderr streaming, and session state changes. Implement WebSocket message types for CLI control (start, stop, restart, input) and output streaming. Ensure compatibility with existing WebSocket patterns and message formats defined in js/shared/src/types/.",
+            "status": "pending",
+            "testStrategy": "Test real-time output streaming over WebSocket, verify message ordering and buffering, test concurrent session handling, and ensure WebSocket reconnection preserves CLI session state"
+          },
+          {
+            "id": 5,
+            "title": "Implement input handling and interactive mode support",
+            "description": "Build system for sending user input to Claude Code CLI processes",
+            "dependencies": [
+              "11.4"
+            ],
+            "details": "Create InputHandler in js/backend/src/services/input-handler.ts for managing stdin writes to child processes, implement queue system for handling rapid input, support for special key sequences (Ctrl+C, Ctrl+D), and interactive mode detection. Add WebSocket message handlers for user input events and ensure proper input sanitization and validation.",
+            "status": "pending",
+            "testStrategy": "Test input handling with various input types, verify special key sequence handling, test input queue under load, and ensure proper handling of interactive prompts and multi-line input"
+          }
+        ]
       },
       {
         "id": 12,
@@ -425,7 +650,63 @@
           "11"
         ],
         "priority": "high",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Context Serialization Service",
+            "description": "Implement a service to serialize session context and state into transferable formats for Claude Code CLI integration",
+            "dependencies": [],
+            "details": "Create a ContextSerializer class in backend/src/services/ that can package session data, user preferences, current state, and relevant metadata into JSON format suitable for CLI consumption. Include methods for compressing large session data and handling different context types (full session, partial context, specific timeframes). Integrate with existing SessionService caching mechanisms.",
+            "status": "pending",
+            "testStrategy": "Test serialization of various session types, verify data integrity after serialization/deserialization, and benchmark performance with large sessions"
+          },
+          {
+            "id": 2,
+            "title": "Develop CLI Integration API Endpoints",
+            "description": "Create REST API endpoints specifically designed for Claude Code CLI to request and receive prepared session context",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "Add new routes in backend/src/routes/cli-integration.ts with endpoints for: /api/cli/context/:sessionId (get prepared context), /api/cli/transfer (initiate context transfer), /api/cli/status (check transfer status). Include authentication middleware and rate limiting. Use existing session validation patterns and error handling from sessions.ts as reference.",
+            "status": "pending",
+            "testStrategy": "Create comprehensive API tests covering all endpoints, authentication flows, and error scenarios. Test with various session sizes and CLI integration patterns"
+          },
+          {
+            "id": 3,
+            "title": "Implement WebSocket Context Broadcasting",
+            "description": "Extend WebSocket service to support real-time context updates and CLI synchronization events",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "Enhance backend/src/services/websocket.ts to include CLI-specific events: 'context-prepared', 'context-transfer-initiated', 'cli-sync-requested'. Add new event types to websocket types and implement handlers for bi-directional communication between web app and CLI. Integrate with existing connection management and room-based messaging.",
+            "status": "pending",
+            "testStrategy": "Test WebSocket events with mock CLI clients, verify event ordering and delivery, and test connection stability during context transfers"
+          },
+          {
+            "id": 4,
+            "title": "Create Frontend Context Preparation UI",
+            "description": "Build Lit web component for users to prepare and initiate context transfers to Claude Code CLI",
+            "dependencies": [
+              "12.2"
+            ],
+            "details": "Create new component in frontend/src/components/context-transfer/ that provides UI for: selecting session data to transfer, configuring transfer options (full/partial context), showing transfer status, and displaying CLI connection info. Follow existing component patterns from session-list and message-display components. Include accessibility features and responsive design.",
+            "status": "pending",
+            "testStrategy": "Test component rendering, user interactions, form validation, and integration with backend APIs. Include accessibility and visual regression tests"
+          },
+          {
+            "id": 5,
+            "title": "Develop Session State Management Bridge",
+            "description": "Create bidirectional state synchronization between web app and CLI sessions",
+            "dependencies": [
+              "12.2",
+              "12.3"
+            ],
+            "details": "Implement StateBridge class in shared/src/state-bridge.ts that manages: session state synchronization, conflict resolution when both CLI and web app modify data, state persistence during transfers, and recovery mechanisms for interrupted transfers. Include event-driven updates and integration with existing session organization utilities.",
+            "status": "pending",
+            "testStrategy": "Test state synchronization scenarios, conflict resolution algorithms, transfer interruption recovery, and performance with concurrent state changes"
+          }
+        ]
       },
       {
         "id": 13,
@@ -437,7 +718,64 @@
           "12"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Session Branching Data Model",
+            "description": "Extend existing session data models to support branching metadata and parent-child relationships",
+            "dependencies": [],
+            "details": "Add branch-specific fields to SessionSummary interface including parentSessionId, branchPoint (message index), branchTimestamp, and branchMetadata. Update SessionManager to track branch relationships and maintain a branch tree structure. Ensure compatibility with existing JSONL format while adding branch-specific properties.",
+            "status": "pending",
+            "testStrategy": "Unit test branch model creation, verify parent-child relationships are maintained correctly, test JSONL serialization/deserialization with branch data"
+          },
+          {
+            "id": 2,
+            "title": "Create Branch Point Selection UI Component",
+            "description": "Build interactive UI component for selecting branch points within session message history",
+            "dependencies": [
+              "13.1"
+            ],
+            "details": "Develop a Lit web component that displays session messages with branch point indicators. Add hover states and click handlers for message selection. Include visual feedback showing where branches can be created (typically at assistant responses). Integrate with existing timeline and message display components.",
+            "status": "pending",
+            "testStrategy": "Test branch point selection with various message types, verify UI responsiveness and visual feedback, test integration with existing components"
+          },
+          {
+            "id": 3,
+            "title": "Implement Branch Creation API Endpoint",
+            "description": "Create backend API endpoint for initiating session branches with proper validation",
+            "dependencies": [
+              "13.1"
+            ],
+            "details": "Add POST /api/sessions/:id/branch endpoint that accepts parentSessionId, branchPointIndex, and optional metadata. Validate branch point exists and is valid. Create new session with copied message history up to branch point. Generate unique session ID and maintain parent reference. Return new session details with branch metadata.",
+            "status": "pending",
+            "testStrategy": "Test branch creation with various branch points, verify data consistency, test error handling for invalid branch points"
+          },
+          {
+            "id": 4,
+            "title": "Add WebSocket Branch Notifications",
+            "description": "Implement real-time WebSocket notifications for branch creation and updates",
+            "dependencies": [
+              "13.3"
+            ],
+            "details": "Extend WebSocketManager to emit 'session:branched' events with branch details. Send notifications to all connected clients when branches are created. Include parent session ID, new branch ID, and branch metadata in notifications. Update session list components to react to branch events and refresh UI.",
+            "status": "pending",
+            "testStrategy": "Test WebSocket notifications across multiple clients, verify message delivery and ordering, test reconnection scenarios"
+          },
+          {
+            "id": 5,
+            "title": "Build Branch Visualization Component",
+            "description": "Create visual representation of session branch tree structure",
+            "dependencies": [
+              "13.1",
+              "13.2",
+              "13.4"
+            ],
+            "details": "Develop a Lit component that renders branch trees using D3.js or native SVG. Show parent-child relationships with connecting lines. Display branch metadata on hover. Enable navigation between branches via click. Highlight current session and show branch points. Update visualization in real-time via WebSocket events.",
+            "status": "pending",
+            "testStrategy": "Test visualization with complex branch structures, verify real-time updates work correctly, test navigation between branches"
+          }
+        ]
       },
       {
         "id": 14,
@@ -450,7 +788,62 @@
           "11"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Session Status Events and Types",
+            "description": "Define and implement comprehensive session status event types and data structures for real-time status tracking",
+            "dependencies": [],
+            "details": "Extend the existing event system in js/backend/src/types/websocket.ts to include detailed session status events. Add new event types like 'session:status-changed', 'session:progress-updated', 'session:metadata-changed' with proper data structures. Update the AppEvent union type and create SessionStatusEvent interface with fields for status changes, progress indicators, metadata updates, and performance metrics. This will build on the existing session event structure while adding comprehensive status tracking capabilities.",
+            "status": "pending",
+            "testStrategy": "Unit tests for event type validation, event creation helper functions, and proper TypeScript type checking. Integration tests for event serialization/deserialization."
+          },
+          {
+            "id": 2,
+            "title": "Enhance EventManager for Session Status Broadcasting",
+            "description": "Extend the EventManager service to handle session status events with proper filtering and targeted broadcasting",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "Modify js/backend/src/services/eventManager.ts to add specialized methods for session status events. Implement createSessionStatusEvent() helper, enhance the publishEvent() method to handle session status routing, and add session-specific event filtering capabilities. Create targeted broadcasting methods like broadcastSessionStatus() that can send status updates to specific session subscribers, user groups, or global listeners based on subscription preferences. Integrate with the existing WebSocket rooms system for efficient message routing.",
+            "status": "pending",
+            "testStrategy": "Unit tests for event creation, filtering, and routing logic. Integration tests for WebSocket message delivery and subscription management. Performance tests for broadcast efficiency with multiple subscribers."
+          },
+          {
+            "id": 3,
+            "title": "Create Session Status Tracking Service",
+            "description": "Implement a dedicated service to monitor and track session status changes with persistent state management",
+            "dependencies": [
+              "14.2"
+            ],
+            "details": "Create a new SessionStatusTracker service in js/backend/src/services/sessionStatusTracker.ts that integrates with the existing SessionService. This service will monitor session lifecycle events, track status changes, maintain session progress indicators, and handle status persistence. Implement methods like updateSessionStatus(), getSessionStatus(), trackProgress(), and integrations with the file system monitoring from Task 6. The service should cache status information and provide hooks for external status changes (file modifications, user actions, system events).",
+            "status": "pending",
+            "testStrategy": "Unit tests for status tracking logic, state persistence, and cache management. Integration tests with file system monitoring and WebSocket events. End-to-end tests for session lifecycle status tracking."
+          },
+          {
+            "id": 4,
+            "title": "Implement WebSocket Session Status Endpoints",
+            "description": "Add WebSocket event handlers and client-server communication for real-time session status updates",
+            "dependencies": [
+              "14.3"
+            ],
+            "details": "Extend js/backend/src/services/websocket.ts to add session status-specific WebSocket handlers. Implement handlers for 'get-session-status', 'subscribe-session-status', 'session-status-changed' events. Update ClientToServerEvents and ServerToClientEvents interfaces with new session status events. Add rate limiting for status update requests, proper authentication checks for status access, and integration with the SessionStatusTracker service. Ensure backward compatibility with existing session event handlers while adding enhanced status capabilities.",
+            "status": "pending",
+            "testStrategy": "Unit tests for WebSocket event handling and authentication. Integration tests for real-time status update delivery. Stress tests for rate limiting and concurrent status requests. WebSocket reconnection and state recovery tests."
+          },
+          {
+            "id": 5,
+            "title": "Frontend Session Status Integration",
+            "description": "Update frontend components to display and handle real-time session status updates through WebSocket connections",
+            "dependencies": [
+              "14.4"
+            ],
+            "details": "Enhance js/frontend/src/components/timeline/TimelineWebSocketIntegration.ts to handle session status events. Add new message handlers for session status updates, implement status display logic in the TimelineView component, and create visual indicators for session progress, status changes, and real-time updates. Add methods like handleSessionStatusChanged(), updateSessionStatusDisplay(), and integrate with existing session update mechanisms. Ensure smooth UI updates without flickering and proper error handling for status update failures.",
+            "status": "pending",
+            "testStrategy": "Unit tests for WebSocket message handling and UI update logic. Visual regression tests for status indicator displays. Integration tests for real-time status updates with backend. User interaction tests for status filtering and display preferences."
+          }
+        ]
       },
       {
         "id": 15,
@@ -462,7 +855,66 @@
           "5"
         ],
         "priority": "low",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Export API Architecture",
+            "description": "Create RESTful API endpoints for export functionality with proper request/response handling",
+            "dependencies": [],
+            "details": "Design and implement Express.js API endpoints at /api/export with support for multiple format types (HTML, JSON, PDF). Create ExportController in js/backend/src/controllers/export.controller.ts with methods for each format. Define TypeScript interfaces for ExportRequest and ExportResponse in js/shared/src/types/export.types.ts. Implement request validation middleware to ensure valid session IDs and export formats.",
+            "status": "pending",
+            "testStrategy": "Unit test each export endpoint with mock session data, verify proper HTTP status codes and response headers, test invalid request handling"
+          },
+          {
+            "id": 2,
+            "title": "Implement JSON Export Service",
+            "description": "Create service for exporting session data as formatted JSON files",
+            "dependencies": [
+              "15.1"
+            ],
+            "details": "Implement JsonExportService in js/backend/src/services/export/json-export.service.ts that retrieves session data from SessionManager, formats it with proper indentation and structure, and includes all messages, metadata, and timestamps. Create utility functions for sanitizing and transforming session data. Ensure exported JSON maintains compatibility with existing JSONL format while being human-readable.",
+            "status": "pending",
+            "testStrategy": "Test JSON export with various session sizes, verify data integrity and format correctness, test edge cases with special characters and large datasets"
+          },
+          {
+            "id": 3,
+            "title": "Implement HTML Export Service",
+            "description": "Create service for generating styled HTML exports of sessions with syntax highlighting",
+            "dependencies": [
+              "15.1"
+            ],
+            "details": "Create HtmlExportService in js/backend/src/services/export/html-export.service.ts using template engine (Handlebars or EJS) to generate standalone HTML files. Include inline CSS styling matching the application's theme, syntax highlighting for code blocks using Prism.js or highlight.js, and collapsible sections for long messages. Generate self-contained HTML that can be viewed offline.",
+            "status": "pending",
+            "testStrategy": "Test HTML generation with various content types including code blocks, verify proper escaping of HTML entities, test browser compatibility of generated files"
+          },
+          {
+            "id": 4,
+            "title": "Implement PDF Export Service",
+            "description": "Create service for generating PDF exports using server-side rendering",
+            "dependencies": [
+              "15.1",
+              "15.3"
+            ],
+            "details": "Implement PdfExportService in js/backend/src/services/export/pdf-export.service.ts using Puppeteer or PDFKit for PDF generation. Reuse HTML templates from HtmlExportService and convert to PDF with proper page breaks, headers, and footers. Add configuration for page size, margins, and orientation. Include metadata like creation date, session duration, and message count in PDF properties.",
+            "status": "pending",
+            "testStrategy": "Test PDF generation with various session lengths, verify page breaks work correctly, test PDF metadata and accessibility features"
+          },
+          {
+            "id": 5,
+            "title": "Add Frontend Export UI Components",
+            "description": "Create Lit components for triggering exports and displaying download progress",
+            "dependencies": [
+              "15.1",
+              "15.2",
+              "15.3",
+              "15.4"
+            ],
+            "details": "Create ExportDialog component in js/frontend/src/components/export/export-dialog.ts with format selection (JSON, HTML, PDF), download progress indicator, and error handling. Add export button to SessionView component that opens the dialog. Implement client-side download handling using fetch API and blob URLs. Add toast notifications for export success/failure using existing notification system.",
+            "status": "pending",
+            "testStrategy": "Test UI interactions with all export formats, verify progress indicators work correctly, test error states and retry mechanisms"
+          }
+        ]
       },
       {
         "id": 16,
@@ -474,7 +926,62 @@
           "5"
         ],
         "priority": "low",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create User Preferences Data Models and Storage Interface",
+            "description": "Define TypeScript interfaces for user preferences and implement persistent storage mechanisms",
+            "dependencies": [],
+            "details": "Create preference interfaces in shared/src/index.ts covering themes (light/dark/high-contrast), layout options (compact/comfortable), default views, font sizes, and accessibility settings. Implement storage abstraction layer supporting both localStorage (frontend) and database persistence (backend). Include validation schemas using the existing validation system. Add preference categories: appearance, behavior, accessibility, and performance.",
+            "status": "pending",
+            "testStrategy": "Unit tests for preference interfaces, storage operations, validation, and data migration between preference schema versions"
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend User Preferences API",
+            "description": "Create REST API endpoints for managing user preferences with validation and persistence",
+            "dependencies": [
+              "16.1"
+            ],
+            "details": "Add routes in backend/src/routes/ for CRUD operations on user preferences. Create middleware for preference validation using the established patterns in middleware/validation.ts. Implement database models and migrations if using a database, or file-based storage for development. Add preference caching using the existing cache middleware. Include bulk update operations for initial setup and reset functionality.",
+            "status": "pending",
+            "testStrategy": "API endpoint tests, validation tests, persistence tests, and integration tests with existing authentication system"
+          },
+          {
+            "id": 3,
+            "title": "Extend Theme System with Dynamic Theme Switching",
+            "description": "Enhance existing theme system to support dynamic theme changes based on user preferences",
+            "dependencies": [
+              "16.2"
+            ],
+            "details": "Extend frontend/src/components/styles/theme.ts to support runtime theme switching. Add theme provider component that manages theme state and applies CSS custom properties dynamically. Implement theme detection for system preferences and manual overrides. Add theme persistence integration with user preferences. Create theme transition animations and ensure accessibility compliance with high-contrast and reduced-motion preferences.",
+            "status": "pending",
+            "testStrategy": "Theme switching tests, CSS custom property tests, accessibility tests, and visual regression tests for all theme variants"
+          },
+          {
+            "id": 4,
+            "title": "Create Preferences Management UI Components",
+            "description": "Build Lit web components for managing user preferences with live preview capabilities",
+            "dependencies": [
+              "16.3"
+            ],
+            "details": "Create PreferencesPanel and PreferencesSetting Lit components following the existing component patterns in components/base/. Implement sections for appearance (theme, font size), layout (density, sidebar), behavior (auto-save, notifications), and accessibility (motion, contrast). Add live preview functionality showing changes in real-time. Include reset to defaults and import/export functionality. Follow established patterns from existing components like SessionList and MessageDisplay.",
+            "status": "pending",
+            "testStrategy": "Component unit tests, interaction tests, accessibility tests, and integration tests with the theme system and backend API"
+          },
+          {
+            "id": 5,
+            "title": "Integrate Preferences Throughout Application",
+            "description": "Apply user preferences across all existing components and implement preference-aware features",
+            "dependencies": [
+              "16.4"
+            ],
+            "details": "Modify existing components (SessionList, MessageDisplay, TimelineView, etc.) to respond to user preferences. Implement preference-aware rendering for themes, layouts, and accessibility settings. Add preference initialization on application startup and real-time preference updates via WebSocket integration. Create preference migration system for handling preference schema changes. Include analytics/usage tracking for popular preference combinations.",
+            "status": "pending",
+            "testStrategy": "Integration tests across all components, preference persistence tests, WebSocket preference sync tests, and end-to-end user workflow tests"
+          }
+        ]
       },
       {
         "id": 17,
@@ -486,7 +993,65 @@
           "9"
         ],
         "priority": "low",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Analytics Dashboard Architecture",
+            "description": "Create the overall architecture and component structure for the analytics dashboard",
+            "dependencies": [],
+            "details": "Design the analytics dashboard architecture including state management for real-time updates, component hierarchy for different analytics views, and data flow patterns. Define interfaces for analytics data structures including token usage metrics, session statistics, and development insights. Create the routing structure for different analytics views and establish the foundation for real-time WebSocket integration.",
+            "status": "pending",
+            "testStrategy": "Test component mounting and unmounting, verify state management works correctly, and ensure proper TypeScript typing throughout the architecture"
+          },
+          {
+            "id": 2,
+            "title": "Implement Token Usage Analytics Component",
+            "description": "Build the token usage analytics view with charts and real-time tracking",
+            "dependencies": [
+              "17.1"
+            ],
+            "details": "Create a TokenUsageAnalytics component that displays token consumption patterns across sessions using Chart.js or D3.js. Implement real-time token tracking via WebSocket connections, showing input/output token usage, cost calculations, and usage trends over time. Add filtering options by date range, session type, and model used. Include cumulative statistics and per-session breakdowns with interactive visualizations.",
+            "status": "pending",
+            "testStrategy": "Test with various token usage data sets, verify real-time updates render correctly, test chart responsiveness and interaction, and ensure calculations are accurate"
+          },
+          {
+            "id": 3,
+            "title": "Create Development Insights Dashboard",
+            "description": "Build analytics views for development patterns and productivity metrics",
+            "dependencies": [
+              "17.1"
+            ],
+            "details": "Implement a DevelopmentInsights component that analyzes coding patterns, tool usage frequency, and productivity metrics. Track metrics like files edited per session, code generation vs editing ratio, most used tools and commands, and error/success rates. Create visualizations for development velocity, peak productivity times, and common workflow patterns. Include filtering by project, time period, and development task type.",
+            "status": "pending",
+            "testStrategy": "Test with diverse session data containing various tool uses, verify metric calculations accuracy, test filtering functionality, and ensure performance with large datasets"
+          },
+          {
+            "id": 4,
+            "title": "Implement Cross-Session Analysis Features",
+            "description": "Build cross-session correlation and pattern recognition capabilities",
+            "dependencies": [
+              "17.2",
+              "17.3"
+            ],
+            "details": "Create a CrossSessionAnalysis component that identifies patterns across multiple sessions, including recurring issues, common workflows, and learning curves. Implement session comparison views, workflow pattern detection, and trend analysis across time periods. Add capabilities to link related sessions, track progress on multi-session projects, and identify optimization opportunities. Include export functionality for analytics reports.",
+            "status": "pending",
+            "testStrategy": "Test pattern recognition with various session combinations, verify cross-session linking works correctly, test performance with hundreds of sessions, and validate export functionality"
+          },
+          {
+            "id": 5,
+            "title": "Add Advanced Filtering and Real-time Updates",
+            "description": "Implement comprehensive filtering system and optimize real-time data updates",
+            "dependencies": [
+              "17.2",
+              "17.3",
+              "17.4"
+            ],
+            "details": "Build an AdvancedFilters component with multi-dimensional filtering including date ranges, session metadata, tool usage, token thresholds, and custom queries. Implement efficient real-time update mechanisms using WebSocket subscriptions for live session monitoring. Add query builder for complex filter combinations, saved filter presets, and shareable filter configurations. Optimize rendering performance with virtualization for large datasets and implement caching strategies.",
+            "status": "pending",
+            "testStrategy": "Test complex filter combinations, verify real-time updates don't cause performance issues, test with datasets of 1000+ sessions, and ensure filter state persistence works correctly"
+          }
+        ]
       },
       {
         "id": 18,
@@ -498,7 +1063,63 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Service Worker Foundation",
+            "description": "Set up the service worker infrastructure with registration, lifecycle management, and basic offline capabilities",
+            "dependencies": [],
+            "details": "Create a service worker file (sw.js) in the public directory with basic lifecycle events (install, activate, fetch). Implement service worker registration in the main application entry point. Set up proper caching strategies for static assets using CacheAPI. Include error handling and fallback mechanisms. Use Cache-First strategy for static assets and Network-First for API calls.",
+            "status": "pending",
+            "testStrategy": "Test service worker registration, verify offline functionality with DevTools Network throttling, test cache invalidation and updates"
+          },
+          {
+            "id": 2,
+            "title": "Implement Advanced Caching Strategies",
+            "description": "Extend the existing cache middleware with service worker integration and implement smart caching for different content types",
+            "dependencies": [
+              "18.1"
+            ],
+            "details": "Enhance the existing cache middleware in js/backend/src/middleware/cache.ts to work with service worker caching. Implement Cache-First for static assets, Stale-While-Revalidate for API data, and Network-First for critical real-time data. Add cache versioning and invalidation strategies. Integrate with the existing performance cache system in js/shared/src/performance-cache.ts to create a unified caching layer.",
+            "status": "pending",
+            "testStrategy": "Test different caching strategies with various content types, verify cache hit rates, test cache invalidation scenarios and memory usage"
+          },
+          {
+            "id": 3,
+            "title": "Optimize Component Performance",
+            "description": "Leverage the existing performance monitoring system to optimize component rendering and implement lazy loading",
+            "dependencies": [
+              "18.1"
+            ],
+            "details": "Extend the existing performance monitoring in js/frontend/src/components/utils/performance-monitor.ts to identify bottlenecks. Implement virtual scrolling for large lists using the existing components (SessionList, MessageDisplay). Add lazy loading for heavy components and implement code splitting. Optimize the existing virtual-scroll.ts implementation and enhance memoization strategies in components.",
+            "status": "pending",
+            "testStrategy": "Run performance benchmarks using existing test suite, verify virtual scrolling performance with large datasets, test lazy loading behavior and memory usage"
+          },
+          {
+            "id": 4,
+            "title": "Add Offline Data Synchronization",
+            "description": "Implement offline data storage and synchronization capabilities with IndexedDB and background sync",
+            "dependencies": [
+              "18.2"
+            ],
+            "details": "Create an IndexedDB wrapper for offline data storage, compatible with the existing session data structures. Implement background sync for queuing API requests when offline. Add conflict resolution strategies for data synchronization. Create offline indicators in the UI and handle offline/online state changes. Integrate with the existing WebSocket system for real-time sync when back online.",
+            "status": "pending",
+            "testStrategy": "Test offline data persistence, verify background sync functionality, test conflict resolution scenarios and data integrity during network transitions"
+          },
+          {
+            "id": 5,
+            "title": "Performance Optimization and Bundle Analysis",
+            "description": "Implement advanced performance optimizations including bundle splitting, tree shaking, and runtime performance monitoring",
+            "dependencies": [
+              "18.3",
+              "18.4"
+            ],
+            "details": "Configure Vite for optimal bundle splitting and implement dynamic imports for code splitting. Set up bundle analysis tools and implement tree shaking optimizations. Add runtime performance monitoring using the existing PerformanceMonitor class. Implement resource hints (preload, prefetch) and optimize asset loading. Add performance budgets and automated performance testing in the CI/CD pipeline.",
+            "status": "pending",
+            "testStrategy": "Analyze bundle sizes and loading performance, test code splitting effectiveness, verify performance budgets are met, and conduct end-to-end performance testing with large datasets"
+          }
+        ]
       },
       {
         "id": 19,
@@ -510,7 +1131,63 @@
           "3"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Enhanced WebSocket Reconnection Logic with Exponential Backoff",
+            "description": "Implement robust WebSocket reconnection logic with exponential backoff, jitter, and circuit breaker pattern to handle various network failure scenarios",
+            "dependencies": [],
+            "details": "Enhance the existing reconnection logic in both backend ConnectionManager and frontend TimelineWebSocketIntegration. Add configurable reconnection parameters, exponential backoff with jitter to prevent thundering herd, circuit breaker pattern to temporarily stop reconnection attempts when server is overloaded, and connection quality monitoring. Update the current basic reconnection in frontend (lines 236-264) and backend heartbeat monitoring (lines 173-213) to include more sophisticated retry strategies and failure detection.",
+            "status": "pending",
+            "testStrategy": "Test reconnection under various network conditions (slow connections, intermittent failures, server restarts). Verify exponential backoff timing, jitter randomization, and circuit breaker activation. Test with multiple concurrent clients to ensure no thundering herd effect."
+          },
+          {
+            "id": 2,
+            "title": "Client-Side State Synchronization Manager",
+            "description": "Create a comprehensive state synchronization manager that tracks client state, detects inconsistencies, and synchronizes with server state upon reconnection",
+            "dependencies": [
+              "19.1"
+            ],
+            "details": "Build a StateManager class that maintains a local copy of critical application state (active sessions, user data, subscription status). Implement state versioning using timestamps or sequence numbers, state difference detection algorithms, and automatic synchronization on reconnection. Integrate with existing WebSocket events (session-updated, user-joined/left) and add new state-sync events. The manager should queue state changes during disconnection and reconcile them upon reconnection using the existing reconnect token system from ConnectionManager.",
+            "status": "pending",
+            "testStrategy": "Test state synchronization with simulated disconnections at various points. Verify state consistency after reconnection, proper handling of conflicting updates, and queue management during offline periods. Test with multiple browser tabs/windows."
+          },
+          {
+            "id": 3,
+            "title": "Server-Side State Persistence and Recovery",
+            "description": "Implement server-side mechanisms to persist and recover client state during reconnections, including session state snapshots and delta updates",
+            "dependencies": [
+              "19.1"
+            ],
+            "details": "Extend the existing ConnectionManager and EventManager to maintain state snapshots for each client session. Implement state checkpointing at regular intervals, delta compression for efficient state transfers, and state recovery mechanisms that work with the existing reconnect token system. Add APIs for state snapshot creation, retrieval, and cleanup. Ensure integration with the current event system and session management in websocket.ts (lines 119-196).",
+            "status": "pending",
+            "testStrategy": "Test state persistence across server restarts and client reconnections. Verify efficient delta updates, proper cleanup of old snapshots, and integration with existing session management. Test memory usage with large state objects."
+          },
+          {
+            "id": 4,
+            "title": "Conflict Resolution Engine",
+            "description": "Develop a sophisticated conflict resolution system for handling simultaneous updates from multiple clients during reconnection scenarios",
+            "dependencies": [
+              "19.2",
+              "19.3"
+            ],
+            "details": "Create a ConflictResolver class that implements various conflict resolution strategies: last-writer-wins, operational transforms for collaborative editing, semantic merge for non-conflicting changes, and user-prompted resolution for complex conflicts. Implement conflict detection using vector clocks or logical timestamps, automatic resolution for simple cases, and UI notifications for manual resolution. Integrate with the existing event system and session update mechanisms (session-update events in websocket.ts lines 177-195).",
+            "status": "pending",
+            "testStrategy": "Test conflict resolution with various scenarios: concurrent updates to same data, overlapping edit ranges, and complex multi-client interactions. Verify automatic resolution accuracy, user notification triggers, and data consistency after resolution."
+          },
+          {
+            "id": 5,
+            "title": "WebSocket Health Monitoring and Diagnostics",
+            "description": "Implement comprehensive health monitoring, diagnostics, and recovery mechanisms for WebSocket connections including connection quality metrics and adaptive behavior",
+            "dependencies": [
+              "19.1"
+            ],
+            "details": "Enhance the existing heartbeat system (ConnectionManager lines 173-213) with connection quality metrics (latency, packet loss, throughput). Add network condition detection, adaptive heartbeat intervals based on connection quality, connection degradation warnings, and automatic fallback mechanisms. Implement diagnostic tools for monitoring connection health, detecting network issues, and providing user feedback. Add metrics collection and reporting to help identify patterns in connection failures.",
+            "status": "pending",
+            "testStrategy": "Test health monitoring under various network conditions (high latency, packet loss, bandwidth constraints). Verify adaptive behavior adjustments, accurate quality metrics, and effective diagnostic reporting. Test with network simulation tools to simulate real-world conditions."
+          }
+        ]
       },
       {
         "id": 20,
@@ -523,7 +1200,63 @@
           "7"
         ],
         "priority": "high",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Setup Testing Infrastructure and Configuration",
+            "description": "Configure Jest for backend TypeScript testing and Web Test Runner for Lit frontend components",
+            "dependencies": [],
+            "details": "Install and configure Jest with ts-jest for TypeScript support in the backend. Setup Web Test Runner with @web/test-runner-playwright for Lit component testing. Configure test coverage reporting with nyc/c8. Create test helper utilities in js/shared/src/test-utils/ for common test fixtures and mocks. Setup test scripts in package.json files for both backend and frontend workspaces.",
+            "status": "pending",
+            "testStrategy": "Verify test runners execute successfully with sample tests, ensure coverage reports generate correctly, validate TypeScript compilation in test environment"
+          },
+          {
+            "id": 2,
+            "title": "Backend API and WebSocket Unit Tests",
+            "description": "Create comprehensive unit tests for all backend API endpoints and WebSocket handlers",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Write unit tests for js/backend/src/api/sessions.ts, projects.ts, and analytics.ts endpoints using Jest and supertest. Test WebSocket connection handling, message parsing, and session management in js/backend/src/websocket/. Mock database interactions and file system operations. Test error handling scenarios, authentication, and input validation. Ensure all TranscriptEntry parsing and conversion logic is thoroughly tested.",
+            "status": "pending",
+            "testStrategy": "Achieve 85% code coverage for backend code, test all HTTP status codes and error cases, verify WebSocket message handling with various payload types"
+          },
+          {
+            "id": 3,
+            "title": "Frontend Lit Component Unit Tests",
+            "description": "Develop unit tests for all Lit web components focusing on reactive properties and event handling",
+            "dependencies": [
+              "20.1"
+            ],
+            "details": "Create unit tests for components in js/frontend/src/components/ including session-list, session-view, message-display, tool-use, and timeline components. Test reactive property updates, computed properties, and event dispatching. Use @open-wc/testing helpers for fixture creation and DOM testing. Test component lifecycle methods, shadow DOM rendering, and custom element registration. Mock API calls and test loading states, error states, and empty states.",
+            "status": "pending",
+            "testStrategy": "Test all component properties and methods, verify DOM updates on state changes, ensure custom events fire correctly with proper detail data"
+          },
+          {
+            "id": 4,
+            "title": "Integration Tests for Data Flow and State Management",
+            "description": "Create integration tests verifying data flow between backend and frontend components",
+            "dependencies": [
+              "20.2",
+              "20.3"
+            ],
+            "details": "Write integration tests that verify the complete data flow from JSONL file parsing through API endpoints to frontend display. Test session store updates and reactive propagation to components. Verify WebSocket real-time updates trigger appropriate UI changes. Test caching mechanisms and data synchronization. Create tests for complex user workflows like session navigation, message filtering, and timeline interactions.",
+            "status": "pending",
+            "testStrategy": "Test complete user journeys, verify data consistency across layers, ensure real-time updates work end-to-end"
+          },
+          {
+            "id": 5,
+            "title": "End-to-End Tests with Playwright",
+            "description": "Implement comprehensive E2E tests covering critical user workflows and edge cases",
+            "dependencies": [
+              "20.4"
+            ],
+            "details": "Setup Playwright for E2E testing with tests in js/e2e/. Create tests for: loading session list, navigating between sessions, viewing message details, expanding/collapsing tool use sections, timeline navigation and filtering, search functionality, and performance metrics display. Test responsive design across different viewport sizes. Verify accessibility requirements are met. Test error recovery and offline scenarios. Include visual regression tests for key UI components.",
+            "status": "pending",
+            "testStrategy": "Cover all critical user paths, test on multiple browsers (Chrome, Firefox, Safari), verify performance benchmarks are met (sub-2s load times)"
+          }
+        ]
       },
       {
         "id": 21,
@@ -536,7 +1269,62 @@
           "10"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Performance Audit and Baseline Metrics",
+            "description": "Conduct comprehensive performance audit of the application and establish baseline metrics",
+            "dependencies": [],
+            "details": "Use Chrome DevTools Lighthouse to analyze current performance metrics including Core Web Vitals (LCP, FID, CLS), bundle size analysis, network waterfall analysis, and JavaScript execution time. Document baseline metrics for Time to Interactive (TTI), First Contentful Paint (FCP), and Total Blocking Time (TBT). Identify performance bottlenecks in session loading, message rendering, and WebSocket communication.",
+            "status": "pending",
+            "testStrategy": "Create automated performance tests using Playwright to measure load times with varying dataset sizes (100, 1000, 10000 messages), verify metrics stay within acceptable thresholds"
+          },
+          {
+            "id": 2,
+            "title": "Code Splitting and Lazy Loading Implementation",
+            "description": "Implement code splitting and lazy loading for Lit components and JavaScript modules",
+            "dependencies": [
+              "21.1"
+            ],
+            "details": "Configure Vite for optimal code splitting, implement dynamic imports for session-view, message-display, and timeline components. Create lazy loading wrapper components that load on-demand. Implement route-based code splitting for different views. Add intersection observer for lazy loading below-the-fold content. Optimize bundle sizes by extracting vendor chunks and implementing tree shaking.",
+            "status": "pending",
+            "testStrategy": "Verify bundle sizes are reduced by at least 40%, test lazy loading triggers correctly, ensure no functionality is broken during code splitting"
+          },
+          {
+            "id": 3,
+            "title": "WebSocket and Data Optimization",
+            "description": "Optimize WebSocket communication and implement efficient data handling strategies",
+            "dependencies": [
+              "21.1"
+            ],
+            "details": "Implement message pagination and virtual scrolling for large session lists. Add debouncing and throttling for WebSocket events. Implement efficient caching strategies using IndexedDB for session data. Add compression for WebSocket messages using pako or similar library. Optimize JSONL parsing with streaming parser. Implement request batching for API calls.",
+            "status": "pending",
+            "testStrategy": "Test with 10,000+ messages to verify smooth scrolling, measure WebSocket message throughput, verify caching reduces API calls by 80%"
+          },
+          {
+            "id": 4,
+            "title": "WCAG 2.1 AA Accessibility Implementation",
+            "description": "Implement comprehensive accessibility features to achieve WCAG 2.1 AA compliance",
+            "dependencies": [],
+            "details": "Add proper ARIA labels and roles to all Lit components. Implement keyboard navigation for timeline, session list, and message views. Ensure color contrast ratios meet AA standards (4.5:1 for normal text, 3:1 for large text). Add skip navigation links and landmark regions. Implement focus management for dynamic content updates. Add screen reader announcements for WebSocket updates using aria-live regions. Ensure all interactive elements have minimum 44x44px touch targets.",
+            "status": "pending",
+            "testStrategy": "Run axe-core accessibility tests, test with NVDA and JAWS screen readers, verify keyboard-only navigation works for all features"
+          },
+          {
+            "id": 5,
+            "title": "Performance Monitoring and Accessibility Testing Suite",
+            "description": "Create automated performance monitoring and accessibility testing infrastructure",
+            "dependencies": [
+              "21.2",
+              "21.3",
+              "21.4"
+            ],
+            "details": "Set up continuous performance monitoring using web-vitals library. Create custom performance marks and measures for critical user journeys. Implement Real User Monitoring (RUM) to track actual user performance. Add automated accessibility testing to the test suite using axe-core and Pa11y. Create performance budgets in Vite configuration. Add Lighthouse CI for automated performance regression testing. Document performance best practices and accessibility guidelines for future development.",
+            "status": "pending",
+            "testStrategy": "Verify all performance metrics are captured correctly, ensure accessibility tests catch intentionally introduced violations, validate performance budgets prevent regressions"
+          }
+        ]
       },
       {
         "id": 22,
@@ -548,7 +1336,61 @@
           "20"
         ],
         "priority": "medium",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create API Documentation with OpenAPI/Swagger",
+            "description": "Set up OpenAPI specification and Swagger UI for backend API documentation",
+            "dependencies": [],
+            "details": "Install and configure swagger-jsdoc and swagger-ui-express packages. Create OpenAPI 3.0 specification for all existing API endpoints in js/backend/src/routes/. Document request/response schemas, authentication requirements, and error responses. Set up Swagger UI at /api-docs endpoint for interactive API exploration. Include examples for each endpoint and ensure all WebSocket events are documented.",
+            "status": "pending",
+            "testStrategy": "Verify Swagger UI loads correctly, test all documented endpoints through the UI, validate OpenAPI spec against actual API implementation, ensure examples work correctly"
+          },
+          {
+            "id": 2,
+            "title": "Build Interactive User Guide with Lit Components",
+            "description": "Create an interactive onboarding tour and help system using Lit web components",
+            "dependencies": [],
+            "details": "Develop a tour component using driver.js or intro.js integrated with Lit. Create tooltips and guided walkthroughs for key features: session list navigation, timeline visualization, message inspection, and export functionality. Build a help sidebar component with searchable FAQ, keyboard shortcuts reference, and feature explanations. Store tour progress in localStorage to avoid repetition.",
+            "status": "pending",
+            "testStrategy": "Test tour flow on different screen sizes, verify tour steps highlight correct elements, ensure help content is searchable and accurate, validate tour completion tracking"
+          },
+          {
+            "id": 3,
+            "title": "Generate Developer Documentation with TypeDoc",
+            "description": "Set up TypeDoc for automatic TypeScript documentation generation",
+            "dependencies": [
+              "22.1"
+            ],
+            "details": "Install and configure TypeDoc with appropriate plugins (typedoc-plugin-markdown, typedoc-theme-hierarchy). Document all TypeScript interfaces, classes, and functions with JSDoc comments in shared/, backend/src/, and frontend/src/. Configure TypeDoc to generate both HTML and Markdown documentation. Create custom theme matching the application's design. Set up documentation deployment pipeline to GitHub Pages or similar.",
+            "status": "pending",
+            "testStrategy": "Verify TypeDoc generates without errors, check all public APIs are documented, validate internal links work correctly, ensure documentation is searchable"
+          },
+          {
+            "id": 4,
+            "title": "Create README and Getting Started Guides",
+            "description": "Write comprehensive README files and quick start documentation",
+            "dependencies": [
+              "22.2"
+            ],
+            "details": "Write main README.md with project overview, features, architecture diagram, and installation instructions. Create CONTRIBUTING.md with development setup, coding standards, and PR guidelines. Write separate README files for backend/, frontend/, and shared/ modules. Include troubleshooting section for common issues. Add code examples for extending functionality and creating custom components. Document environment variables and configuration options.",
+            "status": "pending",
+            "testStrategy": "Follow installation steps on clean system, verify all commands work as documented, test code examples compile and run, validate links and references"
+          },
+          {
+            "id": 5,
+            "title": "Develop Video Tutorials and Demo Content",
+            "description": "Create video tutorials and interactive demos for user onboarding",
+            "dependencies": [
+              "22.2",
+              "22.4"
+            ],
+            "details": "Record screen capture videos demonstrating key workflows: uploading JSONL files, navigating sessions, using timeline features, and exporting data. Create animated GIFs for README showing main features. Build interactive demo mode with sample data that users can explore without uploading files. Implement in-app video player for tutorial content. Create transcript and closed captions for accessibility.",
+            "status": "pending",
+            "testStrategy": "Test videos play correctly in different browsers, verify demo mode works with sample data, ensure tutorials cover all major features, validate accessibility features work properly"
+          }
+        ]
       },
       {
         "id": 23,
@@ -560,7 +1402,64 @@
           "19"
         ],
         "priority": "high",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement WebSocket Connection Health Monitor",
+            "description": "Create a health monitoring system for WebSocket connections with heartbeat/ping-pong mechanism",
+            "dependencies": [],
+            "details": "Implement a heartbeat system in js/backend/src/services/websocket.ts that sends periodic ping messages to connected clients and tracks response times. Add connection state tracking (connected, connecting, disconnected, error) with timestamps for last successful communication. Create metrics for connection uptime, latency, and dropped messages. Integrate with existing WebSocket server implementation from Task 3.",
+            "status": "pending",
+            "testStrategy": "Test heartbeat mechanism with simulated network delays, verify connection state transitions are tracked correctly, test timeout detection and handling"
+          },
+          {
+            "id": 2,
+            "title": "Create Exponential Backoff Reconnection Strategy",
+            "description": "Implement intelligent reconnection logic with exponential backoff and jitter",
+            "dependencies": [
+              "23.1"
+            ],
+            "details": "Enhance the reconnection logic in js/frontend/src/services/websocket-client.ts with exponential backoff algorithm (initial delay 1s, max 30s, factor 1.5). Add jitter to prevent thundering herd problem. Implement maximum retry attempts with configurable limits. Track reconnection attempts and success rates. Coordinate with the health monitor to determine when reconnection is needed. Build upon the basic reconnection from Task 19.",
+            "status": "pending",
+            "testStrategy": "Test reconnection with various network failure scenarios, verify backoff timing increases correctly, test maximum retry limit enforcement, simulate rapid disconnect/reconnect cycles"
+          },
+          {
+            "id": 3,
+            "title": "Implement Circuit Breaker Pattern for WebSocket Operations",
+            "description": "Add circuit breaker pattern to prevent cascading failures and provide graceful degradation",
+            "dependencies": [
+              "23.1",
+              "23.2"
+            ],
+            "details": "Create a circuit breaker implementation in js/shared/src/websocket-circuit-breaker.ts with three states: closed (normal operation), open (failing, reject requests), and half-open (testing recovery). Configure thresholds for failure rate (50% over 10 requests) and timeout periods (30 seconds). Implement fallback mechanisms to queue critical messages during outages. Provide status reporting for monitoring dashboard integration.",
+            "status": "pending",
+            "testStrategy": "Test circuit breaker state transitions with controlled failures, verify fallback mechanisms activate correctly, test recovery from open to half-open to closed states"
+          },
+          {
+            "id": 4,
+            "title": "Add Comprehensive Error Handling and Recovery",
+            "description": "Implement detailed error handling for all WebSocket failure scenarios with recovery strategies",
+            "dependencies": [
+              "23.3"
+            ],
+            "details": "Create error handlers in both js/backend/src/services/websocket.ts and js/frontend/src/services/websocket-client.ts for: connection timeouts, authentication failures, protocol errors, message parsing errors, and server overload. Implement specific recovery strategies for each error type. Add error classification system (transient vs permanent). Create user-friendly error messages and notifications. Log errors with context for debugging.",
+            "status": "pending",
+            "testStrategy": "Test each error scenario individually, verify appropriate recovery strategy is triggered, test error message display to users, verify error logging includes sufficient context"
+          },
+          {
+            "id": 5,
+            "title": "Implement Message Queue and Delivery Guarantees",
+            "description": "Create message queueing system for reliable message delivery during connection issues",
+            "dependencies": [
+              "23.2",
+              "23.4"
+            ],
+            "details": "Implement message queue in js/frontend/src/services/message-queue.ts with persistence using IndexedDB for critical messages. Add message acknowledgment system with unique message IDs. Implement retry logic for failed message delivery with deduplication. Create priority levels for messages (critical, normal, low). Add queue size limits and overflow handling. Synchronize queue state after successful reconnection.",
+            "status": "pending",
+            "testStrategy": "Test message queueing during disconnection, verify message persistence across page reloads, test message deduplication, verify priority ordering is maintained"
+          }
+        ]
       },
       {
         "id": 24,
@@ -575,7 +1474,65 @@
           "23"
         ],
         "priority": "high",
-        "status": "pending"
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Beta Version Configuration",
+            "description": "Create beta version configuration system with feature flags and environment settings",
+            "dependencies": [],
+            "details": "Set up configuration files for beta environment, implement feature flags for beta-only features, configure build scripts for beta deployment, add version management with clear beta labeling, and ensure proper environment variable handling for beta vs production modes",
+            "status": "pending",
+            "testStrategy": "Test feature flag toggling, verify beta configuration isolation from production, validate build output for beta markers, and ensure environment variables are correctly loaded"
+          },
+          {
+            "id": 2,
+            "title": "Create User Feedback Collection System",
+            "description": "Build comprehensive feedback collection interface with multiple feedback types and persistence",
+            "dependencies": [
+              "24.1"
+            ],
+            "details": "Implement feedback widget component using Lit Web Components, create feedback API endpoints for submission and storage, add feedback categories (bugs, features, general), integrate with session context for automatic metadata collection, implement rate limiting and validation for feedback submissions",
+            "status": "pending",
+            "testStrategy": "Test feedback submission flow end-to-end, verify data persistence and retrieval, validate rate limiting works correctly, test feedback widget rendering across different views"
+          },
+          {
+            "id": 3,
+            "title": "Setup Beta Analytics and Monitoring",
+            "description": "Implement analytics tracking and performance monitoring for beta usage patterns",
+            "dependencies": [
+              "24.1"
+            ],
+            "details": "Integrate analytics service for tracking user interactions, implement performance monitoring for WebSocket connections and UI responsiveness, add error tracking with detailed stack traces, create usage metrics dashboard, implement privacy-compliant user session tracking",
+            "status": "pending",
+            "testStrategy": "Verify analytics events are properly tracked, test performance metric collection accuracy, validate error reporting captures necessary details, ensure GDPR/privacy compliance"
+          },
+          {
+            "id": 4,
+            "title": "Create Beta Documentation and Onboarding",
+            "description": "Develop comprehensive beta documentation and user onboarding experience",
+            "dependencies": [
+              "24.2"
+            ],
+            "details": "Write beta release notes highlighting new features and known limitations, create interactive onboarding tour for first-time users, develop troubleshooting guide for common beta issues, implement in-app help system with contextual guidance, prepare feedback submission guidelines",
+            "status": "pending",
+            "testStrategy": "Test onboarding flow with fresh installations, verify documentation links work correctly, validate help system provides relevant context, ensure feedback guidelines are accessible"
+          },
+          {
+            "id": 5,
+            "title": "Beta Deployment and Release Pipeline",
+            "description": "Set up automated deployment pipeline and release process for beta distribution",
+            "dependencies": [
+              "24.1",
+              "24.2",
+              "24.3",
+              "24.4"
+            ],
+            "details": "Configure CI/CD pipeline for beta builds with automated testing, set up beta distribution channels (npm beta tag, GitHub releases), implement rollback mechanism for critical issues, create beta user access control and invitation system, establish beta testing timeline and milestone tracking",
+            "status": "pending",
+            "testStrategy": "Test deployment pipeline with mock releases, verify rollback procedures work correctly, validate access control restricts beta to authorized users, ensure version management correctly handles beta releases"
+          }
+        ]
       },
       {
         "id": 25,
@@ -592,7 +1549,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-11T20:55:07.501Z",
+      "updated": "2025-08-11T21:16:51.282Z",
       "description": "Tasks for master context"
     }
   }
