@@ -377,7 +377,7 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -385,7 +385,7 @@
             "description": "Define TypeScript interfaces for timeline data structures and WebSocket event types",
             "dependencies": [],
             "details": "Create interfaces in shared/src/models/ for TimelineEntry, TimelineFilter, TimelineZoomLevel, and TimelineUpdateEvent. Define WebSocket event types for timeline updates (timeline:update, timeline:zoom, timeline:filter). Extend existing session models to include timeline-specific metadata like timestamps, duration, and event markers.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for data model validation, type safety checks for WebSocket events, and integration tests with existing session models"
           },
           {
@@ -396,7 +396,7 @@
               "8.1"
             ],
             "details": "Create timeline-view.ts in js/frontend/src/components/timeline/ using Lit's LitElement. Implement properties for timeRange, zoomLevel, sessions array, and activeFilters. Add methods for handleZoom, handlePan, and calculateViewport. Use CSS Grid or Flexbox for responsive layout with a horizontal timeline axis and session tracks.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Component rendering tests with different viewport sizes, zoom level boundary tests, pan gesture tests, and performance tests with 100+ sessions"
           },
           {
@@ -407,7 +407,7 @@
               "8.2"
             ],
             "details": "Create timeline-filters.ts component with filter UI controls for session status (active/completed/failed), date range picker, session type selector, and text search. Implement filter state management using Lit's reactive properties. Add debounced search and filter application logic. Emit filter-changed events to parent timeline component.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test filter combinations, verify debounce timing, test filter persistence across zoom/pan, and validate search performance with large datasets"
           },
           {
@@ -419,7 +419,7 @@
               "8.3"
             ],
             "details": "Extend WebSocketManager in js/frontend/src/services/ to handle timeline-specific events. Implement subscription to session:created, session:updated, and session:deleted events. Add automatic timeline repositioning for new sessions. Implement optimistic UI updates with rollback on connection loss. Add visual indicators for real-time updates (pulse animations, badges).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test WebSocket reconnection handling, verify update batching under high load, test conflict resolution for concurrent updates, and validate memory management for long-running connections"
           },
           {
@@ -430,7 +430,7 @@
               "8.4"
             ],
             "details": "Add click handlers to open session details in modal or side panel. Implement hover tooltips showing session summary using Lit's @query and template refs. Add right-click context menu for session actions (view, export, delete). Implement timeline export as PNG/SVG using canvas or SVG serialization. Add keyboard navigation (arrow keys for pan, +/- for zoom).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test interaction responsiveness, verify tooltip positioning at viewport edges, test export quality at different zoom levels, and validate keyboard accessibility compliance"
           }
         ]
@@ -445,7 +445,7 @@
           "7"
         ],
         "priority": "medium",
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -453,7 +453,7 @@
             "description": "Implement reactive state management for all filter types using Lit's reactive properties and controllers",
             "dependencies": [],
             "details": "Create a FilterController class extending ReactiveController to manage filter state including message type filters (user/assistant/system), date range filters (start/end dates), search query state, and active filter combinations. Use @state() decorators for reactive properties and implement methods for updating filter criteria. Store filter state in sessionStorage for persistence across page reloads.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test reactive property updates trigger re-renders, verify filter state persistence in sessionStorage, test filter combination logic, and validate controller lifecycle methods"
           },
           {
@@ -464,7 +464,7 @@
               "9.1"
             ],
             "details": "Develop FilterPanel component with md-filled-text-field for search input with debouncing, md-filter-chip components for message type selection (user/assistant/system/error), md-date-picker or custom date range selector for temporal filtering, and md-icon-button for clearing filters. Implement keyboard shortcuts for quick filter access (Cmd+F for search, etc). Style components to match existing Material Design theme and ensure responsive layout.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test UI component rendering and interactions, verify keyboard shortcuts work correctly, test responsive behavior on different screen sizes, and validate Material Design compliance"
           },
           {
@@ -475,7 +475,7 @@
               "9.1"
             ],
             "details": "Implement filterMessages() method that applies all active filters efficiently using Array.filter() with combined predicates. Create full-text search using String.includes() with case-insensitive matching for message content, tool names, and error messages. Add message type filtering by role property. Implement date range filtering using timestamp comparisons. Use memoization with WeakMap to cache filtered results and improve performance for repeated filter operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test filtering with large datasets (1000+ messages), verify search matches across all text fields, test date range edge cases, measure and optimize filter performance"
           },
           {
@@ -487,7 +487,7 @@
               "9.3"
             ],
             "details": "Modify session-list component to accept FilterController instance and apply filters to displayed sessions. Update timeline-view to filter messages based on active criteria. Implement @watch() decorators to trigger re-renders when filter state changes. Add visual indicators showing active filter count in UI. Ensure smooth animations when filtering using CSS transitions. Maintain scroll position when filters are applied/removed.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test filter integration with both components, verify reactive updates occur instantly, test scroll position preservation, and validate visual feedback for active filters"
           },
           {
@@ -498,7 +498,7 @@
               "9.4"
             ],
             "details": "Create highlightSearchTerms() method using mark.js or custom implementation to highlight matched text in message content. Add search result count display and 'no results' state handling. Implement filter analytics tracking which filters are used most frequently. Add performance metrics for search operations using Performance API. Create exportable filter presets for common search patterns. Add URL state synchronization for shareable filtered views.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test highlighting works with special characters and HTML entities, verify analytics data collection, test URL state synchronization, and validate performance metrics accuracy"
           }
         ]
@@ -1549,7 +1549,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-11T21:16:51.282Z",
+      "updated": "2025-08-11T22:03:12.232Z",
       "description": "Tasks for master context"
     }
   }

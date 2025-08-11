@@ -16,6 +16,8 @@ import { AriaRoles, AriaAttributes, KeyboardKeys, ListNavigation, FocusManager, 
 import { useFocusManagement, skipLinkManager } from '../utils/focus-management';
 import { useVirtualScroll, createVirtualScrollConfig } from '../utils/virtual-scroll';
 import { useLazyLoading, createLazyLoadingConfig } from '../utils/lazy-loading';
+import { FilterController, FilterPanel } from '../filters';
+import '../filters/FilterPanel';
 
 /**
  * Session list component with filtering, sorting, and pagination
@@ -450,11 +452,26 @@ export class SessionList extends BaseComponent {
   @property({ type: Boolean })
   lazyLoading = false;
 
+  /**
+   * Whether to show the filter panel
+   */
+  @property({ type: Boolean })
+  showFilters = true;
+
+  /**
+   * Whether the filter panel should be initially collapsed
+   */
+  @property({ type: Boolean })
+  filtersCollapsed = false;
+
   @state()
   private searchQuery = '';
 
   @state()
   private activeFilters: string[] = [];
+
+  @state()
+  private filterController = new FilterController(this);
 
   @state()
   private focusedItemIndex = -1;
@@ -498,6 +515,14 @@ export class SessionList extends BaseComponent {
         aria-label="Session list"
         @keydown=${this.handleContainerKeydown}
       >
+        ${this.showFilters ? html`
+          <filter-panel
+            .filterController=${this.filterController}
+            .collapsed=${this.filtersCollapsed}
+            collapsible
+            @panel-toggled=${this.handleFilterPanelToggled}
+          ></filter-panel>
+        ` : ''}
         ${this.renderHeader()}
         
         <!-- Status region for screen readers -->
@@ -864,21 +889,21 @@ export class SessionList extends BaseComponent {
   }
 
   private getFilteredSessions(): SessionSummary[] {
-    let filtered = [...this.sessions];
+    // Convert sessions to the format expected by FilterController
+    const sessionsWithMetadata = this.sessions.map(session => ({
+      id: session.sessionId,
+      content: `${session.title || ''} ${session.summary || ''} ${session.tags?.join(' ') || ''}`,
+      role: session.isActive ? 'active' : 'completed' as any,
+      timestamp: session.startTime,
+      sessionId: session.sessionId,
+      ...session, // Include original session data
+    }));
 
-    // Apply search filter
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(session =>
-        session.title?.toLowerCase().includes(query) ||
-        session.sessionId.toLowerCase().includes(query) ||
-        session.cwd.toLowerCase().includes(query) ||
-        session.summary?.toLowerCase().includes(query) ||
-        session.tags?.some(tag => tag.toLowerCase().includes(query))
-      );
-    }
+    // Use FilterController to filter sessions
+    const filterResult = this.filterController.filterMessages(sessionsWithMetadata);
+    let filtered = filterResult.items;
 
-    // Apply additional filters from this.filter
+    // Apply legacy SessionFilter properties for backward compatibility
     if (this.filter.tags && this.filter.tags.length > 0) {
       filtered = filtered.filter(session =>
         session.tags?.some(tag => this.filter.tags!.includes(tag))
@@ -940,7 +965,7 @@ export class SessionList extends BaseComponent {
       }
     });
 
-    return filtered;
+    return filtered as SessionSummary[];
   }
 
   private getPaginatedSessions(sessions: SessionSummary[]): SessionSummary[] {
@@ -952,6 +977,10 @@ export class SessionList extends BaseComponent {
   private handleSearchInput = this.debounce((event: Event) => {
     const input = event.target as HTMLInputElement;
     this.searchQuery = input.value;
+    
+    // Sync with FilterController
+    this.filterController.setSearchQuery(input.value);
+    
     this.emitFilterChange();
   }, 300);
 
@@ -963,6 +992,10 @@ export class SessionList extends BaseComponent {
 
   private clearSearch() {
     this.searchQuery = '';
+    
+    // Sync with FilterController
+    this.filterController.clearSearch();
+    
     this.emitFilterChange();
   }
 
@@ -1305,6 +1338,13 @@ export class SessionList extends BaseComponent {
       }
     };
   }
+
+  // Filter panel event handlers
+  
+  private handleFilterPanelToggled = (event: CustomEvent) => {
+    this.filtersCollapsed = event.detail.collapsed;
+    this.emitEvent('filters-toggled', { collapsed: this.filtersCollapsed });
+  };
 
   disconnectedCallback() {
     super.disconnectedCallback();

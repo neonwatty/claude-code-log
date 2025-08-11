@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@app/shared": "*",
+    "gantt-schedule-timeline-calendar": "^3.40.7",
     "highlight.js": "^11.11.1",
     "lit": "^2.8.0",
     "marked": "^16.1.2"
