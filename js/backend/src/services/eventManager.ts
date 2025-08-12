@@ -10,6 +10,9 @@ import {
   FileEvent,
   UserActionEvent,
   SessionEvent,
+  SessionStatusEvent,
+  SessionStatusData,
+  SessionStatusSubscription,
   CodeEvent,
   MessageEvent,
   SystemEvent,
@@ -24,6 +27,7 @@ export interface EventMiddleware {
 export class EventManager {
   private eventHistory: AppEvent[] = [];
   private subscriptions: Map<string, EventSubscription> = new Map();
+  private sessionStatusSubscriptions: Map<string, SessionStatusSubscription> = new Map();
   private middleware: EventMiddleware[] = [];
   private maxHistorySize: number = 10000;
 
@@ -148,6 +152,22 @@ export class EventManager {
     };
   }
 
+  public createSessionStatusEvent(
+    type: SessionStatusEvent['type'],
+    data: SessionStatusEvent['data'],
+    metadata?: { userId?: string; sessionId?: string; [key: string]: any }
+  ): SessionStatusEvent {
+    return {
+      id: randomUUID(),
+      type,
+      timestamp: new Date().toISOString(),
+      userId: metadata?.userId,
+      sessionId: metadata?.sessionId || data.sessionId,
+      metadata: metadata && { ...metadata, userId: undefined, sessionId: undefined },
+      data
+    };
+  }
+
   // Event validation
   private validateEvent(event: AppEvent): boolean {
     if (!event.id || !event.type || !event.timestamp) {
@@ -180,6 +200,14 @@ export class EventManager {
       case 'session:deleted':
       case 'session:shared':
         return this.validateSessionEvent(event as SessionEvent);
+      
+      case 'session:status-changed':
+      case 'session:progress-updated':
+      case 'session:metadata-changed':
+      case 'session:performance-updated':
+      case 'session:error-occurred':
+      case 'session:warning-issued':
+        return this.validateSessionStatusEvent(event as SessionStatusEvent);
       
       case 'code:changed':
       case 'code:saved':
@@ -214,6 +242,10 @@ export class EventManager {
   }
 
   private validateSessionEvent(event: SessionEvent): boolean {
+    return !!(event.data?.sessionId);
+  }
+
+  private validateSessionStatusEvent(event: SessionStatusEvent): boolean {
     return !!(event.data?.sessionId);
   }
 
@@ -274,6 +306,23 @@ export class EventManager {
     this.broadcastEvent(event);
 
     return true;
+  }
+
+  // Session status-specific broadcasting
+  public async broadcastSessionStatus(sessionId: string, statusData: SessionStatusEvent['data']): Promise<boolean> {
+    const event = this.createSessionStatusEvent('session:status-changed', statusData);
+    
+    // Broadcast to session status subscribers
+    const sessionSubscriptions = this.getSessionStatusSubscriptions(sessionId);
+    sessionSubscriptions.forEach(subscription => {
+      const socket = this.io.sockets.sockets.get(subscription.socketId);
+      if (socket) {
+        socket.emit('session-status-changed' as any, statusData);
+      }
+    });
+
+    // Also publish as regular event for general event subscribers
+    return await this.publishEvent(event);
   }
 
   // Event broadcasting
@@ -339,6 +388,61 @@ export class EventManager {
     }
     console.log(`Removed ${removed} subscriptions for socket ${socketId}`);
     return removed;
+  }
+
+  // Session status subscription management
+  public subscribeToSessionStatus(
+    socketId: string,
+    sessionId: string,
+    filters?: SessionStatusSubscription['filters']
+  ): string {
+    const subscription: SessionStatusSubscription = {
+      id: randomUUID(),
+      sessionId,
+      socketId,
+      createdAt: new Date(),
+      active: true,
+      filters
+    };
+
+    this.sessionStatusSubscriptions.set(subscription.id, subscription);
+    console.log(`Created session status subscription ${subscription.id} for session ${sessionId} on socket ${socketId}`);
+    
+    return subscription.id;
+  }
+
+  public unsubscribeFromSessionStatus(subscriptionId: string): boolean {
+    const subscription = this.sessionStatusSubscriptions.get(subscriptionId);
+    if (subscription) {
+      this.sessionStatusSubscriptions.delete(subscriptionId);
+      console.log(`Removed session status subscription ${subscriptionId}`);
+      return true;
+    }
+    return false;
+  }
+
+  public unsubscribeSocketFromSessionStatus(socketId: string): number {
+    let removed = 0;
+    for (const [id, subscription] of this.sessionStatusSubscriptions.entries()) {
+      if (subscription.socketId === socketId) {
+        this.sessionStatusSubscriptions.delete(id);
+        removed++;
+      }
+    }
+    console.log(`Removed ${removed} session status subscriptions for socket ${socketId}`);
+    return removed;
+  }
+
+  private getSessionStatusSubscriptions(sessionId: string): SessionStatusSubscription[] {
+    const subscriptions: SessionStatusSubscription[] = [];
+    
+    for (const subscription of this.sessionStatusSubscriptions.values()) {
+      if (subscription.active && subscription.sessionId === sessionId) {
+        subscriptions.push(subscription);
+      }
+    }
+    
+    return subscriptions;
   }
 
   // Get subscriptions that match an event
@@ -501,16 +605,24 @@ export class EventManager {
     const stats = {
       totalEvents: this.eventHistory.length,
       activeSubscriptions: this.subscriptions.size,
+      activeSessionStatusSubscriptions: this.sessionStatusSubscriptions.size,
       eventsByType: new Map<EventType, number>(),
       recentActivity: this.getRecentActivity(),
       historySize: this.eventHistory.length,
-      maxHistorySize: this.maxHistorySize
+      maxHistorySize: this.maxHistorySize,
+      sessionStatusSubscriptionsBySession: new Map<string, number>()
     };
 
     // Count events by type
     for (const event of this.eventHistory) {
       const count = stats.eventsByType.get(event.type) || 0;
       stats.eventsByType.set(event.type, count + 1);
+    }
+
+    // Count session status subscriptions by session
+    for (const subscription of this.sessionStatusSubscriptions.values()) {
+      const count = stats.sessionStatusSubscriptionsBySession.get(subscription.sessionId) || 0;
+      stats.sessionStatusSubscriptionsBySession.set(subscription.sessionId, count + 1);
     }
 
     return stats;
@@ -536,6 +648,8 @@ export class EventManager {
 
   public cleanupInactiveSubscriptions(): number {
     let removed = 0;
+    
+    // Clean up regular subscriptions
     for (const [id, subscription] of this.subscriptions.entries()) {
       const socket = this.io.sockets.sockets.get(subscription.socketId);
       if (!socket) {
@@ -543,6 +657,16 @@ export class EventManager {
         removed++;
       }
     }
+    
+    // Clean up session status subscriptions
+    for (const [id, subscription] of this.sessionStatusSubscriptions.entries()) {
+      const socket = this.io.sockets.sockets.get(subscription.socketId);
+      if (!socket) {
+        this.sessionStatusSubscriptions.delete(id);
+        removed++;
+      }
+    }
+    
     console.log(`Cleaned up ${removed} inactive subscriptions`);
     return removed;
   }

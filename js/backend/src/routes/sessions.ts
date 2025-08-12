@@ -22,6 +22,12 @@ import {
   trackResponseTime,
   sessionErrorHandler
 } from '../middleware/sessionValidation';
+import SessionBranchingService, { 
+  BranchCreationRequest,
+  BranchCreationResponse,
+  BranchValidationResponse
+} from '../services/session-branching';
+import WebSocketBranchNotificationService from '../services/websocket-branch-notifications';
 
 const router = Router();
 
@@ -404,6 +410,240 @@ router.post('/directory', validateSchema(sessionValidationSchemas.workingDirecto
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to filter sessions by directory',
+    });
+  }
+});
+
+/**
+ * POST /api/sessions/:id/branch
+ * Create a new branch from an existing session
+ */
+router.post('/:sessionId/branch', validateSchema(sessionValidationSchemas.branchCreation), async (req: Request, res: Response) => {
+  try {
+    const { sessionId: parentSessionId } = req.params;
+    const { branchPoint, metadata, workingDirectory, environment, directoryPath } = req.body;
+    
+    // Get WebSocket service for branch notifications
+    const webSocketService = req.app.locals.webSocketService;
+    const branchNotificationService = webSocketService?.getBranchNotificationService();
+    
+    const branchingService = new SessionBranchingService(branchNotificationService);
+    
+    const request: BranchCreationRequest = {
+      parentSessionId,
+      branchPoint,
+      metadata,
+      workingDirectory,
+      environment,
+    };
+
+    const result: BranchCreationResponse = await branchingService.createBranch(request, directoryPath);
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: {
+        sessionId: result.sessionId,
+        session: {
+          id: result.session.id,
+          parentSessionId: result.session.parentSessionId,
+          branchPoint: result.session.branchPoint,
+          branchTimestamp: result.session.branchTimestamp,
+          branchMetadata: result.session.branchMetadata,
+          workingDirectory: result.session.workingDirectory,
+          status: result.session.status,
+          createdAt: result.session.createdAt,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create branch',
+    });
+  }
+});
+
+/**
+ * POST /api/sessions/:id/validate-branch-point
+ * Validate that a branch point is valid for creating a branch
+ */
+router.post('/:sessionId/validate-branch-point', validateSchema(sessionValidationSchemas.branchPointValidation), async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const { branchPoint, directoryPath } = req.body;
+    
+    if (!directoryPath || typeof directoryPath !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Directory path is required for branch point validation',
+      });
+    }
+
+    // Get WebSocket service for branch notifications
+    const webSocketService = req.app.locals.webSocketService;
+    const branchNotificationService = webSocketService?.getBranchNotificationService();
+    
+    const branchingService = new SessionBranchingService(branchNotificationService);
+    const validation: BranchValidationResponse = await branchingService.validateBranchPoint(
+      sessionId,
+      branchPoint,
+      directoryPath
+    );
+
+    res.json({
+      success: true,
+      data: validation,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to validate branch point',
+    });
+  }
+});
+
+/**
+ * GET /api/sessions/:id/branches
+ * Get all branches for a parent session
+ */
+router.get('/:sessionId/branches', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    
+    // Get WebSocket service for branch notifications
+    const webSocketService = req.app.locals.webSocketService;
+    const branchNotificationService = webSocketService?.getBranchNotificationService();
+    
+    const branchingService = new SessionBranchingService(branchNotificationService);
+    const branches = await branchingService.getBranches(sessionId);
+
+    res.json({
+      success: true,
+      data: {
+        parentSessionId: sessionId,
+        branches: branches.map(branch => ({
+          id: branch.id,
+          parentSessionId: branch.parentSessionId,
+          branchPoint: branch.branchPoint,
+          branchTimestamp: branch.branchTimestamp,
+          branchMetadata: branch.branchMetadata,
+          workingDirectory: branch.workingDirectory,
+          status: branch.status,
+          createdAt: branch.createdAt,
+          lastActiveAt: branch.lastActiveAt,
+        })),
+        totalBranches: branches.length,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get branches',
+    });
+  }
+});
+
+/**
+ * GET /api/sessions/:id/branch-tree
+ * Get the complete branch tree for a session
+ */
+router.get('/:sessionId/branch-tree', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    
+    // Get WebSocket service for branch notifications
+    const webSocketService = req.app.locals.webSocketService;
+    const branchNotificationService = webSocketService?.getBranchNotificationService();
+    
+    const branchingService = new SessionBranchingService(branchNotificationService);
+    const branchTree = await branchingService.getBranchTree(sessionId);
+
+    if (!branchTree) {
+      return res.status(404).json({
+        success: false,
+        error: `Session ${sessionId} not found or has no branch tree`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        root: {
+          id: branchTree.root.id,
+          parentSessionId: branchTree.root.parentSessionId,
+          branchPoint: branchTree.root.branchPoint,
+          branchTimestamp: branchTree.root.branchTimestamp,
+          branchMetadata: branchTree.root.branchMetadata,
+          workingDirectory: branchTree.root.workingDirectory,
+          status: branchTree.root.status,
+          createdAt: branchTree.root.createdAt,
+        },
+        branches: Object.fromEntries(
+          Array.from(branchTree.branches.entries()).map(([parentId, children]) => [
+            parentId,
+            children.map(child => ({
+              id: child.id,
+              parentSessionId: child.parentSessionId,
+              branchPoint: child.branchPoint,
+              branchTimestamp: child.branchTimestamp,
+              branchMetadata: child.branchMetadata,
+              workingDirectory: child.workingDirectory,
+              status: child.status,
+              createdAt: child.createdAt,
+              lastActiveAt: child.lastActiveAt,
+            }))
+          ])
+        ),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get branch tree',
+    });
+  }
+});
+
+/**
+ * DELETE /api/sessions/:id/branch
+ * Delete a branch and its descendants
+ */
+router.delete('/:sessionId/branch', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    
+    // Get WebSocket service for branch notifications
+    const webSocketService = req.app.locals.webSocketService;
+    const branchNotificationService = webSocketService?.getBranchNotificationService();
+    
+    const branchingService = new SessionBranchingService(branchNotificationService);
+    const deleted = await branchingService.deleteBranch(sessionId);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: `Branch session ${sessionId} not found`,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        deletedSessionId: sessionId,
+        message: 'Branch and its descendants deleted successfully',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete branch',
     });
   }
 });

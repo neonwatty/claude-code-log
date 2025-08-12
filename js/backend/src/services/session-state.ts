@@ -12,6 +12,16 @@ export interface SessionData {
   createdAt: Date;
   lastActiveAt: Date;
   metadata?: Record<string, any>;
+  
+  // Branch-specific fields
+  parentSessionId?: string | null;
+  branchPoint?: number | null;
+  branchTimestamp?: Date | null;
+  branchMetadata?: {
+    branchName?: string;
+    branchReason?: string;
+    originalMessage?: string;
+  };
 }
 
 export interface SessionPersistenceData {
@@ -26,6 +36,8 @@ export interface SessionStateEvents {
   'session-suspended': (session: SessionData) => void;
   'session-restored': (session: SessionData) => void;
   'session-terminated': (sessionId: string) => void;
+  'session-branched': (parentSession: SessionData, branchSession: SessionData) => void;
+  'branch-tree-updated': (rootSessionId: string, branchData: { parentId: string; childId: string; branchPoint: number }) => void;
   'orphaned-process-cleaned': (processId: string) => void;
   'error': (error: Error) => void;
 }
@@ -52,6 +64,10 @@ class SessionStateManager extends EventEmitter {
   private processToSession = new Map<string, string>();
   private persistenceData: SessionPersistenceData;
   private cleanupInterval: NodeJS.Timeout;
+  
+  // Branch relationship tracking
+  private branchRelations = new Map<string, Set<string>>(); // parentId -> Set<childIds>
+  private parentMapping = new Map<string, string>(); // childId -> parentId
   
   // Configuration
   private readonly CLEANUP_INTERVAL = 30 * 60 * 1000; // 30 minutes
@@ -104,6 +120,68 @@ class SessionStateManager extends EventEmitter {
     await this.persistSessions();
     
     this.emit('session-created', session);
+    return sessionId;
+  }
+
+  /**
+   * Creates a new session branch from an existing session
+   */
+  async createBranch(parentSessionId: string, branchPoint: number, options: {
+    branchName?: string;
+    branchReason?: string;
+    originalMessage?: string;
+    workingDirectory?: string;
+    environment?: Record<string, string>;
+    metadata?: Record<string, any>;
+  } = {}): Promise<string | null> {
+    const parentSession = this.sessions.get(parentSessionId);
+    if (!parentSession) {
+      return null;
+    }
+
+    const sessionId = randomUUID();
+    const now = new Date();
+
+    const branchSession: SessionData = {
+      id: sessionId,
+      workingDirectory: options.workingDirectory || parentSession.workingDirectory,
+      environment: options.environment || parentSession.environment,
+      commandHistory: [], // Start with empty history for branch
+      status: 'active',
+      createdAt: now,
+      lastActiveAt: now,
+      metadata: options.metadata,
+      
+      // Branch-specific fields
+      parentSessionId,
+      branchPoint,
+      branchTimestamp: now,
+      branchMetadata: {
+        branchName: options.branchName,
+        branchReason: options.branchReason,
+        originalMessage: options.originalMessage,
+      },
+    };
+
+    this.sessions.set(sessionId, branchSession);
+    
+    // Update branch relationship tracking
+    if (!this.branchRelations.has(parentSessionId)) {
+      this.branchRelations.set(parentSessionId, new Set());
+    }
+    this.branchRelations.get(parentSessionId)!.add(sessionId);
+    this.parentMapping.set(sessionId, parentSessionId);
+
+    await this.persistSessions();
+    
+    this.emit('session-created', branchSession);
+    this.emit('session-branched', parentSession, branchSession);
+    this.emit('branch-tree-updated', this.getRootSessionId(parentSessionId), {
+      parentId: parentSessionId,
+      childId: sessionId,
+      branchPoint,
+    });
+
     return sessionId;
   }
 
@@ -238,6 +316,28 @@ class SessionStateManager extends EventEmitter {
       this.processToSession.delete(session.processId);
     }
 
+    // Clean up branch relationships
+    if (session.parentSessionId) {
+      // Remove from parent's children
+      const parentBranches = this.branchRelations.get(session.parentSessionId);
+      if (parentBranches) {
+        parentBranches.delete(sessionId);
+        if (parentBranches.size === 0) {
+          this.branchRelations.delete(session.parentSessionId);
+        }
+      }
+      this.parentMapping.delete(sessionId);
+    }
+
+    // Remove any child branches (cascade delete)
+    const childIds = this.branchRelations.get(sessionId);
+    if (childIds) {
+      for (const childId of Array.from(childIds)) {
+        await this.terminateSession(childId); // Recursive delete
+      }
+      this.branchRelations.delete(sessionId);
+    }
+
     this.sessions.delete(sessionId);
     await this.persistSessions();
     
@@ -279,6 +379,111 @@ class SessionStateManager extends EventEmitter {
     }
 
     return sessions.map(session => ({ ...session }));
+  }
+
+  /**
+   * Gets all child branches of a session
+   */
+  getBranches(sessionId: string): SessionData[] {
+    const childIds = this.branchRelations.get(sessionId);
+    if (!childIds) {
+      return [];
+    }
+
+    return Array.from(childIds)
+      .map(id => this.sessions.get(id))
+      .filter((session): session is SessionData => session !== undefined)
+      .map(session => ({ ...session }));
+  }
+
+  /**
+   * Gets the parent session of a branch
+   */
+  getParentSession(sessionId: string): SessionData | undefined {
+    const session = this.sessions.get(sessionId);
+    if (!session?.parentSessionId) {
+      return undefined;
+    }
+
+    const parentSession = this.sessions.get(session.parentSessionId);
+    return parentSession ? { ...parentSession } : undefined;
+  }
+
+  /**
+   * Gets the root session ID (session with no parent)
+   */
+  private getRootSessionId(sessionId: string): string {
+    const session = this.sessions.get(sessionId);
+    if (!session?.parentSessionId) {
+      return sessionId;
+    }
+    return this.getRootSessionId(session.parentSessionId);
+  }
+
+  /**
+   * Gets the complete branch tree for a root session
+   */
+  getBranchTree(rootSessionId: string): { 
+    root: SessionData; 
+    branches: Map<string, SessionData[]> 
+  } | null {
+    const root = this.sessions.get(rootSessionId);
+    if (!root) {
+      return null;
+    }
+
+    // Make sure this is actually a root session
+    const actualRootId = this.getRootSessionId(rootSessionId);
+    const actualRoot = this.sessions.get(actualRootId);
+    if (!actualRoot) {
+      return null;
+    }
+
+    // Build complete branch map
+    const branches = new Map<string, SessionData[]>();
+    
+    const buildBranchMap = (sessionId: string) => {
+      const childIds = this.branchRelations.get(sessionId);
+      if (childIds && childIds.size > 0) {
+        const children = Array.from(childIds)
+          .map(id => this.sessions.get(id))
+          .filter((session): session is SessionData => session !== undefined);
+        
+        branches.set(sessionId, children.map(s => ({ ...s })));
+        
+        // Recursively build for children
+        childIds.forEach(childId => buildBranchMap(childId));
+      }
+    };
+
+    buildBranchMap(actualRootId);
+
+    return {
+      root: { ...actualRoot },
+      branches
+    };
+  }
+
+  /**
+   * Validates that a branch point is valid for a given session
+   */
+  async validateBranchPoint(sessionId: string, branchPoint: number): Promise<boolean> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return false;
+    }
+
+    // In a real implementation, this would validate against the actual message history
+    // For now, just check that branchPoint is non-negative
+    return branchPoint >= 0;
+  }
+
+  /**
+   * Gets sessions that have branches at a specific message index
+   */
+  getSessionsWithBranchPoint(sessionId: string, messageIndex: number): SessionData[] {
+    const branches = this.getBranches(sessionId);
+    return branches.filter(branch => branch.branchPoint === messageIndex);
   }
 
   /**
@@ -353,11 +558,22 @@ class SessionStateManager extends EventEmitter {
     let recovered = 0;
     let failed = 0;
 
-    // In a real implementation, this would load from SQLite
-    // For now, sessions are already in memory
-    
+    // Rebuild branch relationship maps from persisted session data
+    this.branchRelations.clear();
+    this.parentMapping.clear();
+
     for (const [sessionId, session] of this.sessions.entries()) {
       try {
+        // Rebuild branch relationships
+        if (session.parentSessionId) {
+          this.parentMapping.set(sessionId, session.parentSessionId);
+          
+          if (!this.branchRelations.has(session.parentSessionId)) {
+            this.branchRelations.set(session.parentSessionId, new Set());
+          }
+          this.branchRelations.get(session.parentSessionId)!.add(sessionId);
+        }
+
         // Verify session integrity
         if (session.processId && this.processManager) {
           const processInfo = this.processManager.getProcessInfo(session.processId);

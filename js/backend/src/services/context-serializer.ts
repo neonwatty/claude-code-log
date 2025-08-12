@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { gzip, ungzip } from 'zlib';
+import { gzip, gunzip } from 'zlib';
 import { promisify } from 'util';
 import { 
   TranscriptEntry, 
@@ -12,7 +12,7 @@ import {
 import { SessionData } from './session-state';
 
 const gzipAsync = promisify(gzip);
-const ungzipAsync = promisify(ungzip);
+const gunzipAsync = promisify(gunzip);
 
 /**
  * Serializable session context for CLI consumption
@@ -394,7 +394,7 @@ export class ContextSerializer {
       if (Buffer.isBuffer(pkg.context)) {
         // Decompress if needed
         if (pkg.info.compressed) {
-          const decompressedBuffer = await ungzipAsync(pkg.context);
+          const decompressedBuffer = await gunzipAsync(pkg.context);
           contextData = decompressedBuffer.toString('utf8');
         } else {
           contextData = pkg.context.toString('utf8');

@@ -97,6 +97,47 @@ export const sessionValidationSchemas = {
     format: z.enum(['text', 'html', 'preview']).default('text'),
   }),
 
+  // Branch creation request
+  branchCreation: z.object({
+    branchPoint: z.number()
+      .min(0, 'Branch point must be non-negative')
+      .max(10000, 'Branch point index too large'),
+    metadata: z.object({
+      branchName: z.string()
+        .min(1, 'Branch name is required')
+        .max(100, 'Branch name too long')
+        .optional(),
+      branchReason: z.string()
+        .max(500, 'Branch reason too long')
+        .optional(),
+      originalMessage: z.string()
+        .max(1000, 'Original message preview too long')
+        .optional(),
+    }).optional(),
+    workingDirectory: z.string()
+      .min(1, 'Working directory is required')
+      .optional(),
+    environment: z.record(z.string()).optional(),
+    directoryPath: z.string()
+      .min(1, 'Directory path is required')
+      .refine(path => !path.includes('..'), 'Directory path cannot contain ".."')
+      .refine(path => !path.includes('~'), 'Directory path cannot contain "~"')
+      .refine(path => path.startsWith('/') || path.match(/^[A-Za-z]:\\/), 'Directory path must be absolute')
+      .optional(),
+  }),
+
+  // Branch validation request
+  branchPointValidation: z.object({
+    branchPoint: z.number()
+      .min(0, 'Branch point must be non-negative')
+      .max(10000, 'Branch point index too large'),
+    directoryPath: z.string()
+      .min(1, 'Directory path is required')
+      .refine(path => !path.includes('..'), 'Directory path cannot contain ".."')
+      .refine(path => !path.includes('~'), 'Directory path cannot contain "~"')
+      .refine(path => path.startsWith('/') || path.match(/^[A-Za-z]:\\/), 'Directory path must be absolute'),
+  }),
+
   // Session by ID request
   sessionById: z.object({
     directoryPath: z.string().min(1),

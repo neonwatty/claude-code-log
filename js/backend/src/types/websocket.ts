@@ -38,6 +38,10 @@ export interface ClientToServerEvents {
   'context-prepare': (sessionPath: string, options?: any, callback?: (result: { success: boolean; packageId?: string; error?: string }) => void) => void;
   'context-transfer-initiate': (packageId: string, callback?: (result: { success: boolean; transferId?: string; error?: string }) => void) => void;
   'context-transfer-status': (transferId: string, callback?: (status: any) => void) => void;
+  // Session status events
+  'get-session-status': (sessionId: string, callback?: (status: SessionStatusData | null) => void) => void;
+  'subscribe-session-status': (sessionId: string, callback?: (subscriptionId: string) => void) => void;
+  'unsubscribe-session-status': (subscriptionId: string) => void;
 }
 
 // Server-to-Client events
@@ -72,6 +76,38 @@ export interface ServerToClientEvents {
   'context-transfer-progress': (data: { transferId: string; progress: number; status: string }) => void;
   'context-transfer-completed': (data: { transferId: string; packageId: string; success: boolean }) => void;
   'context-transfer-failed': (data: { transferId: string; packageId: string; error: string }) => void;
+  // Session branch events
+  'session-branched': (data: { 
+    parentSessionId: string; 
+    branchSession: { 
+      id: string; 
+      parentSessionId: string; 
+      branchPoint: number; 
+      branchTimestamp: string; 
+      branchMetadata?: { 
+        branchName?: string; 
+        branchReason?: string; 
+        originalMessage?: string; 
+      }; 
+      workingDirectory?: string; 
+      status: string; 
+      createdAt: string; 
+    }; 
+    affectedSessions: string[];
+  }) => void;
+  'branch-tree-updated': (data: { 
+    rootSessionId: string; 
+    branchData: { 
+      parentId: string; 
+      childId: string; 
+      branchPoint: number; 
+    }; 
+    affectedSessions: string[];
+  }) => void;
+  // Session status events
+  'session-status-changed': (data: SessionStatusEvent['data']) => void;
+  'session-status-subscription-created': (data: { subscriptionId: string; sessionId: string }) => void;
+  'session-status-subscription-removed': (data: { subscriptionId: string; sessionId: string }) => void;
 }
 
 // Inter-server events (for multi-server setups)
@@ -91,6 +127,10 @@ export type EventType =
   | 'user:joined' | 'user:left' | 'user:typing' | 'user:idle' | 'user:active'
   // Session events
   | 'session:created' | 'session:updated' | 'session:deleted' | 'session:shared'
+  | 'session:branched' | 'session:branch-tree-updated'
+  // Session status events
+  | 'session:status-changed' | 'session:progress-updated' | 'session:metadata-changed'
+  | 'session:performance-updated' | 'session:error-occurred' | 'session:warning-issued'
   // Code events
   | 'code:changed' | 'code:saved' | 'code:executed' | 'code:error'
   // Chat/message events
@@ -156,6 +196,165 @@ export interface SessionEvent extends BaseEvent {
   };
 }
 
+// Session branch events
+export interface SessionBranchEvent extends BaseEvent {
+  type: 'session:branched' | 'session:branch-tree-updated';
+  data: {
+    // Common fields
+    sessionId: string;
+    parentSessionId?: string;
+    branchPoint?: number;
+    branchTimestamp?: string;
+    
+    // Branch creation data
+    branchSession?: {
+      id: string;
+      parentSessionId: string;
+      branchPoint: number;
+      branchTimestamp: string;
+      branchMetadata?: {
+        branchName?: string;
+        branchReason?: string;
+        originalMessage?: string;
+      };
+      workingDirectory?: string;
+      status: string;
+      createdAt: string;
+    };
+    
+    // Branch tree update data
+    rootSessionId?: string;
+    branchData?: {
+      parentId: string;
+      childId: string;
+      branchPoint: number;
+    };
+    
+    // Affected sessions for UI updates
+    affectedSessions?: string[];
+  };
+}
+
+// Session status events
+export interface SessionStatusEvent extends BaseEvent {
+  type: 'session:status-changed' | 'session:progress-updated' | 'session:metadata-changed' | 'session:performance-updated' | 'session:error-occurred' | 'session:warning-issued';
+  data: {
+    sessionId: string;
+    
+    // Status change data
+    status?: {
+      current: 'active' | 'idle' | 'processing' | 'loading' | 'error' | 'completed' | 'paused';
+      previous?: 'active' | 'idle' | 'processing' | 'loading' | 'error' | 'completed' | 'paused';
+      reason?: string;
+      source?: 'user' | 'system' | 'file-change' | 'websocket' | 'api';
+    };
+    
+    // Progress tracking data
+    progress?: {
+      current: number;
+      total: number;
+      percentage: number;
+      stage?: string;
+      description?: string;
+      estimatedTimeRemaining?: number;
+    };
+    
+    // Metadata changes
+    metadata?: {
+      changed: Record<string, any>;
+      added?: Record<string, any>;
+      removed?: string[];
+      full?: Record<string, any>;
+    };
+    
+    // Performance metrics
+    performance?: {
+      loadTime?: number;
+      responseTime?: number;
+      memoryUsage?: number;
+      cpuUsage?: number;
+      messageCount?: number;
+      fileSystemOps?: number;
+      lastActivity?: string;
+    };
+    
+    // Error/warning information
+    error?: {
+      code: string;
+      message: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      stack?: string;
+      context?: Record<string, any>;
+      recoverable: boolean;
+    };
+    
+    warning?: {
+      code: string;
+      message: string;
+      level: 'info' | 'warning' | 'error';
+      context?: Record<string, any>;
+      autoResolve?: boolean;
+    };
+  };
+}
+
+// Session status data structure for direct queries
+export interface SessionStatusData {
+  sessionId: string;
+  status: {
+    current: 'active' | 'idle' | 'processing' | 'loading' | 'error' | 'completed' | 'paused';
+    lastChanged: string;
+    reason?: string;
+    source?: 'user' | 'system' | 'file-change' | 'websocket' | 'api';
+  };
+  progress?: {
+    current: number;
+    total: number;
+    percentage: number;
+    stage?: string;
+    description?: string;
+    estimatedTimeRemaining?: number;
+  };
+  metadata: Record<string, any>;
+  performance: {
+    loadTime?: number;
+    responseTime?: number;
+    memoryUsage?: number;
+    cpuUsage?: number;
+    messageCount?: number;
+    fileSystemOps?: number;
+    lastActivity?: string;
+  };
+  errors: Array<{
+    code: string;
+    message: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    timestamp: string;
+    recoverable: boolean;
+  }>;
+  warnings: Array<{
+    code: string;
+    message: string;
+    level: 'info' | 'warning' | 'error';
+    timestamp: string;
+    autoResolve?: boolean;
+  }>;
+  lastUpdated: string;
+}
+
+// Session status subscription
+export interface SessionStatusSubscription {
+  id: string;
+  sessionId: string;
+  socketId: string;
+  createdAt: Date;
+  active: boolean;
+  filters?: {
+    events?: Array<'status-changed' | 'progress-updated' | 'metadata-changed' | 'performance-updated' | 'error-occurred' | 'warning-issued'>;
+    severityLevel?: 'low' | 'medium' | 'high' | 'critical';
+  };
+}
+
 // Code events
 export interface CodeEvent extends BaseEvent {
   type: 'code:changed' | 'code:saved' | 'code:executed' | 'code:error';
@@ -210,7 +409,7 @@ export interface CustomEvent extends BaseEvent {
 }
 
 // Union type for all events
-export type AppEvent = FileEvent | UserActionEvent | SessionEvent | CodeEvent | MessageEvent | SystemEvent | CustomEvent;
+export type AppEvent = FileEvent | UserActionEvent | SessionEvent | SessionBranchEvent | SessionStatusEvent | CodeEvent | MessageEvent | SystemEvent | CustomEvent;
 
 // Event subscription and filtering
 export interface EventFilter {

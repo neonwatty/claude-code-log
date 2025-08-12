@@ -311,7 +311,7 @@ const rateLimitCLI = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Apply middleware to all CLI routes
-router.use(addRequestContext('cli-integration'));
+router.use(addRequestContext);
 router.use(trackResponseTime);
 router.use(authenticateCLI);
 router.use(rateLimitCLI);

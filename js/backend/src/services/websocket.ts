@@ -12,12 +12,16 @@ import {
   ConnectionLimits,
   CLIProcessConfig,
   CLIProcessInfo,
-  ParsedCLIOutput
+  ParsedCLIOutput,
+  SessionStatusData
 } from '../types/websocket';
 import { ConnectionManager } from './connectionManager';
 import { EventManager } from './eventManager';
 import CLIIntegration from './cli-integration';
 import WebSocketContextEvents from './websocket-context-events';
+import WebSocketBranchNotificationService from './websocket-branch-notifications';
+import SessionStateManager from './session-state';
+import SessionStatusTracker from './sessionStatusTracker';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -25,6 +29,9 @@ class WebSocketService {
   private eventManager: EventManager;
   private cliIntegration: CLIIntegration;
   private contextEvents: WebSocketContextEvents;
+  private branchNotifications: WebSocketBranchNotificationService;
+  private sessionStateManager: SessionStateManager;
+  private sessionStatusTracker: SessionStatusTracker;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -50,6 +57,23 @@ class WebSocketService {
 
     // Initialize context events
     this.contextEvents = new WebSocketContextEvents(this.io);
+
+    // Initialize session state manager
+    this.sessionStateManager = new SessionStateManager();
+
+    // Initialize session status tracker
+    this.sessionStatusTracker = new SessionStatusTracker(
+      this.eventManager,
+      this.sessionStateManager
+    );
+
+    // Initialize branch notification service
+    this.branchNotifications = new WebSocketBranchNotificationService(
+      this.io, 
+      this.sessionStateManager,
+      this.eventManager
+    );
+    this.branchNotifications.initialize();
 
     this.setupEventHandlers();
     this.setupCLIIntegrationListeners();
@@ -386,6 +410,69 @@ class WebSocketService {
       // Set up context event handlers
       this.contextEvents.setupContextEventHandlers(socket);
 
+      // Session status event handlers
+      socket.on('get-session-status', (sessionId: string, callback) => {
+        if (!socket.data.userId) {
+          callback(null);
+          return;
+        }
+
+        try {
+          const status = this.sessionStatusTracker.getSessionStatus(sessionId);
+          if (callback) {
+            callback(status);
+          }
+        } catch (error) {
+          console.error('Error getting session status:', error);
+          if (callback) {
+            callback(null);
+          }
+        }
+      });
+
+      socket.on('subscribe-session-status', (sessionId: string, callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback('');
+          return;
+        }
+
+        try {
+          const subscriptionId = this.eventManager.subscribeToSessionStatus(
+            socket.id,
+            sessionId
+          );
+          
+          socket.emit('session-status-subscription-created', { 
+            subscriptionId, 
+            sessionId 
+          });
+          
+          if (callback) {
+            callback(subscriptionId);
+          }
+        } catch (error) {
+          console.error('Error subscribing to session status:', error);
+          if (callback) {
+            callback('');
+          }
+        }
+      });
+
+      socket.on('unsubscribe-session-status', (subscriptionId: string) => {
+        try {
+          const removed = this.eventManager.unsubscribeFromSessionStatus(subscriptionId);
+          if (removed) {
+            // Find the sessionId from the subscription (we'd need to store this mapping)
+            socket.emit('session-status-subscription-removed', { 
+              subscriptionId,
+              sessionId: '' // We'd need to track this
+            });
+          }
+        } catch (error) {
+          console.error('Error unsubscribing from session status:', error);
+        }
+      });
+
       // Handle disconnection
       socket.on('disconnect', (reason: string) => {
         console.log(`Client ${socket.id} disconnected: ${reason}`);
@@ -405,6 +492,9 @@ class WebSocketService {
         
         // Clean up event subscriptions
         this.eventManager.unsubscribeSocket(socket.id);
+        
+        // Clean up session status subscriptions
+        this.eventManager.unsubscribeSocketFromSessionStatus(socket.id);
       });
 
       // Handle errors
@@ -539,6 +629,85 @@ class WebSocketService {
     return this.contextEvents.cancelTransfer(transferId, socketId);
   }
 
+  // Session state and branch notification methods
+  public getSessionStateManager(): SessionStateManager {
+    return this.sessionStateManager;
+  }
+
+  public getBranchNotificationService(): WebSocketBranchNotificationService {
+    return this.branchNotifications;
+  }
+
+  public getBranchNotificationStats() {
+    return this.branchNotifications.getStats();
+  }
+
+  // Session status tracking methods
+  public getSessionStatusTracker(): SessionStatusTracker {
+    return this.sessionStatusTracker;
+  }
+
+  public getSessionStatus(sessionId: string): SessionStatusData | null {
+    return this.sessionStatusTracker.getSessionStatus(sessionId);
+  }
+
+  public async updateSessionStatus(
+    sessionId: string,
+    status: SessionStatusData['status']['current'],
+    reason?: string,
+    source?: SessionStatusData['status']['source']
+  ): Promise<boolean> {
+    return this.sessionStatusTracker.updateSessionStatus(sessionId, status, reason, source);
+  }
+
+  public async updateSessionProgress(
+    sessionId: string,
+    progress: {
+      current: number;
+      total: number;
+      stage?: string;
+      description?: string;
+      estimatedTimeRemaining?: number;
+    }
+  ): Promise<boolean> {
+    return this.sessionStatusTracker.updateProgress(sessionId, progress);
+  }
+
+  public async recordSessionError(
+    sessionId: string,
+    error: {
+      code: string;
+      message: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      stack?: string;
+      context?: Record<string, any>;
+      recoverable: boolean;
+    }
+  ): Promise<boolean> {
+    return this.sessionStatusTracker.recordError(sessionId, error);
+  }
+
+  public async recordSessionWarning(
+    sessionId: string,
+    warning: {
+      code: string;
+      message: string;
+      level: 'info' | 'warning' | 'error';
+      context?: Record<string, any>;
+      autoResolve?: boolean;
+    }
+  ): Promise<boolean> {
+    return this.sessionStatusTracker.recordWarning(sessionId, warning);
+  }
+
+  public getSessionStatusHistory(sessionId: string) {
+    return this.sessionStatusTracker.getStatusHistory(sessionId);
+  }
+
+  public getSessionStatusStats() {
+    return this.sessionStatusTracker.getStats();
+  }
+
   // Graceful shutdown
   public async close(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -547,6 +716,12 @@ class WebSocketService {
       
       // Shutdown context events
       await this.contextEvents.shutdown();
+      
+      // Shutdown branch notifications
+      this.branchNotifications.shutdown();
+      
+      // Shutdown session status tracker
+      await this.sessionStatusTracker.shutdown();
       
       // Clean up connection manager resources
       this.connectionManager.cleanupExpiredTokens();
