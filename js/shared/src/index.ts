@@ -374,3 +374,15 @@ export {
   organizeSessionsStream,
   type OptimizedSessionOptions,
 } from './optimized-session-organizer';
+
+// Export state bridge functionality
+export {
+  StateBridge,
+  type StateSyncEventType,
+  type StateChangeEvent,
+  type SessionStateSnapshot,
+  type StateConflict,
+  type ConflictResolutionStrategy,
+  type BridgeStatus,
+  type StateBridgeConfig,
+} from './state-bridge';

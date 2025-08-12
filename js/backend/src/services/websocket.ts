@@ -17,12 +17,14 @@ import {
 import { ConnectionManager } from './connectionManager';
 import { EventManager } from './eventManager';
 import CLIIntegration from './cli-integration';
+import WebSocketContextEvents from './websocket-context-events';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectionManager: ConnectionManager;
   private eventManager: EventManager;
   private cliIntegration: CLIIntegration;
+  private contextEvents: WebSocketContextEvents;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -45,6 +47,9 @@ class WebSocketService {
 
     // Initialize CLI integration
     this.cliIntegration = new CLIIntegration();
+
+    // Initialize context events
+    this.contextEvents = new WebSocketContextEvents(this.io);
 
     this.setupEventHandlers();
     this.setupCLIIntegrationListeners();
@@ -378,6 +383,9 @@ class WebSocketService {
         }
       });
 
+      // Set up context event handlers
+      this.contextEvents.setupContextEventHandlers(socket);
+
       // Handle disconnection
       socket.on('disconnect', (reason: string) => {
         console.log(`Client ${socket.id} disconnected: ${reason}`);
@@ -518,11 +526,27 @@ class WebSocketService {
     return this.cliIntegration.recoverSessions();
   }
 
+  // Context transfer methods
+  public getContextTransferStats() {
+    return this.contextEvents.getTransferStats();
+  }
+
+  public getSocketContextTransfers(socketId: string) {
+    return this.contextEvents.getSocketTransfers(socketId);
+  }
+
+  public cancelContextTransfer(transferId: string, socketId: string) {
+    return this.contextEvents.cancelTransfer(transferId, socketId);
+  }
+
   // Graceful shutdown
   public async close(): Promise<void> {
     return new Promise(async (resolve) => {
       // Shutdown CLI integration first
       await this.cliIntegration.shutdown();
+      
+      // Shutdown context events
+      await this.contextEvents.shutdown();
       
       // Clean up connection manager resources
       this.connectionManager.cleanupExpiredTokens();

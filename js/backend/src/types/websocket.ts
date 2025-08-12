@@ -34,6 +34,10 @@ export interface ClientToServerEvents {
   'cli-input': (processId: string, data: string) => void;
   'cli-get-processes': (callback: (processes: CLIProcessInfo[]) => void) => void;
   'cli-get-process': (processId: string, callback: (process: CLIProcessInfo | null) => void) => void;
+  // Context transfer events
+  'context-prepare': (sessionPath: string, options?: any, callback?: (result: { success: boolean; packageId?: string; error?: string }) => void) => void;
+  'context-transfer-initiate': (packageId: string, callback?: (result: { success: boolean; transferId?: string; error?: string }) => void) => void;
+  'context-transfer-status': (transferId: string, callback?: (status: any) => void) => void;
 }
 
 // Server-to-Client events
@@ -62,6 +66,12 @@ export interface ServerToClientEvents {
   'cli-stdout-data': (data: { processId: string; content: string; timestamp: string; parsed?: any }) => void;
   'cli-stderr-data': (data: { processId: string; content: string; timestamp: string; parsed?: any }) => void;
   'cli-parsed-output': (data: { processId: string; output: ParsedCLIOutput }) => void;
+  // Context transfer events
+  'context-prepared': (data: { packageId: string; sessionId: string; stats: any; expiresAt: string }) => void;
+  'context-transfer-initiated': (data: { transferId: string; packageId: string; status: string }) => void;
+  'context-transfer-progress': (data: { transferId: string; progress: number; status: string }) => void;
+  'context-transfer-completed': (data: { transferId: string; packageId: string; success: boolean }) => void;
+  'context-transfer-failed': (data: { transferId: string; packageId: string; error: string }) => void;
 }
 
 // Inter-server events (for multi-server setups)
