@@ -581,7 +581,7 @@
           "5"
         ],
         "priority": "high",
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -589,7 +589,7 @@
             "description": "Create core infrastructure for spawning and managing Claude Code CLI child processes",
             "dependencies": [],
             "details": "Implement a ProcessManager class in js/backend/src/services/process-manager.ts that handles spawning Claude Code CLI processes using Node.js child_process.spawn(). Include process lifecycle management (start, stop, restart), environment variable handling, working directory configuration, and process ID tracking. Follow the existing service patterns seen in js/backend/src/services/websocket-service.ts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create unit tests for ProcessManager class testing spawn operations, process termination, environment variable passing, and error handling for invalid commands or missing executables"
           },
           {
@@ -600,7 +600,7 @@
               "11.1"
             ],
             "details": "Develop StreamHandler class to capture stdout/stderr from child processes, implement buffering and line-by-line parsing, detect and parse different output types (JSON responses, markdown, tool use), and handle ANSI escape codes. Create event emitters for parsed output that can be consumed by WebSocket service. Store in js/backend/src/services/stream-handler.ts following existing TypeScript patterns.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test stream parsing with various Claude Code output formats, verify ANSI code handling, test buffer overflow scenarios, and ensure proper event emission for different output types"
           },
           {
@@ -612,7 +612,7 @@
               "11.2"
             ],
             "details": "Create SessionStateManager in js/backend/src/services/session-state.ts that persists active session data including process IDs, working directories, environment variables, and command history to SQLite database. Implement recovery mechanism to restore sessions after application restart, handle orphaned processes, and clean up stale sessions. Use the existing database patterns from js/backend/src/database/.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test session persistence across application restarts, verify orphaned process cleanup, test recovery with various session states, and ensure database transactions are atomic"
           },
           {
@@ -624,7 +624,7 @@
               "11.3"
             ],
             "details": "Extend js/backend/src/services/websocket-service.ts to handle Claude Code CLI events including process spawn/exit, stdout/stderr streaming, and session state changes. Implement WebSocket message types for CLI control (start, stop, restart, input) and output streaming. Ensure compatibility with existing WebSocket patterns and message formats defined in js/shared/src/types/.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test real-time output streaming over WebSocket, verify message ordering and buffering, test concurrent session handling, and ensure WebSocket reconnection preserves CLI session state"
           },
           {
@@ -635,7 +635,7 @@
               "11.4"
             ],
             "details": "Create InputHandler in js/backend/src/services/input-handler.ts for managing stdin writes to child processes, implement queue system for handling rapid input, support for special key sequences (Ctrl+C, Ctrl+D), and interactive mode detection. Add WebSocket message handlers for user input events and ensure proper input sanitization and validation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test input handling with various input types, verify special key sequence handling, test input queue under load, and ensure proper handling of interactive prompts and multi-line input"
           }
         ]
@@ -1549,7 +1549,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-11T22:16:11.704Z",
+      "updated": "2025-08-12T00:53:01.272Z",
       "description": "Tasks for master context"
     }
   }
