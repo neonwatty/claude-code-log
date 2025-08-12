@@ -9,15 +9,20 @@ import {
   SocketData,
   TypedSocket,
   SessionUpdate,
-  ConnectionLimits
+  ConnectionLimits,
+  CLIProcessConfig,
+  CLIProcessInfo,
+  ParsedCLIOutput
 } from '../types/websocket';
 import { ConnectionManager } from './connectionManager';
 import { EventManager } from './eventManager';
+import CLIIntegration from './cli-integration';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
   private connectionManager: ConnectionManager;
   private eventManager: EventManager;
+  private cliIntegration: CLIIntegration;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -38,7 +43,11 @@ class WebSocketService {
     // Initialize event manager
     this.eventManager = new EventManager(this.io);
 
+    // Initialize CLI integration
+    this.cliIntegration = new CLIIntegration();
+
     this.setupEventHandlers();
+    this.setupCLIIntegrationListeners();
   }
 
   private setupEventHandlers(): void {
@@ -270,6 +279,105 @@ class WebSocketService {
         console.log(`Replayed ${replayCount} events for socket ${socket.id}`);
       });
 
+      // Handle CLI process events
+      socket.on('cli-spawn', async (config: CLIProcessConfig, callback) => {
+        if (!socket.data.userId) {
+          callback({ success: false, error: 'Authentication required' });
+          return;
+        }
+
+        // Check rate limit
+        if (!this.connectionManager.checkRateLimit(socket)) {
+          callback({ success: false, error: 'Rate limit exceeded' });
+          return;
+        }
+
+        try {
+          const processId = await this.cliIntegration.spawnProcess(config);
+          callback({ success: true, processId });
+        } catch (error) {
+          callback({ 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+        }
+      });
+
+      socket.on('cli-terminate', async (processId: string, callback) => {
+        if (!socket.data.userId) {
+          callback({ success: false, error: 'Authentication required' });
+          return;
+        }
+
+        try {
+          const success = await this.cliIntegration.terminateProcess(processId);
+          callback({ success, error: success ? undefined : 'Failed to terminate process' });
+        } catch (error) {
+          callback({ 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+        }
+      });
+
+      socket.on('cli-input', async (processId: string, data: string) => {
+        if (!socket.data.userId) {
+          socket.emit('error-message', {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required for CLI input'
+          });
+          return;
+        }
+
+        // Check rate limit
+        if (!this.connectionManager.checkRateLimit(socket)) {
+          socket.emit('error-message', {
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'Too many CLI inputs. Please slow down.'
+          });
+          return;
+        }
+
+        try {
+          await this.cliIntegration.sendInput(processId, data);
+        } catch (error) {
+          socket.emit('error-message', {
+            code: 'CLI_INPUT_ERROR',
+            message: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      socket.on('cli-get-processes', (callback) => {
+        if (!socket.data.userId) {
+          callback([]);
+          return;
+        }
+
+        try {
+          const processes = this.cliIntegration.getAllProcesses();
+          callback(processes);
+        } catch (error) {
+          console.error('Error getting CLI processes:', error);
+          callback([]);
+        }
+      });
+
+      socket.on('cli-get-process', (processId: string, callback) => {
+        if (!socket.data.userId) {
+          callback(null);
+          return;
+        }
+
+        try {
+          const process = this.cliIntegration.getProcessInfo(processId);
+          callback(process);
+        } catch (error) {
+          console.error('Error getting CLI process:', error);
+          callback(null);
+        }
+      });
+
       // Handle disconnection
       socket.on('disconnect', (reason: string) => {
         console.log(`Client ${socket.id} disconnected: ${reason}`);
@@ -300,6 +408,37 @@ class WebSocketService {
     // Handle server-level events
     this.io.engine.on('connection_error', (err: any) => {
       console.error('WebSocket connection error:', err);
+    });
+  }
+
+  private setupCLIIntegrationListeners(): void {
+    // Listen to CLI integration events and broadcast to clients
+    this.cliIntegration.on('process-started', (processId, processInfo) => {
+      this.io.emit('cli-process-started', { processId, processInfo });
+    });
+
+    this.cliIntegration.on('process-stopped', (processId, processInfo) => {
+      this.io.emit('cli-process-stopped', { processId, processInfo });
+    });
+
+    this.cliIntegration.on('process-error', (processId, processInfo, error) => {
+      this.io.emit('cli-process-error', { processId, processInfo, error });
+    });
+
+    this.cliIntegration.on('process-timeout', (processId, processInfo) => {
+      this.io.emit('cli-process-timeout', { processId, processInfo });
+    });
+
+    this.cliIntegration.on('stdout-data', (processId, content, timestamp, parsed) => {
+      this.io.emit('cli-stdout-data', { processId, content, timestamp, parsed });
+    });
+
+    this.cliIntegration.on('stderr-data', (processId, content, timestamp, parsed) => {
+      this.io.emit('cli-stderr-data', { processId, content, timestamp, parsed });
+    });
+
+    this.cliIntegration.on('parsed-output', (processId, output) => {
+      this.io.emit('cli-parsed-output', { processId, output });
     });
   }
 
@@ -366,9 +505,25 @@ class WebSocketService {
     return this.eventManager.cleanupHistory(olderThan);
   }
 
+  // CLI Integration methods
+  public getCLIStats() {
+    return this.cliIntegration.getStats();
+  }
+
+  public async cleanupCLI() {
+    return this.cliIntegration.cleanup();
+  }
+
+  public async recoverCLISessions() {
+    return this.cliIntegration.recoverSessions();
+  }
+
   // Graceful shutdown
   public async close(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      // Shutdown CLI integration first
+      await this.cliIntegration.shutdown();
+      
       // Clean up connection manager resources
       this.connectionManager.cleanupExpiredTokens();
       

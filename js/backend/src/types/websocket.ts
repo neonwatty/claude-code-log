@@ -28,6 +28,12 @@ export interface ClientToServerEvents {
   'publish-event': (event: Partial<AppEvent>) => void;
   'request-event-history': (filter?: EventFilter, page?: number, pageSize?: number, callback?: (history: EventHistory) => void) => void;
   'request-event-replay': (filter?: EventFilter, startTime?: string) => void;
+  // CLI Process events
+  'cli-spawn': (config: CLIProcessConfig, callback: (result: { success: boolean; processId?: string; error?: string }) => void) => void;
+  'cli-terminate': (processId: string, callback: (result: { success: boolean; error?: string }) => void) => void;
+  'cli-input': (processId: string, data: string) => void;
+  'cli-get-processes': (callback: (processes: CLIProcessInfo[]) => void) => void;
+  'cli-get-process': (processId: string, callback: (process: CLIProcessInfo | null) => void) => void;
 }
 
 // Server-to-Client events
@@ -48,6 +54,14 @@ export interface ServerToClientEvents {
   'event-replay-end': () => void;
   'subscription-created': (data: { subscriptionId: string }) => void;
   'subscription-removed': (data: { subscriptionId: string }) => void;
+  // CLI Process events
+  'cli-process-started': (data: { processId: string; processInfo: CLIProcessInfo }) => void;
+  'cli-process-stopped': (data: { processId: string; processInfo: CLIProcessInfo }) => void;
+  'cli-process-error': (data: { processId: string; processInfo: CLIProcessInfo; error: string }) => void;
+  'cli-process-timeout': (data: { processId: string; processInfo: CLIProcessInfo }) => void;
+  'cli-stdout-data': (data: { processId: string; content: string; timestamp: string; parsed?: any }) => void;
+  'cli-stderr-data': (data: { processId: string; content: string; timestamp: string; parsed?: any }) => void;
+  'cli-parsed-output': (data: { processId: string; output: ParsedCLIOutput }) => void;
 }
 
 // Inter-server events (for multi-server setups)
@@ -271,6 +285,41 @@ export interface ReconnectToken {
   sessionId?: string;
   expiresAt: Date;
   socketData: Partial<SocketData>;
+}
+
+// CLI Process types
+export interface CLIProcessConfig {
+  command: string;
+  args?: string[];
+  cwd?: string;
+  env?: Record<string, string>;
+  timeout?: number;
+}
+
+export interface CLIProcessInfo {
+  id: string;
+  pid?: number;
+  command: string;
+  args: string[];
+  status: 'starting' | 'running' | 'stopped' | 'error' | 'timeout';
+  startedAt: string; // ISO string
+  stoppedAt?: string; // ISO string
+  exitCode?: number;
+  signal?: string;
+  error?: string;
+}
+
+export interface ParsedCLIOutput {
+  type: 'stdout' | 'stderr';
+  content: string;
+  timestamp: string; // ISO string
+  parsed?: {
+    isJson?: boolean;
+    isMarkdown?: boolean;
+    isToolUse?: boolean;
+    hasAnsiCodes?: boolean;
+    data?: any;
+  };
 }
 
 // Export types directly - no default export needed for type-only exports
