@@ -15,9 +15,30 @@ export type DisplayMode = 'compact' | 'detailed' | 'minimal';
 export type ThemeVariant = 'light' | 'dark' | 'auto';
 
 /**
+ * Session branch metadata
+ */
+export interface SessionBranchData {
+  /** Parent session ID (null for root sessions) */
+  parentSessionId?: string | null;
+  /** Message index in parent session where this branch started */
+  branchPoint?: number | null;
+  /** Timestamp when this branch was created */
+  branchTimestamp?: Date | null;
+  /** Additional branch metadata */
+  branchMetadata?: {
+    /** User-provided name for this branch */
+    branchName?: string;
+    /** Description of why this branch was created */
+    branchReason?: string;
+    /** Original message content at branch point */
+    originalMessage?: string;
+  };
+}
+
+/**
  * Session summary information for list views
  */
-export interface SessionSummary {
+export interface SessionSummary extends SessionBranchData {
   /** Unique session identifier */
   sessionId: string;
   /** Session title or description */
@@ -206,6 +227,81 @@ export interface PaginationOptions {
 }
 
 /**
+ * Session branch tree structure for visualization
+ */
+export interface SessionBranchTree {
+  /** Root session (has no parent) */
+  rootSession: SessionSummary;
+  /** Direct child branches */
+  branches: SessionBranchTree[];
+  /** Depth level in the tree */
+  depth: number;
+}
+
+/**
+ * Branch point information for UI selection
+ */
+export interface BranchPoint {
+  /** Message index in session */
+  messageIndex: number;
+  /** Message content preview */
+  messagePreview: string;
+  /** Message timestamp */
+  timestamp: Date;
+  /** Whether this point already has branches */
+  hasBranches: boolean;
+  /** Number of existing branches from this point */
+  branchCount: number;
+}
+
+/**
+ * Branch creation request
+ */
+export interface BranchCreationRequest {
+  /** Parent session ID */
+  parentSessionId: string;
+  /** Message index to branch from */
+  branchPoint: number;
+  /** Optional branch metadata */
+  metadata?: {
+    branchName?: string;
+    branchReason?: string;
+  };
+}
+
+/**
+ * Branch creation response
+ */
+export interface BranchCreationResponse {
+  /** Newly created session ID */
+  sessionId: string;
+  /** Complete session data */
+  session: SessionSummary;
+  /** Success status */
+  success: boolean;
+  /** Error message if failed */
+  error?: string;
+}
+
+/**
+ * WebSocket branch notification data
+ */
+export interface BranchNotification {
+  /** Event type */
+  type: 'session:branched' | 'session:branch-updated' | 'session:branch-deleted';
+  /** Parent session ID */
+  parentSessionId: string;
+  /** Branch session ID */
+  branchSessionId: string;
+  /** Branch point index */
+  branchPoint: number;
+  /** Branch metadata */
+  metadata?: SessionBranchData['branchMetadata'];
+  /** Timestamp of the event */
+  timestamp: Date;
+}
+
+/**
  * Component event types
  */
 export interface ComponentEvents {
@@ -246,6 +342,35 @@ export interface ComponentEvents {
   /** Loading state changed event */
   'loading-changed': {
     loading: boolean;
+  };
+
+  /** Branch point selected event */
+  'branch-point-selected': {
+    sessionId: string;
+    branchPoint: BranchPoint;
+  };
+
+  /** Branch creation requested event */
+  'branch-create-requested': {
+    request: BranchCreationRequest;
+  };
+
+  /** Branch created event */
+  'branch-created': {
+    parentSessionId: string;
+    newSession: SessionSummary;
+  };
+
+  /** Branch navigation event */
+  'branch-navigate': {
+    fromSessionId: string;
+    toSessionId: string;
+  };
+
+  /** Branch tree updated event */
+  'branch-tree-updated': {
+    rootSessionId: string;
+    tree: SessionBranchTree;
   };
 }
 
