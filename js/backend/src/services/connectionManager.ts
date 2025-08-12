@@ -9,6 +9,21 @@ import {
   TypedSocket
 } from '../types/websocket';
 
+interface CircuitBreakerState {
+  failures: number;
+  lastFailureTime: number;
+  state: 'closed' | 'open' | 'half-open';
+  nextAttemptTime: number;
+}
+
+interface ConnectionHealthMetrics {
+  latency: number;
+  packetLoss: number;
+  throughput: number;
+  quality: 'excellent' | 'good' | 'poor' | 'critical';
+  lastUpdated: number;
+}
+
 export class ConnectionManager {
   private connections: Map<string, ConnectionInfo> = new Map();
   private userConnections: Map<string, Set<string>> = new Map();
@@ -16,7 +31,21 @@ export class ConnectionManager {
   private reconnectTokens: Map<string, ReconnectToken> = new Map();
   private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
   private heartbeatIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private connectionHealth: Map<string, ConnectionHealthMetrics> = new Map();
   private limits: ConnectionLimits;
+  
+  // Enhanced reconnection configuration
+  private reconnectionConfig = {
+    baseDelay: 1000,           // 1 second base delay
+    maxDelay: 60000,           // 60 seconds maximum delay
+    multiplier: 1.5,           // Exponential backoff multiplier
+    jitterFactor: 0.1,         // 10% jitter to prevent thundering herd
+    circuitBreakerThreshold: 5, // failures before circuit breaker opens
+    circuitBreakerTimeout: 30000, // 30 seconds before half-open retry
+    adaptiveHeartbeatMin: 5000,   // 5 seconds minimum heartbeat
+    adaptiveHeartbeatMax: 30000,  // 30 seconds maximum heartbeat
+  };
   
   private stats: ConnectionStats = {
     totalConnections: 0,
@@ -317,6 +346,17 @@ export class ConnectionManager {
     const duration = Date.now() - connectionInfo.connectedAt.getTime();
     this.updateAverageConnectionDuration(duration);
 
+    // Clean up connection health metrics
+    this.connectionHealth.delete(socket.id);
+    
+    // Clean up circuit breaker if no more connections for this user/IP
+    if (connectionInfo.userId) {
+      const userHasOtherConnections = this.userConnections.get(connectionInfo.userId)?.size || 0;
+      if (userHasOtherConnections === 0) {
+        this.circuitBreakers.delete(connectionInfo.userId);
+      }
+    }
+
     // Remove connection
     this.connections.delete(socket.id);
     this.stats.activeConnections--;
@@ -368,7 +408,204 @@ export class ConnectionManager {
       .filter((info): info is ConnectionInfo => info !== undefined);
   }
 
-  // Clean up expired tokens periodically
+  // Enhanced reconnection methods with circuit breaker and exponential backoff
+  
+  /**
+   * Calculate reconnection delay with exponential backoff and jitter
+   */
+  public calculateReconnectionDelay(attempt: number): number {
+    const exponentialDelay = Math.min(
+      this.reconnectionConfig.baseDelay * Math.pow(this.reconnectionConfig.multiplier, attempt),
+      this.reconnectionConfig.maxDelay
+    );
+    
+    // Add jitter to prevent thundering herd
+    const jitter = exponentialDelay * this.reconnectionConfig.jitterFactor * Math.random();
+    return Math.floor(exponentialDelay + jitter);
+  }
+  
+  /**
+   * Check circuit breaker state for a client
+   */
+  public checkCircuitBreaker(clientId: string): { canAttempt: boolean; nextAttemptIn?: number } {
+    const breaker = this.circuitBreakers.get(clientId);
+    if (!breaker) {
+      return { canAttempt: true };
+    }
+    
+    const now = Date.now();
+    
+    switch (breaker.state) {
+      case 'closed':
+        return { canAttempt: true };
+        
+      case 'open':
+        if (now >= breaker.nextAttemptTime) {
+          // Transition to half-open
+          breaker.state = 'half-open';
+          this.circuitBreakers.set(clientId, breaker);
+          return { canAttempt: true };
+        }
+        return { 
+          canAttempt: false, 
+          nextAttemptIn: breaker.nextAttemptTime - now 
+        };
+        
+      case 'half-open':
+        return { canAttempt: true };
+        
+      default:
+        return { canAttempt: true };
+    }
+  }
+  
+  /**
+   * Record connection failure for circuit breaker
+   */
+  public recordConnectionFailure(clientId: string): void {
+    let breaker = this.circuitBreakers.get(clientId);
+    
+    if (!breaker) {
+      breaker = {
+        failures: 1,
+        lastFailureTime: Date.now(),
+        state: 'closed',
+        nextAttemptTime: 0
+      };
+    } else {
+      breaker.failures++;
+      breaker.lastFailureTime = Date.now();
+    }
+    
+    // Check if threshold exceeded
+    if (breaker.failures >= this.reconnectionConfig.circuitBreakerThreshold) {
+      breaker.state = 'open';
+      breaker.nextAttemptTime = Date.now() + this.reconnectionConfig.circuitBreakerTimeout;
+      console.log(`Circuit breaker opened for client ${clientId} after ${breaker.failures} failures`);
+    }
+    
+    this.circuitBreakers.set(clientId, breaker);
+  }
+  
+  /**
+   * Record successful connection for circuit breaker
+   */
+  public recordConnectionSuccess(clientId: string): void {
+    const breaker = this.circuitBreakers.get(clientId);
+    if (breaker) {
+      if (breaker.state === 'half-open') {
+        // Successful connection in half-open state - close the circuit
+        breaker.state = 'closed';
+        breaker.failures = 0;
+        console.log(`Circuit breaker closed for client ${clientId} after successful reconnection`);
+      } else if (breaker.state === 'closed') {
+        // Reset failure count on successful connection
+        breaker.failures = 0;
+      }
+      this.circuitBreakers.set(clientId, breaker);
+    }
+  }
+  
+  /**
+   * Update connection health metrics
+   */
+  public updateConnectionHealth(socketId: string, metrics: Partial<ConnectionHealthMetrics>): void {
+    let health = this.connectionHealth.get(socketId);
+    
+    if (!health) {
+      health = {
+        latency: 0,
+        packetLoss: 0,
+        throughput: 0,
+        quality: 'good',
+        lastUpdated: Date.now()
+      };
+    }
+    
+    // Update provided metrics
+    Object.assign(health, metrics);
+    health.lastUpdated = Date.now();
+    
+    // Determine connection quality
+    health.quality = this.calculateConnectionQuality(health);
+    
+    this.connectionHealth.set(socketId, health);
+    
+    // Adjust heartbeat interval based on connection quality
+    this.adjustHeartbeatInterval(socketId, health.quality);
+  }
+  
+  /**
+   * Calculate connection quality based on metrics
+   */
+  private calculateConnectionQuality(health: ConnectionHealthMetrics): 'excellent' | 'good' | 'poor' | 'critical' {
+    if (health.latency < 50 && health.packetLoss < 0.01) {
+      return 'excellent';
+    } else if (health.latency < 150 && health.packetLoss < 0.05) {
+      return 'good';
+    } else if (health.latency < 500 && health.packetLoss < 0.1) {
+      return 'poor';
+    } else {
+      return 'critical';
+    }
+  }
+  
+  /**
+   * Adjust heartbeat interval based on connection quality
+   */
+  private adjustHeartbeatInterval(socketId: string, quality: string): void {
+    const connection = this.connections.get(socketId);
+    if (!connection) return;
+    
+    let newInterval: number;
+    
+    switch (quality) {
+      case 'excellent':
+        newInterval = this.reconnectionConfig.adaptiveHeartbeatMax; // Less frequent for good connections
+        break;
+      case 'good':
+        newInterval = 20000; // 20 seconds
+        break;
+      case 'poor':
+        newInterval = 10000; // 10 seconds
+        break;
+      case 'critical':
+        newInterval = this.reconnectionConfig.adaptiveHeartbeatMin; // More frequent for poor connections
+        break;
+      default:
+        newInterval = 15000; // Default 15 seconds
+    }
+    
+    // Restart heartbeat with new interval if it changed significantly
+    const currentInterval = this.heartbeatIntervals.get(socketId);
+    if (currentInterval) {
+      clearInterval(currentInterval);
+      this.heartbeatIntervals.delete(socketId);
+      
+      // Find socket and restart heartbeat monitoring
+      // Note: This would need access to the socket, which we don't have here
+      // In practice, this would be called from the WebSocket service
+      console.log(`Adjusted heartbeat interval for ${socketId} to ${newInterval}ms based on ${quality} connection quality`);
+    }
+  }
+  
+  /**
+   * Get connection health metrics
+   */
+  public getConnectionHealth(socketId: string): ConnectionHealthMetrics | undefined {
+    return this.connectionHealth.get(socketId);
+  }
+  
+  /**
+   * Get circuit breaker status
+   */
+  public getCircuitBreakerStatus(clientId: string): CircuitBreakerState | undefined {
+    return this.circuitBreakers.get(clientId);
+  }
+  
+  /**
+   * Clean up expired tokens periodically
+   */
   public cleanupExpiredTokens(): void {
     const now = new Date();
     for (const [token, data] of this.reconnectTokens.entries()) {

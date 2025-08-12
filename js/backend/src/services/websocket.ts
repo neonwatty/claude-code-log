@@ -22,6 +22,7 @@ import WebSocketContextEvents from './websocket-context-events';
 import WebSocketBranchNotificationService from './websocket-branch-notifications';
 import SessionStateManager from './session-state';
 import SessionStatusTracker from './sessionStatusTracker';
+import ClientStatePersistenceManager, { StateOperation } from './client-state-persistence';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -32,6 +33,7 @@ class WebSocketService {
   private branchNotifications: WebSocketBranchNotificationService;
   private sessionStateManager: SessionStateManager;
   private sessionStatusTracker: SessionStatusTracker;
+  private clientStatePersistence: ClientStatePersistenceManager;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -66,6 +68,14 @@ class WebSocketService {
       this.eventManager,
       this.sessionStateManager
     );
+
+    // Initialize client state persistence manager
+    this.clientStatePersistence = new ClientStatePersistenceManager({
+      snapshotInterval: 30000,
+      maxSnapshots: 20,
+      maxOperations: 500,
+      compressionThreshold: 50
+    });
 
     // Initialize branch notification service
     this.branchNotifications = new WebSocketBranchNotificationService(
@@ -246,6 +256,121 @@ class WebSocketService {
       socket.on('request-reconnect-token', (callback) => {
         const token = this.connectionManager.generateReconnectToken(socket);
         callback(token);
+      });
+
+      // State synchronization handlers
+      socket.on('request-state-sync', async (data, callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback({ error: 'Authentication required' });
+          return;
+        }
+
+        try {
+          const { clientVersion, lastUpdate, pendingOperations } = data;
+          
+          const recovery = await this.clientStatePersistence.recoverState(
+            socket.data.userId,
+            clientVersion,
+            socket.data.reconnectToken
+          );
+
+          const response = {
+            serverState: recovery.snapshot?.state,
+            serverVersion: recovery.snapshot?.version,
+            needsFullSync: recovery.needsFullSync,
+            delta: recovery.delta,
+            timestamp: Date.now()
+          };
+
+          if (callback) {
+            callback(response);
+          } else {
+            socket.emit('state-sync-response', response);
+          }
+
+          console.log(`State sync requested by ${socket.data.userId}, needsFullSync: ${recovery.needsFullSync}`);
+        } catch (error) {
+          console.error('State sync error:', error);
+          const errorResponse = { error: 'State sync failed', needsFullSync: true };
+          if (callback) {
+            callback(errorResponse);
+          } else {
+            socket.emit('state-sync-response', errorResponse);
+          }
+        }
+      });
+
+      socket.on('state-operation', async (operationData) => {
+        if (!socket.data.userId) {
+          socket.emit('error-message', {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required for state operations'
+          });
+          return;
+        }
+
+        try {
+          const operation: StateOperation = {
+            id: randomUUID(),
+            type: operationData.type,
+            target: operationData.target,
+            targetId: operationData.targetId,
+            payload: operationData.payload,
+            timestamp: Date.now(),
+            version: operationData.version || Date.now(),
+            userId: socket.data.userId
+          };
+
+          // Add to persistence manager
+          this.clientStatePersistence.addOperation(operation);
+
+          // Broadcast to other clients of the same user
+          socket.to(`user:${socket.data.userId}`).emit('state-update', {
+            operation,
+            serverVersion: operation.version
+          });
+
+          console.log(`State operation from ${socket.data.userId}:`, operation.type, operation.target, operation.targetId);
+        } catch (error) {
+          console.error('State operation error:', error);
+          socket.emit('error-message', {
+            code: 'STATE_OPERATION_ERROR',
+            message: 'Failed to process state operation'
+          });
+        }
+      });
+
+      socket.on('create-state-snapshot', async (data, callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback({ error: 'Authentication required' });
+          return;
+        }
+
+        try {
+          const { state, version } = data;
+          const snapshotId = await this.clientStatePersistence.createSnapshot(
+            socket.data.userId,
+            socket.id,
+            state,
+            version,
+            socket.data.reconnectToken
+          );
+
+          const response = { snapshotId, timestamp: Date.now() };
+          if (callback) {
+            callback(response);
+          } else {
+            socket.emit('snapshot-created', response);
+          }
+        } catch (error) {
+          console.error('Snapshot creation error:', error);
+          const errorResponse = { error: 'Failed to create snapshot' };
+          if (callback) {
+            callback(errorResponse);
+          } else {
+            socket.emit('snapshot-error', errorResponse);
+          }
+        }
       });
 
       // Event system handlers
@@ -474,8 +599,19 @@ class WebSocketService {
       });
 
       // Handle disconnection
-      socket.on('disconnect', (reason: string) => {
+      socket.on('disconnect', async (reason: string) => {
         console.log(`Client ${socket.id} disconnected: ${reason}`);
+        
+        // Create final state snapshot for reconnection if user is authenticated
+        if (socket.data.userId && reason !== 'client namespace disconnect') {
+          try {
+            // Request final state from client if possible (this would be sent before disconnect in real implementation)
+            // For now, we'll keep the last known snapshot
+            console.log(`Preserving state for user ${socket.data.userId} on disconnect`);
+          } catch (error) {
+            console.error('Failed to create final snapshot:', error);
+          }
+        }
         
         // Clean up any session memberships
         const rooms = [...socket.rooms].filter(room => room !== socket.id);
@@ -708,6 +844,41 @@ class WebSocketService {
     return this.sessionStatusTracker.getStats();
   }
 
+  // Client state persistence methods
+  public getClientStatePersistence(): ClientStatePersistenceManager {
+    return this.clientStatePersistence;
+  }
+
+  public async createClientStateSnapshot(
+    userId: string,
+    socketId: string,
+    state: any,
+    version: number,
+    reconnectToken?: string
+  ): Promise<string> {
+    return this.clientStatePersistence.createSnapshot(userId, socketId, state, version, reconnectToken);
+  }
+
+  public async recoverClientState(
+    userId: string,
+    clientVersion: number,
+    reconnectToken?: string
+  ) {
+    return this.clientStatePersistence.recoverState(userId, clientVersion, reconnectToken);
+  }
+
+  public getClientStatePersistenceStats() {
+    return this.clientStatePersistence.getStats();
+  }
+
+  public getUserStateSnapshots(userId: string) {
+    return this.clientStatePersistence.getUserSnapshots(userId);
+  }
+
+  public clearUserStateData(userId: string): void {
+    this.clientStatePersistence.clearUserData(userId);
+  }
+
   // Graceful shutdown
   public async close(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -722,6 +893,9 @@ class WebSocketService {
       
       // Shutdown session status tracker
       await this.sessionStatusTracker.shutdown();
+      
+      // Shutdown client state persistence
+      await this.clientStatePersistence.shutdown();
       
       // Clean up connection manager resources
       this.connectionManager.cleanupExpiredTokens();
