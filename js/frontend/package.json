@@ -16,12 +16,14 @@
   },
   "dependencies": {
     "@app/shared": "*",
+    "@vaadin/router": "^2.0.0",
     "gantt-schedule-timeline-calendar": "^3.40.7",
     "highlight.js": "^11.11.1",
     "lit": "^2.8.0",
     "marked": "^16.1.2"
   },
   "devDependencies": {
+    "@esm-bundle/chai": "^4.3.4-fix.0",
     "@open-wc/testing": "^4.0.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
@@ -31,6 +33,7 @@
     "eslint": "^8.54.0",
     "happy-dom": "^18.0.1",
     "jsdom": "^26.1.0",
+    "sinon": "^21.0.0",
     "typescript": "^4.9.5",
     "vite": "^7.1.1",
     "vitest": "^3.2.4"

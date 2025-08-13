@@ -1590,7 +1590,7 @@
               "26.2"
             ],
             "details": "Create SearchFilterComponent with full-text search across message content using the existing search utilities. Implement date range picker for filtering sessions by creation/modification time. Add message type filters (user, assistant, tool-use, system). Create tag-based filtering system for session metadata. Build advanced query builder UI for complex filter combinations. Implement search result highlighting and pagination. Store filter preferences in localStorage for persistence. Integrate with the API's query parameters for server-side filtering when available.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test search with various query complexities including regex patterns. Verify date range filtering with edge cases (same day, overlapping ranges). Test filter combinations and ensure they work correctly together. Validate search performance with large datasets."
           },
           {
@@ -1603,7 +1603,7 @@
               "26.3"
             ],
             "details": "Extend the existing WebSocket infrastructure from src/services/websocket.ts to support session browser updates. Implement real-time session list updates when new sessions are created or modified. Add live message streaming to the session viewer for active sessions. Create notification system for new messages with customizable alert preferences. Implement session state change indicators (active → completed, error states). Add connection status indicator and automatic reconnection logic. Utilize the WebSocket synchronization patterns from Task 19 for consistency.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test real-time updates with multiple concurrent sessions. Verify notification delivery and preferences. Test WebSocket reconnection scenarios. Validate state synchronization between multiple browser windows."
           },
           {
@@ -1617,7 +1617,7 @@
               "26.4"
             ],
             "details": "Implement breadcrumb navigation showing current location in session hierarchy. Create session switcher component for quick navigation between recent sessions. Build branch visualization tree using the branching data from Task 13, showing parent-child relationships. Implement keyboard shortcuts for common navigation actions (next/previous message, session switching). Add session management actions (delete, archive, export). Create proper URL routing using lit-router for deep linking to specific sessions and messages. Implement proper state management using MobX or Redux for complex UI state. Add loading states, error boundaries, and accessibility features (ARIA labels, keyboard navigation).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test navigation with complex session hierarchies and branches. Verify keyboard shortcuts work consistently. Test deep linking and browser back/forward navigation. Validate accessibility with screen readers and keyboard-only navigation."
           }
         ]
@@ -1625,7 +1625,7 @@
     ],
     "metadata": {
       "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-13T12:27:38.936Z",
+      "updated": "2025-08-13T16:19:14.049Z",
       "description": "Tasks for master context"
     }
   }
