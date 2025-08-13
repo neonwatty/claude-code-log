@@ -1,74 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { fixture, html, expect as expectLit } from '@open-wc/testing';
-import { SessionBrowser } from '../SessionBrowser';
+import '../SessionBrowser'; // Import to register the component
 import { SessionSummary, SessionDetail } from '../../types/session-types';
 
-// Mock child components
-vi.mock('../../session-list/SessionList', () => ({
-  SessionList: class extends HTMLElement {
-    sessions = [];
-    filters = {};
-    selectedSession = null;
-    loading = false;
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-session-list">Session List</div>';
-    }
-  }
-}));
-
-vi.mock('../viewer/SessionViewer', () => ({
-  SessionViewer: class extends HTMLElement {
-    session = null;
-    loading = false;
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-session-viewer">Session Viewer</div>';
-    }
-  }
-}));
-
-vi.mock('../../filters/FilterPanel', () => ({
-  FilterPanel: class extends HTMLElement {
-    filters = {};
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-filter-panel">Filter Panel</div>';
-    }
-  }
-}));
-
-// Register mock components
-if (!customElements.get('session-list')) {
-  customElements.define('session-list', class extends HTMLElement {
-    sessions = [];
-    filters = {};
-    selectedSession = null;
-    loading = false;
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-session-list">Session List</div>';
-    }
-  });
-}
-
-if (!customElements.get('session-viewer')) {
-  customElements.define('session-viewer', class extends HTMLElement {
-    session = null;
-    loading = false;
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-session-viewer">Session Viewer</div>';
-    }
-  });
-}
-
-if (!customElements.get('filter-panel')) {
-  customElements.define('filter-panel', class extends HTMLElement {
-    filters = {};
-    connectedCallback() {
-      this.innerHTML = '<div class="mock-filter-panel">Filter Panel</div>';
-    }
-  });
-}
-
 describe('SessionBrowser', () => {
-  let element: SessionBrowser;
+  let element: any; // Use any for now since we're dealing with element queries
   let mockSessions: SessionSummary[];
 
   beforeEach(async () => {
@@ -112,7 +48,7 @@ describe('SessionBrowser', () => {
       }
     ];
 
-    element = await fixture(html`<session-browser></session-browser>`) as SessionBrowser;
+    element = await fixture(html`<session-browser .autoRefresh=${false}></session-browser>`);
   });
 
   afterEach(() => {

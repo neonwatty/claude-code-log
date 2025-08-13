@@ -45,6 +45,36 @@ export class SessionBrowser extends BaseComponent {
         background: var(--color-border);
       }
 
+      .browser-container.split {
+        grid-template-areas: 
+          "nav nav"
+          "sidebar content";
+        grid-template-columns: minmax(300px, 1fr) 2fr;
+      }
+
+      .browser-container.list-only {
+        grid-template-areas: 
+          "nav"
+          "sidebar";
+        grid-template-columns: 1fr;
+      }
+
+      .browser-container.viewer-only {
+        grid-template-areas: 
+          "nav"
+          "content";
+        grid-template-columns: 1fr;
+      }
+
+      .browser-container.mobile {
+        grid-template-areas: 
+          "nav"
+          "sidebar"
+          "content";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+      }
+
       .browser-nav {
         grid-area: nav;
         background: var(--color-background-secondary);
@@ -137,6 +167,7 @@ export class SessionBrowser extends BaseComponent {
         overflow: hidden;
       }
 
+      .layout-controls,
       .layout-toggle {
         display: flex;
         border: 1px solid var(--color-border);
@@ -144,7 +175,8 @@ export class SessionBrowser extends BaseComponent {
         overflow: hidden;
       }
 
-      .layout-toggle button {
+      .layout-toggle button,
+      .layout-button {
         background: var(--color-background);
         border: none;
         padding: var(--space-xs) var(--space-sm);
@@ -154,12 +186,14 @@ export class SessionBrowser extends BaseComponent {
         font-size: var(--font-size-sm);
       }
 
-      .layout-toggle button.active {
+      .layout-toggle button.active,
+      .layout-button.active {
         background: var(--color-primary);
         color: var(--color-text-inverse);
       }
 
-      .layout-toggle button:hover:not(.active) {
+      .layout-toggle button:hover:not(.active),
+      .layout-button:hover:not(.active) {
         background: var(--color-background-tertiary);
       }
 
@@ -171,6 +205,20 @@ export class SessionBrowser extends BaseComponent {
         color: var(--color-text-secondary);
       }
 
+      .status-indicator.connected {
+        color: var(--color-success);
+      }
+
+      .status-indicator.connecting,
+      .status-indicator.reconnecting {
+        color: var(--color-warning);
+      }
+
+      .status-indicator.disconnected,
+      .status-indicator.error {
+        color: var(--color-error);
+      }
+
       .status-dot {
         width: 8px;
         height: 8px;
@@ -178,11 +226,17 @@ export class SessionBrowser extends BaseComponent {
         background: var(--color-success);
       }
 
+      .status-dot.connected {
+        background: var(--color-success);
+      }
+
+      .status-dot.connecting,
       .status-dot.loading {
         background: var(--color-warning);
         animation: pulse 1.5s infinite;
       }
 
+      .status-dot.disconnected,
       .status-dot.error {
         background: var(--color-error);
       }
@@ -219,6 +273,23 @@ export class SessionBrowser extends BaseComponent {
         font-size: var(--font-size-base);
         line-height: 1.5;
         max-width: 400px;
+      }
+
+      .loading-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-lg);
+        color: var(--color-text-secondary);
+      }
+
+      .error-message {
+        background: var(--color-error-bg, #fee2e2);
+        color: var(--color-error, #dc2626);
+        padding: var(--space-md);
+        border-radius: var(--border-radius);
+        margin: var(--space-md);
+        border: 1px solid var(--color-error-border, #fecaca);
       }
 
       /* Responsive layouts */
@@ -338,10 +409,22 @@ export class SessionBrowser extends BaseComponent {
   error = '';
 
   /**
+   * Error message for display
+   */
+  @property({ type: String })
+  errorMessage = '';
+
+  /**
    * Whether real-time updates are enabled
    */
   @property({ type: Boolean })
   realTimeUpdates = true;
+
+  /**
+   * Whether to auto-refresh on connection (for testing)
+   */
+  @property({ type: Boolean })
+  autoRefresh = true;
 
   /**
    * Whether to show advanced filtering
@@ -352,8 +435,11 @@ export class SessionBrowser extends BaseComponent {
   @state()
   private selectedSessionId: string | null = null;
 
-  @state()
-  private connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error' = 'connected';
+  /**
+   * Connection status for real-time updates
+   */
+  @property({ type: String })
+  connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error' = 'connected';
 
   @query('session-list')
   private sessionListElement!: any;
@@ -364,14 +450,29 @@ export class SessionBrowser extends BaseComponent {
   @query('session-navigation')
   private navigationElement!: any;
 
+  /**
+   * Check if mobile mode should be enabled
+   */
+  private isMobile(): boolean {
+    return window.innerWidth <= 768;
+  }
+
   render() {
+    const containerClasses = [
+      'browser-container',
+      this.layout,
+      this.isMobile() ? 'mobile' : ''
+    ].filter(Boolean).join(' ');
+
     return html`
       <div 
-        class="browser-container"
+        class="${containerClasses}"
         role="${AriaRoles.MAIN}"
         aria-label="Session browser interface"
       >
         ${this.renderNavigation()}
+        ${this.errorMessage ? html`<div class="error-message">${this.errorMessage}</div>` : ''}
+        ${this.loading && !this.selectedSession ? html`<div class="loading-indicator">⏳ Loading...</div>` : ''}
         ${this.layout !== 'viewer-only' ? this.renderSidebar() : ''}
         ${this.layout !== 'list-only' ? this.renderContent() : ''}
       </div>
@@ -384,14 +485,15 @@ export class SessionBrowser extends BaseComponent {
         <h1 class="browser-title">Claude Code Sessions</h1>
         
         <div class="browser-actions">
-          <div class="status-indicator">
+          <div class="status-indicator ${this.connectionStatus}">
             <div class="status-dot ${this.connectionStatus}"></div>
             <span>${this.getConnectionStatusText()}</span>
           </div>
 
-          <div class="layout-toggle">
+          <div class="layout-controls layout-toggle">
             <button 
-              class=${this.layout === 'split' ? 'active' : ''}
+              class="layout-button ${this.layout === 'split' ? 'active' : ''}"
+              data-layout="split"
               @click=${() => this.setLayout('split')}
               title="Split view (list and viewer)"
               aria-label="Split view layout"
@@ -399,7 +501,8 @@ export class SessionBrowser extends BaseComponent {
               ⊞
             </button>
             <button 
-              class=${this.layout === 'list-only' ? 'active' : ''}
+              class="layout-button ${this.layout === 'list-only' ? 'active' : ''}"
+              data-layout="list-only"
               @click=${() => this.setLayout('list-only')}
               title="List only view"
               aria-label="List only layout"
@@ -407,7 +510,8 @@ export class SessionBrowser extends BaseComponent {
               ☰
             </button>
             <button 
-              class=${this.layout === 'viewer-only' ? 'active' : ''}
+              class="layout-button ${this.layout === 'viewer-only' ? 'active' : ''}"
+              data-layout="viewer-only"
               @click=${() => this.setLayout('viewer-only')}
               title="Viewer only view"
               aria-label="Viewer only layout"
@@ -694,10 +798,54 @@ export class SessionBrowser extends BaseComponent {
   connectedCallback() {
     super.connectedCallback();
     
-    // Auto-refresh on connection
-    if (this.realTimeUpdates) {
+    // Add keyboard event listeners
+    this.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
+    
+    // Add resize event listener for responsive behavior
+    window.addEventListener('resize', this.handleWindowResize.bind(this));
+    
+    // Auto-refresh on connection only if there are no sessions provided and auto-refresh is enabled
+    if (this.autoRefresh && this.realTimeUpdates && this.sessions.length === 0) {
       this.refreshSessions();
     }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    
+    // Remove resize event listener
+    window.removeEventListener('resize', this.handleWindowResize.bind(this));
+  }
+
+  private handleWindowResize() {
+    this.requestUpdate();
+  }
+
+  private handleKeyboardShortcuts(event: KeyboardEvent) {
+    if (event.ctrlKey || event.metaKey) {
+      switch (event.key) {
+        case '1':
+          event.preventDefault();
+          this.setLayout('split');
+          break;
+        case '2':
+          event.preventDefault();
+          this.setLayout('list-only');
+          break;
+        case '3':
+          event.preventDefault();
+          this.setLayout('viewer-only');
+          break;
+      }
+    } else if (event.key === 'Escape') {
+      this.handleEscapeKey();
+    }
+  }
+
+  private handleEscapeKey() {
+    // Clear error messages and close any modals
+    this.errorMessage = '';
+    this.error = '';
   }
 }
 
