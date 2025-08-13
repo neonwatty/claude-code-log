@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Browser Demo - Claude Code</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #ffffff;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .loading::after {
+            content: '';
+            margin-left: 10px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-top: 2px solid #007acc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        session-browser-demo {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        Loading Session Browser
+    </div>
+
+    <script type="module">
+        import './src/components/session-browser/SessionBrowserDemo.js';
+        
+        // Wait for components to load
+        customElements.whenDefined('session-browser-demo').then(() => {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'none';
+            
+            const demo = document.createElement('session-browser-demo');
+            document.body.appendChild(demo);
+        });
+        
+        // Add some global styles for better demo experience
+        const style = document.createElement('style');
+        style.textContent = `
+            :root {
+                --color-primary: #007acc;
+                --color-primary-dark: #005a94;
+                --color-primary-light: #e6f3ff;
+                --color-success: #28a745;
+                --color-warning: #ffc107;
+                --color-error: #dc3545;
+                --color-info: #17a2b8;
+                --color-info-light: #d1ecf1;
+                --color-info-dark: #117a8b;
+                
+                --color-background: #ffffff;
+                --color-background-secondary: #f8f9fa;
+                --color-background-tertiary: #e9ecef;
+                
+                --color-text-primary: #212529;
+                --color-text-secondary: #6c757d;
+                --color-text-muted: #999999;
+                --color-text-inverse: #ffffff;
+                
+                --color-border: #dee2e6;
+                --color-border-light: #f1f3f4;
+                --color-border-focus: #007acc;
+                
+                --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                --font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                
+                --font-size-xs: 0.75rem;
+                --font-size-sm: 0.875rem;
+                --font-size-base: 1rem;
+                --font-size-lg: 1.125rem;
+                --font-size-xl: 1.25rem;
+                --font-size-xxl: 1.5rem;
+                
+                --font-weight-normal: 400;
+                --font-weight-medium: 500;
+                --font-weight-semibold: 600;
+                --font-weight-bold: 700;
+                
+                --space-xs: 0.25rem;
+                --space-sm: 0.5rem;
+                --space-md: 1rem;
+                --space-lg: 1.5rem;
+                --space-xl: 2rem;
+                --space-xxl: 3rem;
+                
+                --border-radius: 0.375rem;
+                --border-radius-sm: 0.25rem;
+                --border-radius-full: 9999px;
+                
+                --transition-fast: 0.15s ease;
+                --transition-normal: 0.3s ease;
+                
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow-focus: 0 0 0 3px rgba(0, 122, 204, 0.25);
+            }
+            
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --color-primary: #4fc3f7;
+                    --color-primary-dark: #29b6f6;
+                    --color-primary-light: #1a1a1a;
+                    
+                    --color-background: #121212;
+                    --color-background-secondary: #1e1e1e;
+                    --color-background-tertiary: #2d2d2d;
+                    
+                    --color-text-primary: #ffffff;
+                    --color-text-secondary: #b3b3b3;
+                    --color-text-muted: #808080;
+                    --color-text-inverse: #000000;
+                    
+                    --color-border: #333333;
+                    --color-border-light: #2d2d2d;
+                    --color-border-focus: #4fc3f7;
+                    
+                    --color-success: #4caf50;
+                    --color-warning: #ff9800;
+                    --color-error: #f44336;
+                    --color-info: #2196f3;
+                    --color-info-light: #1a2332;
+                    --color-info-dark: #64b5f6;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Error handling
+        window.addEventListener('error', (event) => {
+            console.error('Demo error:', event.error);
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.innerHTML = 'Error loading demo: ' + event.error.message;
+                loading.style.color = '#dc3545';
+            }
+        });
+        
+        // Show performance info in console
+        console.log('%c🚀 Session Browser Demo', 'color: #007acc; font-size: 18px; font-weight: bold;');
+        console.log('This demo showcases the comprehensive session browser interface with:');
+        console.log('• Session listing with filtering and search');
+        console.log('• Session viewer with message timeline');
+        console.log('• Navigation with breadcrumbs and session switching');
+        console.log('• Branch visualization and management');
+        console.log('• Real-time updates and WebSocket integration');
+        console.log('• Virtual scrolling for performance');
+        console.log('• Full accessibility support');
+    </script>
+</body>
+</html>
