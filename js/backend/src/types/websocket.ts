@@ -42,6 +42,16 @@ export interface ClientToServerEvents {
   'get-session-status': (sessionId: string, callback?: (status: SessionStatusData | null) => void) => void;
   'subscribe-session-status': (sessionId: string, callback?: (subscriptionId: string) => void) => void;
   'unsubscribe-session-status': (subscriptionId: string) => void;
+  // Conflict resolution events
+  'resolve-conflict': (data: { conflictId: string; strategy?: string; selectedOperationId?: string }, callback?: (result: { success: boolean; error?: string }) => void) => void;
+  'get-conflict-stats': (callback: (stats: any) => void) => void;
+  'get-active-conflicts': (sessionId: string, callback: (conflicts: any[]) => void) => void;
+  // Health monitoring events
+  'get-connection-health': (callback: (metrics: any) => void) => void;
+  'get-health-alerts': (callback: (alerts: any[]) => void) => void;
+  'resolve-health-alert': (alertId: string, callback?: (result: { success: boolean; error?: string }) => void) => void;
+  'run-health-diagnostic': (callback: (report: any) => void) => void;
+  'get-health-statistics': (callback: (stats: any) => void) => void;
 }
 
 // Server-to-Client events
@@ -49,7 +59,7 @@ export interface ServerToClientEvents {
   authenticated: (data: { success: boolean; error?: string; connectionId?: string; reconnectToken?: string }) => void;
   'user-joined': (data: { socketId: string; userId?: string }) => void;
   'user-left': (data: { socketId: string; userId?: string; reason?: string }) => void;
-  'session-updated': (data: { update: any; fromSocket: string; timestamp: string }) => void;
+  'session-updated': (data: { update: any; fromSocket: string; timestamp: string; vectorClock?: any; conflictResolved?: boolean }) => void;
   'connection-count': (count: number) => void;
   'error-message': (error: { code: string; message: string }) => void;
   'heartbeat-response': () => void;
@@ -108,6 +118,25 @@ export interface ServerToClientEvents {
   'session-status-changed': (data: SessionStatusEvent['data']) => void;
   'session-status-subscription-created': (data: { subscriptionId: string; sessionId: string }) => void;
   'session-status-subscription-removed': (data: { subscriptionId: string; sessionId: string }) => void;
+  // Conflict resolution events
+  'conflict-detected': (data: { conflictId: string; type: string; severity: string; sessionId: string; affectedUsers: string[]; timestamp: string; requiresManualResolution: boolean }) => void;
+  'conflict-resolved': (data: { conflictId: string; strategy: string; confidence: number; explanation?: string; timestamp: string }) => void;
+  'manual-resolution-required': (data: { conflictId: string; sessionId: string; options: any[]; severity: string; timestamp: string }) => void;
+  'state-synchronized': (data: { sessionId: string; mergedState: any; strategy: string; timestamp: string }) => void;
+  'operations-synchronized': (data: { sessionId: string; operations: any[]; strategy: string; timestamp: string }) => void;
+  'conflict-notification': (data: { type: string; message: string; details: any; timestamp: string }) => void;
+  'session-update-confirmed': (data: { updateId: string; vectorClock: any; conflictResolved: boolean; timestamp: string }) => void;
+  'system-alert': (data: { type: string; conflictId?: string; strategy?: string; error?: string; timestamp: string }) => void;
+  // Health monitoring events
+  'connection-quality-changed': (data: { oldQuality: string; newQuality: string; change: number; timestamp: string }) => void;
+  'connection-degradation-warning': (data: { warnings: string[]; currentQuality: string; networkCondition: string; timestamp: string; suggestions: string[] }) => void;
+  'connection-recovery-detected': (data: { quality: string; previousQuality: string; timestamp: string }) => void;
+  'health-diagnostic-complete': (data: { report: any; timestamp: string }) => void;
+  'critical-health-issues': (data: { issues: any[]; recommendations: string[]; timestamp: string }) => void;
+  'health-alert': (data: { id: string; type: string; severity: string; message: string; details: any; timestamp: string }) => void;
+  'network-condition-changed': (data: { condition: string; timestamp: string; adaptations: string[] }) => void;
+  'adaptive-adjustment-applied': (data: { adjustment: string; reason: string; newSettings: any; timestamp: string }) => void;
+  'health-update': (data: { type: string; socketId: string; details: any }) => void;
 }
 
 // Inter-server events (for multi-server setups)

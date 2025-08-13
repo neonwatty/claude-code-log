@@ -39,6 +39,16 @@ export interface SessionInfo {
     total_tokens: number;
     estimated_cost?: number;
   };
+  
+  // Branch-specific fields for JSONL compatibility
+  parentSessionId?: string | null;
+  branchPoint?: number | null;
+  branchTimestamp?: Date | null;
+  branchMetadata?: {
+    branchName?: string;
+    branchReason?: string;
+    originalMessage?: string;
+  };
 }
 
 /**
@@ -75,6 +85,38 @@ const DEFAULT_OPTIONS: Required<SessionOrganizationOptions> = {
   minMessageCount: 1,
   maxPreviewLength: 200,
 };
+
+/**
+ * Extract branch metadata from a transcript entry if present
+ */
+function extractBranchMetadata(entry: TranscriptEntry | undefined): {
+  parentSessionId?: string | null;
+  branchPoint?: number | null;
+  branchTimestamp?: Date | null;
+  branchMetadata?: {
+    branchName?: string;
+    branchReason?: string;
+    originalMessage?: string;
+  };
+} {
+  if (!entry) {
+    return {};
+  }
+
+  // In a real implementation, branch metadata might be stored in entry.metadata
+  // or in a special branch entry type. For now, we'll extract it from metadata if present.
+  const metadata = (entry as any).metadata;
+  if (metadata && metadata.branch) {
+    return {
+      parentSessionId: metadata.branch.parentSessionId || null,
+      branchPoint: metadata.branch.branchPoint || null,
+      branchTimestamp: metadata.branch.branchTimestamp ? new Date(metadata.branch.branchTimestamp) : null,
+      branchMetadata: metadata.branch.branchMetadata,
+    };
+  }
+
+  return {};
+}
 
 /**
  * Extract preview text from the first user message in a session
@@ -190,6 +232,10 @@ export function organizeIntoSessions(
         };
       }
 
+      // Extract branch metadata from first entry if present
+      const firstEntry = sessionEntries.find(e => e.type !== 'summary');
+      const branchData = extractBranchMetadata(firstEntry);
+
       return {
         sessionId,
         messageCount: sessionEntries.length,
@@ -203,6 +249,7 @@ export function organizeIntoSessions(
         lastAssistantMessage,
         entries: sessionEntries,
         tokenUsage,
+        ...branchData,
       } as SessionInfo;
     })
     .filter((session): session is SessionInfo => session !== null);
@@ -420,4 +467,132 @@ export function formatSessionSummary(session: SessionInfo): string {
   }
   
   return parts.join(' | ');
+}
+
+/**
+ * Build a branch tree structure from sessions
+ */
+export function buildBranchTree(sessions: SessionInfo[]): SessionInfo[] {
+  // Separate root sessions (no parent) from branch sessions
+  const rootSessions: SessionInfo[] = [];
+  const branchSessions = new Map<string, SessionInfo[]>();
+
+  sessions.forEach(session => {
+    if (!session.parentSessionId) {
+      rootSessions.push(session);
+    } else {
+      if (!branchSessions.has(session.parentSessionId)) {
+        branchSessions.set(session.parentSessionId, []);
+      }
+      branchSessions.get(session.parentSessionId)!.push(session);
+    }
+  });
+
+  // Sort branch sessions by branch point and timestamp
+  branchSessions.forEach(branches => {
+    branches.sort((a, b) => {
+      if (a.branchPoint !== b.branchPoint) {
+        return (a.branchPoint || 0) - (b.branchPoint || 0);
+      }
+      const aTime = a.branchTimestamp?.getTime() || 0;
+      const bTime = b.branchTimestamp?.getTime() || 0;
+      return aTime - bTime;
+    });
+  });
+
+  return rootSessions;
+}
+
+/**
+ * Get all sessions in a branch tree starting from a root session
+ */
+export function getBranchTreeSessions(rootSession: SessionInfo, allSessions: SessionInfo[]): SessionInfo[] {
+  const result: SessionInfo[] = [rootSession];
+  const sessionMap = new Map(allSessions.map(s => [s.sessionId, s]));
+
+  const addBranches = (parentId: string) => {
+    allSessions
+      .filter(s => s.parentSessionId === parentId)
+      .forEach(branch => {
+        result.push(branch);
+        addBranches(branch.sessionId);
+      });
+  };
+
+  addBranches(rootSession.sessionId);
+  return result;
+}
+
+/**
+ * Find the root session for a given session
+ */
+export function findRootSession(session: SessionInfo, allSessions: SessionInfo[]): SessionInfo {
+  if (!session.parentSessionId) {
+    return session;
+  }
+
+  const parent = allSessions.find(s => s.sessionId === session.parentSessionId);
+  if (!parent) {
+    return session; // Parent not found, treat as root
+  }
+
+  return findRootSession(parent, allSessions);
+}
+
+/**
+ * Get sessions that branch from a specific message index
+ */
+export function getSessionBranches(sessionId: string, messageIndex: number, allSessions: SessionInfo[]): SessionInfo[] {
+  return allSessions.filter(
+    s => s.parentSessionId === sessionId && s.branchPoint === messageIndex
+  );
+}
+
+/**
+ * Check if a session has any branches
+ */
+export function sessionHasBranches(sessionId: string, allSessions: SessionInfo[]): boolean {
+  return allSessions.some(s => s.parentSessionId === sessionId);
+}
+
+/**
+ * Get branch depth (how many levels deep from root)
+ */
+export function getBranchDepth(session: SessionInfo, allSessions: SessionInfo[]): number {
+  if (!session.parentSessionId) {
+    return 0;
+  }
+
+  const parent = allSessions.find(s => s.sessionId === session.parentSessionId);
+  if (!parent) {
+    return 0;
+  }
+
+  return 1 + getBranchDepth(parent, allSessions);
+}
+
+/**
+ * Format branch information for display
+ */
+export function formatBranchInfo(session: SessionInfo): string {
+  if (!session.parentSessionId) {
+    return 'Root session';
+  }
+
+  const parts: string[] = [];
+  parts.push(`Branch from ${session.parentSessionId}`);
+  
+  if (session.branchPoint !== null && session.branchPoint !== undefined) {
+    parts.push(`at message ${session.branchPoint}`);
+  }
+  
+  if (session.branchMetadata?.branchName) {
+    parts.push(`"${session.branchMetadata.branchName}"`);
+  }
+  
+  if (session.branchTimestamp) {
+    parts.push(`created ${session.branchTimestamp.toLocaleString()}`);
+  }
+
+  return parts.join(' ');
 }

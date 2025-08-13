@@ -15,7 +15,7 @@ if (process.env.NODE_ENV) {
 export interface Config {
   port: number;
   nodeEnv: string;
-  corsOrigin: string;
+  corsOrigin: string | string[];
   logLevel: string;
   database?: {
     url?: string;
@@ -46,7 +46,7 @@ function getOptionalEnvVar(name: string): string | undefined {
 export const config: Config = {
   port: parseInt(getEnvVar('PORT', '3000'), 10),
   nodeEnv: getEnvVar('NODE_ENV', 'development'),
-  corsOrigin: getEnvVar('CORS_ORIGIN', 'http://localhost:5173'),
+  corsOrigin: getEnvVar('CORS_ORIGIN', 'http://localhost:5173,http://localhost:5177').split(','),
   logLevel: getEnvVar('LOG_LEVEL', 'info'),
   database: {
     url: getOptionalEnvVar('DATABASE_URL'),

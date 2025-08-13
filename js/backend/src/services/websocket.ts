@@ -23,6 +23,8 @@ import WebSocketBranchNotificationService from './websocket-branch-notifications
 import SessionStateManager from './session-state';
 import SessionStatusTracker from './sessionStatusTracker';
 import ClientStatePersistenceManager, { StateOperation } from './client-state-persistence';
+import ConflictResolver, { VersionedStateUpdate, Operation, ConflictResolutionStrategy } from './conflict-resolver';
+import WebSocketHealthMonitor, { ConnectionMetrics, HealthAlert, NetworkDiagnosticReport } from './websocket-health-monitor';
 
 class WebSocketService {
   private io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
@@ -34,6 +36,8 @@ class WebSocketService {
   private sessionStateManager: SessionStateManager;
   private sessionStatusTracker: SessionStatusTracker;
   private clientStatePersistence: ClientStatePersistenceManager;
+  private conflictResolver: ConflictResolver;
+  private healthMonitor: WebSocketHealthMonitor;
 
   constructor(httpServer: HttpServer, connectionLimits?: Partial<ConnectionLimits>) {
     this.io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
@@ -77,6 +81,22 @@ class WebSocketService {
       compressionThreshold: 50
     });
 
+    // Initialize conflict resolver
+    this.conflictResolver = new ConflictResolver(config.nodeId, {
+      defaultStrategy: 'semantic-merge',
+      enableVectorClocks: true,
+      autoResolveThreshold: 0.8,
+    });
+
+    // Initialize health monitor
+    this.healthMonitor = new WebSocketHealthMonitor({
+      enableAdaptiveHeartbeat: true,
+      enableNetworkDiagnostics: true,
+      enableQualityAdjustments: true,
+      baseHeartbeatInterval: 15000,
+      diagnosticInterval: 120000,
+    });
+
     // Initialize branch notification service
     this.branchNotifications = new WebSocketBranchNotificationService(
       this.io, 
@@ -87,6 +107,8 @@ class WebSocketService {
 
     this.setupEventHandlers();
     this.setupCLIIntegrationListeners();
+    this.setupConflictResolverListeners();
+    this.setupHealthMonitorListeners();
   }
 
   private setupEventHandlers(): void {
@@ -112,6 +134,9 @@ class WebSocketService {
       // Initialize connection tracking
       const connectionId = this.connectionManager.initializeConnection(socket, ipAddress, userAgent);
       console.log(`Connection ${connectionId} initialized for socket ${socket.id}`);
+
+      // Start health monitoring
+      this.healthMonitor.startMonitoring(socket);
 
       // Handle client authentication
       socket.on('authenticate', (data) => {
@@ -221,8 +246,8 @@ class WebSocketService {
         }
       });
 
-      // Handle real-time updates
-      socket.on('session-update', (data) => {
+      // Handle real-time updates with conflict resolution
+      socket.on('session-update', async (data) => {
         // Check rate limit
         if (!this.connectionManager.checkRateLimit(socket)) {
           socket.emit('error-message', {
@@ -232,14 +257,87 @@ class WebSocketService {
           return;
         }
 
+        if (!socket.data.userId) {
+          socket.emit('error-message', {
+            code: 'UNAUTHORIZED',
+            message: 'Authentication required for session updates'
+          });
+          return;
+        }
+
         console.log(`Session update from ${socket.id}:`, data);
-        
-        // Broadcast to all clients in the session except sender
-        socket.to(`session:${data.sessionId}`).emit('session-updated', {
-          update: data.update,
-          fromSocket: socket.id,
-          timestamp: new Date().toISOString(),
-        });
+
+        try {
+          // Create operation for conflict detection
+          const operation: Operation = {
+            id: randomUUID(),
+            type: data.update.type || 'update',
+            content: data.update.data,
+            targetPath: data.update.targetPath || ['root'],
+            timestamp: this.conflictResolver.createLogicalTimestamp(),
+            vectorClock: this.conflictResolver.createVectorClock(data.sessionId),
+            userId: socket.data.userId,
+            sessionId: data.sessionId,
+            position: data.update.position,
+            length: data.update.length,
+          };
+
+          // Create versioned state update
+          const versionedUpdate: VersionedStateUpdate = {
+            sessionId: data.sessionId,
+            userId: socket.data.userId,
+            socketId: socket.id,
+            operation,
+            vectorClock: operation.vectorClock,
+            timestamp: operation.timestamp,
+            checksum: this.calculateUpdateChecksum(data.update),
+            dependencies: data.update.dependencies,
+          };
+
+          // Process through conflict resolver
+          const conflict = await this.conflictResolver.processStateUpdate(versionedUpdate);
+
+          if (conflict && conflict.severity === 'critical') {
+            // Critical conflicts require immediate attention
+            socket.emit('conflict-detected', {
+              conflictId: conflict.id,
+              type: conflict.type,
+              severity: conflict.severity,
+              message: 'Critical conflict detected - manual resolution required',
+              operations: conflict.operations.map(op => ({
+                id: op.id,
+                userId: op.userId,
+                description: this.generateOperationDescription(op),
+                timestamp: op.timestamp,
+              })),
+            });
+            return;
+          }
+
+          // If no conflict or auto-resolved, proceed with update
+          socket.to(`session:${data.sessionId}`).emit('session-updated', {
+            update: data.update,
+            fromSocket: socket.id,
+            timestamp: new Date().toISOString(),
+            vectorClock: operation.vectorClock,
+            conflictResolved: !!conflict,
+          });
+
+          // Also emit to the sender for confirmation
+          socket.emit('session-update-confirmed', {
+            updateId: operation.id,
+            vectorClock: operation.vectorClock,
+            conflictResolved: !!conflict,
+            timestamp: new Date().toISOString(),
+          });
+
+        } catch (error) {
+          console.error('Error processing session update:', error);
+          socket.emit('error-message', {
+            code: 'UPDATE_PROCESSING_ERROR',
+            message: 'Failed to process session update'
+          });
+        }
       });
 
       // Handle ping/pong for connection monitoring
@@ -532,6 +630,157 @@ class WebSocketService {
         }
       });
 
+      // Conflict resolution event handlers
+      socket.on('resolve-conflict', async (data: { conflictId: string; strategy?: ConflictResolutionStrategy; selectedOperationId?: string }, callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback({ success: false, error: 'Authentication required' });
+          return;
+        }
+
+        try {
+          if (data.selectedOperationId) {
+            // User selected a specific operation to apply
+            await this.conflictResolver.handleUserInput(data.conflictId, data.selectedOperationId);
+          } else {
+            // Resolve using specified or default strategy
+            const resolution = await this.conflictResolver.resolveConflict(data.conflictId, data.strategy);
+            if (resolution && !resolution.requiresUserInput) {
+              await this.conflictResolver.applyResolution(resolution);
+            }
+          }
+
+          if (callback) {
+            callback({ success: true });
+          }
+        } catch (error) {
+          console.error('Error resolving conflict:', error);
+          if (callback) {
+            callback({ 
+              success: false, 
+              error: error instanceof Error ? error.message : String(error) 
+            });
+          }
+        }
+      });
+
+      socket.on('get-conflict-stats', (callback) => {
+        if (!socket.data.userId) {
+          callback(null);
+          return;
+        }
+
+        try {
+          const stats = this.conflictResolver.getConflictStats();
+          callback(stats);
+        } catch (error) {
+          console.error('Error getting conflict stats:', error);
+          callback(null);
+        }
+      });
+
+      socket.on('get-active-conflicts', (sessionId: string, callback) => {
+        if (!socket.data.userId) {
+          callback([]);
+          return;
+        }
+
+        try {
+          const conflicts = this.conflictResolver.getActiveConflicts()
+            .filter(conflict => !sessionId || conflict.sessionId === sessionId);
+          callback(conflicts);
+        } catch (error) {
+          console.error('Error getting active conflicts:', error);
+          callback([]);
+        }
+      });
+
+      // Health monitoring event handlers
+      socket.on('get-connection-health', (callback) => {
+        if (!socket.data.userId) {
+          callback(null);
+          return;
+        }
+
+        try {
+          const metrics = this.healthMonitor.getConnectionMetrics(socket.id);
+          callback(metrics || null);
+        } catch (error) {
+          console.error('Error getting connection health:', error);
+          callback(null);
+        }
+      });
+
+      socket.on('get-health-alerts', (callback) => {
+        if (!socket.data.userId) {
+          callback([]);
+          return;
+        }
+
+        try {
+          const alerts = this.healthMonitor.getAlerts(socket.id);
+          callback(alerts);
+        } catch (error) {
+          console.error('Error getting health alerts:', error);
+          callback([]);
+        }
+      });
+
+      socket.on('resolve-health-alert', (alertId: string, callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback({ success: false, error: 'Authentication required' });
+          return;
+        }
+
+        try {
+          const resolved = this.healthMonitor.resolveAlert(alertId);
+          if (callback) {
+            callback({ success: resolved });
+          }
+        } catch (error) {
+          console.error('Error resolving health alert:', error);
+          if (callback) {
+            callback({ 
+              success: false, 
+              error: error instanceof Error ? error.message : String(error) 
+            });
+          }
+        }
+      });
+
+      socket.on('run-health-diagnostic', async (callback) => {
+        if (!socket.data.userId) {
+          if (callback) callback(null);
+          return;
+        }
+
+        try {
+          const report = await this.healthMonitor.performHealthCheck(socket.id);
+          if (callback) {
+            callback(report);
+          }
+        } catch (error) {
+          console.error('Error running health diagnostic:', error);
+          if (callback) {
+            callback(null);
+          }
+        }
+      });
+
+      socket.on('get-health-statistics', (callback) => {
+        if (!socket.data.userId) {
+          callback(null);
+          return;
+        }
+
+        try {
+          const stats = this.healthMonitor.getHealthStatistics();
+          callback(stats);
+        } catch (error) {
+          console.error('Error getting health statistics:', error);
+          callback(null);
+        }
+      });
+
       // Set up context event handlers
       this.contextEvents.setupContextEventHandlers(socket);
 
@@ -626,6 +875,9 @@ class WebSocketService {
         // Handle connection cleanup through ConnectionManager
         this.connectionManager.handleDisconnection(socket);
         
+        // Stop health monitoring
+        this.healthMonitor.stopMonitoring(socket.id);
+        
         // Clean up event subscriptions
         this.eventManager.unsubscribeSocket(socket.id);
         
@@ -674,6 +926,255 @@ class WebSocketService {
     this.cliIntegration.on('parsed-output', (processId, output) => {
       this.io.emit('cli-parsed-output', { processId, output });
     });
+  }
+
+  private setupConflictResolverListeners(): void {
+    // Listen to conflict resolver events and broadcast to clients
+    this.conflictResolver.on('conflict-detected', (conflict) => {
+      // Notify all clients in the session about the conflict
+      this.io.to(`session:${conflict.sessionId}`).emit('conflict-detected', {
+        conflictId: conflict.id,
+        type: conflict.type,
+        severity: conflict.severity,
+        sessionId: conflict.sessionId,
+        affectedUsers: conflict.metadata?.affectedUsers || [],
+        timestamp: conflict.detectedAt,
+        requiresManualResolution: !conflict.metadata?.automaticResolution,
+      });
+    });
+
+    this.conflictResolver.on('conflict-resolved', (resolution) => {
+      // Get the conflict to find session ID
+      const conflicts = this.conflictResolver.getActiveConflicts();
+      const resolvedConflict = conflicts.find(c => c.id === resolution.conflictId);
+      
+      if (resolvedConflict) {
+        this.io.to(`session:${resolvedConflict.sessionId}`).emit('conflict-resolved', {
+          conflictId: resolution.conflictId,
+          strategy: resolution.strategy,
+          confidence: resolution.confidence,
+          explanation: resolution.explanation,
+          timestamp: resolution.appliedAt,
+        });
+      }
+    });
+
+    this.conflictResolver.on('user-input-required', (data) => {
+      // Notify specific users that manual resolution is needed
+      if (data.conflict.metadata?.affectedUsers) {
+        for (const userId of data.conflict.metadata.affectedUsers) {
+          this.io.to(`user:${userId}`).emit('manual-resolution-required', {
+            conflictId: data.conflictId,
+            sessionId: data.conflict.sessionId,
+            options: data.options,
+            severity: data.conflict.severity,
+            timestamp: data.conflict.detectedAt,
+          });
+        }
+      }
+    });
+
+    this.conflictResolver.on('state-merge-applied', (data) => {
+      // Broadcast merged state to all clients in session
+      this.io.to(`session:${data.sessionId}`).emit('state-synchronized', {
+        sessionId: data.sessionId,
+        mergedState: data.mergedState,
+        strategy: data.resolution.strategy,
+        timestamp: data.resolution.appliedAt,
+      });
+    });
+
+    this.conflictResolver.on('operations-applied', (data) => {
+      // Broadcast resolved operations to all clients in session
+      this.io.to(`session:${data.sessionId}`).emit('operations-synchronized', {
+        sessionId: data.sessionId,
+        operations: data.operations.map(op => ({
+          id: op.id,
+          type: op.type,
+          content: op.content,
+          targetPath: op.targetPath,
+          userId: op.userId,
+        })),
+        strategy: data.resolution.strategy,
+        timestamp: data.resolution.appliedAt,
+      });
+    });
+
+    this.conflictResolver.on('user-notification', (data) => {
+      // Send notifications to specific users
+      for (const userId of data.userIds) {
+        this.io.to(`user:${userId}`).emit('conflict-notification', {
+          type: data.type,
+          message: data.message,
+          details: data.details,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+
+    this.conflictResolver.on('resolution-error', (error) => {
+      console.error('Conflict resolution error:', error);
+      // Broadcast error to monitoring systems if needed
+      this.io.emit('system-alert', {
+        type: 'conflict-resolution-error',
+        conflictId: error.conflictId,
+        strategy: error.strategy,
+        error: error.error,
+        timestamp: error.timestamp,
+      });
+    });
+  }
+
+  private setupHealthMonitorListeners(): void {
+    // Listen to health monitor events and broadcast to clients
+    this.healthMonitor.on('quality-changed', (data) => {
+      // Notify the specific client about quality change
+      this.io.to(data.socketId).emit('connection-quality-changed', {
+        oldQuality: data.oldQuality,
+        newQuality: data.newQuality,
+        change: data.change,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Also emit to monitoring clients if needed
+      if (data.userId) {
+        this.io.to(`user:${data.userId}`).emit('health-update', {
+          type: 'quality-changed',
+          socketId: data.socketId,
+          details: data,
+        });
+      }
+    });
+
+    this.healthMonitor.on('degradation-warning', (data) => {
+      // Notify the client about connection degradation
+      this.io.to(data.socketId).emit('connection-degradation-warning', {
+        warnings: data.warnings,
+        currentQuality: data.metrics.quality,
+        networkCondition: data.metrics.networkCondition,
+        timestamp: new Date().toISOString(),
+        suggestions: this.generateConnectionSuggestions(data.metrics),
+      });
+
+      // Log for monitoring
+      console.warn(`Connection degradation detected for ${data.socketId}:`, data.warnings);
+    });
+
+    this.healthMonitor.on('recovery-detected', (data) => {
+      // Notify client about connection recovery
+      this.io.to(data.socketId).emit('connection-recovery-detected', {
+        quality: data.newQuality,
+        previousQuality: data.oldQuality,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log(`Connection recovery detected for ${data.socketId}: ${data.oldQuality} -> ${data.newQuality}`);
+    });
+
+    this.healthMonitor.on('diagnostic-complete', (data) => {
+      // Send diagnostic results to the client
+      this.io.to(data.socketId).emit('health-diagnostic-complete', {
+        report: data.report,
+        timestamp: new Date().toISOString(),
+      });
+
+      // If there are critical issues, also send alerts
+      const criticalIssues = data.report.tests.filter(test => !test.passed && test.testName.includes('critical'));
+      if (criticalIssues.length > 0) {
+        this.io.to(data.socketId).emit('critical-health-issues', {
+          issues: criticalIssues,
+          recommendations: data.report.recommendations,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+
+    this.healthMonitor.on('health-alert', (alert) => {
+      // Send health alert to the client
+      this.io.to(alert.socketId).emit('health-alert', {
+        id: alert.id,
+        type: alert.type,
+        severity: alert.severity,
+        message: alert.message,
+        details: alert.details,
+        timestamp: alert.timestamp.toISOString(),
+      });
+
+      // For critical alerts, also log to console
+      if (alert.severity === 'critical' || alert.severity === 'high') {
+        console.error(`Critical health alert for ${alert.socketId}:`, alert.message);
+      }
+    });
+
+    this.healthMonitor.on('network-condition-detected', (data) => {
+      // Notify client about network condition changes
+      this.io.to(data.socketId).emit('network-condition-changed', {
+        condition: data.networkCondition,
+        timestamp: new Date().toISOString(),
+        adaptations: this.getNetworkAdaptations(data.networkCondition),
+      });
+    });
+
+    this.healthMonitor.on('adaptive-adjustment', (data) => {
+      // Inform client about adaptive adjustments
+      this.io.to(data.socketId).emit('adaptive-adjustment-applied', {
+        adjustment: data.adjustment,
+        reason: data.reason,
+        newSettings: data.newSettings,
+        timestamp: new Date().toISOString(),
+      });
+    });
+  }
+
+  private generateConnectionSuggestions(metrics: ConnectionMetrics): string[] {
+    const suggestions: string[] = [];
+
+    if (metrics.averageLatency > 200) {
+      suggestions.push('Consider switching to a wired connection for better stability');
+      suggestions.push('Check if other applications are using bandwidth');
+    }
+
+    if (metrics.packetLossRate > 0.05) {
+      suggestions.push('Network packet loss detected - check router status');
+      suggestions.push('Try moving closer to your WiFi access point');
+    }
+
+    if (metrics.stabilityScore < 70) {
+      suggestions.push('Connection is unstable - consider restarting your router');
+      suggestions.push('Check for interference from other devices');
+    }
+
+    if (metrics.reconnectCount > 2) {
+      suggestions.push('Frequent reconnections detected - check network settings');
+      suggestions.push('Update your browser to the latest version');
+    }
+
+    return suggestions;
+  }
+
+  private getNetworkAdaptations(condition: string): string[] {
+    const adaptations: string[] = [];
+
+    switch (condition) {
+      case 'high-latency':
+        adaptations.push('Increased heartbeat interval to reduce overhead');
+        adaptations.push('Enabled message compression');
+        break;
+      case 'packet-loss':
+        adaptations.push('Enhanced error detection and recovery');
+        adaptations.push('Reduced message frequency');
+        break;
+      case 'low-bandwidth':
+        adaptations.push('Optimized message size');
+        adaptations.push('Prioritized critical messages');
+        break;
+      case 'unstable':
+        adaptations.push('Increased connection monitoring');
+        adaptations.push('Enhanced reconnection logic');
+        break;
+    }
+
+    return adaptations;
   }
 
   // Public methods for broadcasting messages
@@ -879,6 +1380,84 @@ class WebSocketService {
     this.clientStatePersistence.clearUserData(userId);
   }
 
+  // Conflict resolution methods
+  public getConflictResolver(): ConflictResolver {
+    return this.conflictResolver;
+  }
+
+  public getConflictStats() {
+    return this.conflictResolver.getConflictStats();
+  }
+
+  public getActiveConflicts(sessionId?: string) {
+    const conflicts = this.conflictResolver.getActiveConflicts();
+    return sessionId ? conflicts.filter(c => c.sessionId === sessionId) : conflicts;
+  }
+
+  public async resolveConflict(conflictId: string, strategy?: ConflictResolutionStrategy) {
+    return this.conflictResolver.resolveConflict(conflictId, strategy);
+  }
+
+  public async handleUserConflictInput(conflictId: string, selectedOperationId: string) {
+    return this.conflictResolver.handleUserInput(conflictId, selectedOperationId);
+  }
+
+  // Health monitoring methods
+  public getHealthMonitor(): WebSocketHealthMonitor {
+    return this.healthMonitor;
+  }
+
+  public getConnectionHealth(socketId: string): ConnectionMetrics | undefined {
+    return this.healthMonitor.getConnectionMetrics(socketId);
+  }
+
+  public getAllConnectionHealth(): ConnectionMetrics[] {
+    return this.healthMonitor.getAllConnectionMetrics();
+  }
+
+  public getHealthAlerts(socketId?: string): HealthAlert[] {
+    return socketId 
+      ? this.healthMonitor.getAlerts(socketId)
+      : this.healthMonitor.getAllAlerts();
+  }
+
+  public async runHealthDiagnostic(socketId: string): Promise<NetworkDiagnosticReport | null> {
+    return this.healthMonitor.performHealthCheck(socketId);
+  }
+
+  public getHealthStatistics() {
+    return this.healthMonitor.getHealthStatistics();
+  }
+
+  public resolveHealthAlert(alertId: string): boolean {
+    return this.healthMonitor.resolveAlert(alertId);
+  }
+
+  // Helper methods
+  private calculateUpdateChecksum(update: any): string {
+    const crypto = require('crypto');
+    const serialized = JSON.stringify(update, Object.keys(update).sort());
+    return crypto.createHash('sha256').update(serialized).digest('hex');
+  }
+
+  private generateOperationDescription(operation: Operation): string {
+    const { type, userId, content, targetPath } = operation;
+    const path = targetPath?.join('.') || 'document';
+    
+    switch (type) {
+      case 'insert':
+        return `${userId} inserted "${content}" at ${path}`;
+      case 'delete':
+        return `${userId} deleted content at ${path}`;
+      case 'update':
+        return `${userId} updated ${path} to "${content}"`;
+      case 'move':
+        return `${userId} moved content at ${path}`;
+      default:
+        return `${userId} performed ${type} operation at ${path}`;
+    }
+  }
+
   // Graceful shutdown
   public async close(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -896,6 +1475,12 @@ class WebSocketService {
       
       // Shutdown client state persistence
       await this.clientStatePersistence.shutdown();
+      
+      // Shutdown conflict resolver
+      await this.conflictResolver.shutdown();
+      
+      // Shutdown health monitor
+      await this.healthMonitor.shutdown();
       
       // Clean up connection manager resources
       this.connectionManager.cleanupExpiredTokens();

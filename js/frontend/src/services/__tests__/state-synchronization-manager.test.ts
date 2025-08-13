@@ -1,5 +1,6 @@
 import { StateSynchronizationManager } from '../state-synchronization-manager';
 import { SessionSummary } from '../../components/types/session-types';
+import { vi } from 'vitest';
 
 // Mock SessionSummary for testing
 const createMockSession = (id: string, overrides?: Partial<SessionSummary>): SessionSummary => ({
@@ -25,7 +26,7 @@ const createMockSession = (id: string, overrides?: Partial<SessionSummary>): Ses
 
 describe('StateSynchronizationManager', () => {
   let stateManager: StateSynchronizationManager;
-  let eventSpy: jest.SpyInstance;
+  let eventSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     stateManager = new StateSynchronizationManager({
@@ -37,7 +38,7 @@ describe('StateSynchronizationManager', () => {
       maxSnapshots: 5
     });
 
-    eventSpy = jest.spyOn(stateManager, 'dispatchEvent');
+    eventSpy = vi.spyOn(stateManager, 'dispatchEvent');
   });
 
   afterEach(() => {
@@ -375,7 +376,7 @@ describe('StateSynchronizationManager', () => {
     });
 
     test('should cleanup resources on dispose', () => {
-      const disposeSpy = jest.spyOn(stateManager, 'dispose');
+      const disposeSpy = vi.spyOn(stateManager, 'dispose');
       stateManager.dispose();
       expect(disposeSpy).toHaveBeenCalled();
     });

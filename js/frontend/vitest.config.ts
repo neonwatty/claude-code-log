@@ -10,6 +10,9 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
+    // Add compatibility for jest-style mocking
+    include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
   },
   // Remove esbuild config and rely on TypeScript configuration
   // which already has proper decorator settings

@@ -75,7 +75,7 @@ export class AppRoot extends LitElement {
 
   async checkServerHealth() {
     try {
-      const response = await fetch('http://localhost:3000/api/health');
+      const response = await fetch('/api/health');
       const data: ApiResponse = await response.json();
 
       if (data.success) {
