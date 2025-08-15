@@ -5,14 +5,18 @@
 
 ## Your task
 
-Run npm/JavaScript tests and resolve any resulting errors.
+Run Node.js/TypeScript build and tests for the monorepo workspace and resolve any resulting errors.
 DO NOT commit any code.
 DO NOT change the version number.
 
 Steps:
 1. If directory argument provided, navigate to that directory first
-2. Run `npm test $ARGUMENTS` (or just `npm test` if no specific directory)
-3. Analyze any test failures or errors
-4. Fix the underlying issues causing test failures
-5. Re-run tests to verify fixes
-6. Report final test status
+2. Run TypeScript compilation and build processes:
+   - `npm run build` (builds both backend and frontend)
+   - Or workspace-specific: `npm run build:backend` and `npm run build:frontend`
+3. Check for TypeScript compilation errors
+4. Run development server to verify functionality: `npm run dev`
+5. Analyze any build failures or TypeScript errors
+6. Fix the underlying issues causing build failures
+7. Re-run build to verify fixes
+8. Report final build and functionality status

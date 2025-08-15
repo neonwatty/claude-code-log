@@ -1,0 +1,49 @@
+{
+  "name": "claude-code-log",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm run build:backend && npm run build:frontend",
+    "dev:backend": "ts-node-dev backend/src/server.ts",
+    "dev:frontend": "vite --config frontend/vite.config.ts",
+    "build:backend": "tsc --project backend/tsconfig.json",
+    "build:frontend": "vite build --config frontend/vite.config.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neonwatty/claude-code-log.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/neonwatty/claude-code-log/issues"
+  },
+  "homepage": "https://github.com/neonwatty/claude-code-log#readme",
+  "dependencies": {
+    "@lit/reactive-element": "^2.1.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "lit": "^3.3.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}

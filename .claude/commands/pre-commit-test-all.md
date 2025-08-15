@@ -5,21 +5,20 @@
 
 ## Your task
 
-Run comprehensive test suite by executing both Rails and JavaScript tests in parallel, then provide a consolidated summary.
+Run comprehensive build and test suite for the Node.js/TypeScript monorepo, then provide a consolidated summary.
 
 Steps:
-1. Use the Task tool to launch two parallel agents:
-   - Rails testing: Execute /test-all-rails command with any provided arguments
-   - JavaScript testing: Execute /test-all-js command with any provided arguments
+1. Execute Node.js/TypeScript testing: Run /test-all-js command with any provided arguments
 
-2. Wait for both test suites to complete
+2. Wait for build and test processes to complete
 
 3. Provide a succinct summary with:
    - **OVERALL STATUS**: PASS/FAIL
-   - **Rails**: X/Y tests passed (list failures briefly if any)
-   - **JavaScript**: X/Y tests passed (list failures briefly if any)
+   - **TypeScript Build**: SUCCESS/FAIL (list compilation errors briefly if any)
+   - **Backend Build**: SUCCESS/FAIL (Express server compilation)
+   - **Frontend Build**: SUCCESS/FAIL (Vite build process)
    - **Commit Ready**: YES/NO
-   - **Action Required**: Next steps if tests failed
+   - **Action Required**: Next steps if builds failed
 
 DO NOT commit any code.
 DO NOT change the version number.
