@@ -3,540 +3,767 @@
     "tasks": [
       {
         "id": 1,
-        "title": "Project Setup and Infrastructure",
-        "description": "Set up the foundational infrastructure for the TypeScript full-stack application",
-        "details": "Create the basic project structure with Node.js backend, Lit frontend, TypeScript configuration, and development tooling. This includes setting up Vite build system, Express.js server, and shared TypeScript interfaces. Use Context7 MCP server for Node.js, TypeScript, Express.js, Vite, and Lit documentation during development.",
-        "testStrategy": "Verify that both backend and frontend can start successfully, TypeScript compilation works, and basic routing is functional",
-        "dependencies": [],
+        "title": "Setup TypeScript Project Infrastructure",
+        "description": "Initialize the project with Node.js + TypeScript backend and Lit + TypeScript frontend using Vite",
+        "details": "Set up the basic project structure with package.json, tsconfig.json for both frontend and backend, Vite configuration for the frontend build, Express.js setup for the backend API, and shared TypeScript interfaces. Create the folder structure: /backend (Express.js + TypeScript), /frontend (Lit + TypeScript + Vite), /shared (common TypeScript types and interfaces). Configure development scripts for both frontend and backend with hot reload.",
+        "testStrategy": "Verify project builds successfully, TypeScript compilation works for both frontend and backend, Vite dev server starts correctly, Express server starts without errors, and shared types are accessible from both frontend and backend",
         "priority": "high",
+        "dependencies": [],
         "status": "pending",
         "subtasks": [
           {
-            "id": "1.1",
-            "title": "Initialize Project Structure",
-            "description": "Create the basic directory structure and configuration files",
-            "details": "Set up package.json, tsconfig.json, and basic project directories for both backend and frontend. Configure TypeScript settings for both environments.",
-            "testStrategy": "Verify TypeScript compilation works for both backend and frontend",
-            "status": "pending"
+            "id": 1,
+            "title": "Initialize Node.js project and install core dependencies",
+            "description": "Create package.json with Node.js project configuration and install essential dependencies for TypeScript, Express, Lit, and Vite",
+            "dependencies": [],
+            "details": "Initialize npm project with 'npm init'. Install core dependencies: typescript, @types/node, ts-node, ts-node-dev, nodemon for development. Install Express dependencies: express, @types/express, cors, @types/cors. Install frontend dependencies: vite, lit, @lit/reactive-element. Create npm scripts in package.json for 'dev' (concurrent frontend/backend), 'build' (production builds), 'dev:backend' (nodemon/ts-node-dev), 'dev:frontend' (vite dev). Set up workspaces configuration if using monorepo structure.",
+            "status": "pending",
+            "testStrategy": "Verify npm init creates package.json with correct structure. Test dependency installation using npm list to confirm all required packages are installed. Validate npm scripts exist and execute without errors using npm run commands. Check workspace configuration if monorepo is used. Use npm audit to ensure no critical vulnerabilities in dependencies."
           },
           {
-            "id": "1.2",
-            "title": "Backend Express.js Setup",
-            "description": "Set up Express.js server with TypeScript configuration",
-            "details": "Install and configure Express.js with TypeScript, set up basic routing, middleware, and error handling. Use Context7 MCP server for Express.js best practices.",
-            "testStrategy": "Verify Express server starts and responds to basic requests",
-            "status": "pending"
+            "id": 2,
+            "title": "Configure TypeScript compilation settings",
+            "description": "Create and configure tsconfig.json files for backend, frontend, and shared code with appropriate compiler options",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Create root tsconfig.base.json with shared compiler options: target ES2020, module commonjs/ESNext, strict mode enabled, esModuleInterop, skipLibCheck. Create backend/tsconfig.json extending base with: outDir './dist', rootDir './src', module 'commonjs', types for node. Create frontend/tsconfig.json extending base with: module 'ESNext', moduleResolution 'bundler', jsx 'preserve', DOM lib, decorators enabled for Lit. Create shared/tsconfig.json for common interfaces with declaration files output. Configure path mappings for '@shared/*' imports.",
+            "status": "pending",
+            "testStrategy": "Test TypeScript compilation in each directory using tsc --noEmit to verify configuration validity. Ensure isolatedModules and strict mode are properly configured. Verify path mappings resolve correctly by importing shared types. Test that backend compiles to CommonJS and frontend to ESNext modules. Check declaration file generation for shared interfaces."
           },
           {
-            "id": "1.3",
-            "title": "Frontend Vite + Lit Setup",
-            "description": "Configure Vite build system with Lit framework",
-            "details": "Set up Vite with Lit framework, configure build tools, and create basic component structure. Use Context7 MCP server for Vite and Lit configuration.",
-            "testStrategy": "Verify Vite dev server starts and basic Lit component renders",
-            "status": "pending"
+            "id": 3,
+            "title": "Set up Vite configuration for Lit frontend",
+            "description": "Configure Vite build tool with TypeScript and Lit support for the frontend application",
+            "dependencies": [
+              "1.1",
+              "1.2"
+            ],
+            "details": "Create frontend/vite.config.ts with: base configuration for development server (port 5173), build output to 'dist' directory, resolve aliases for '@shared' path. Configure Vite plugins: @vitejs/plugin-lit for Lit components support. Set up proxy configuration to forward API requests to backend (localhost:3000). Configure build optimizations: rollup options for code splitting, CSS code split, sourcemap generation for development. Add index.html entry point with module script tag. Configure TypeScript decorators and experimental decorators support.",
+            "status": "pending",
+            "testStrategy": "Test Vite dev server starts successfully on port 5173 using vite --config frontend/vite.config.ts. Verify alias resolution works by importing from '@shared' path. Test proxy configuration by making API requests to backend routes. Validate build process completes without errors using vite build. Check that TypeScript decorators compile correctly for Lit components. Verify hot module replacement works for component updates."
           },
           {
-            "id": "1.4",
-            "title": "Shared TypeScript Configuration",
-            "description": "Create shared TypeScript interfaces and configuration",
-            "details": "Set up shared TypeScript interfaces, types, and utilities that can be used by both frontend and backend. Configure path mapping and module resolution.",
-            "testStrategy": "Verify shared types can be imported in both frontend and backend",
-            "status": "pending"
+            "id": 4,
+            "title": "Configure Express.js with TypeScript for backend API",
+            "description": "Set up Express server with TypeScript configuration, middleware, and basic routing structure",
+            "dependencies": [
+              "1.1",
+              "1.2"
+            ],
+            "details": "Create backend/src/server.ts as main entry point with Express app initialization. Configure middleware stack: express.json(), cors with appropriate origins, compression, helmet for security headers. Set up error handling middleware with TypeScript error types. Create backend/src/routes/ directory structure for API routes organization. Configure environment variables with dotenv and type-safe config. Set up nodemon.json or use ts-node-dev for hot reload with ignore patterns for frontend/shared. Create backend/src/types/ for Express request/response type extensions.",
+            "status": "pending",
+            "testStrategy": "Test Express server starts without errors using ts-node-dev backend/src/server.ts. Verify middleware stack loads correctly by testing JSON parsing and CORS headers. Test error handling middleware catches and formats errors properly. Validate hot reload works by modifying files and checking server restarts. Test environment variable loading using different NODE_ENV values. Use supertest to verify basic server functionality and middleware operation."
           },
           {
-            "id": "1.5",
-            "title": "Development Tooling Setup",
-            "description": "Configure development tools and scripts",
-            "details": "Set up ESLint, Prettier, Husky, and development scripts for building, testing, and development workflow.",
-            "testStrategy": "Verify all development tools work correctly",
-            "status": "pending"
-          },
-          {
-            "id": "1.6",
-            "title": "Environment Configuration",
-            "description": "Set up environment variables and configuration management",
-            "details": "Configure environment variables for development, testing, and production. Set up configuration management for different environments.",
-            "testStrategy": "Verify environment configuration works across different environments",
-            "status": "pending"
-          },
-          {
-            "id": "1.7",
-            "title": "Basic Routing and API Structure",
-            "description": "Create basic routing structure and API endpoints",
-            "details": "Set up basic routing structure for both frontend and backend. Create placeholder API endpoints and frontend routes.",
-            "testStrategy": "Verify basic routing works for both frontend and backend",
-            "status": "pending"
-          },
-          {
-            "id": "1.8",
-            "title": "Build and Deployment Configuration",
-            "description": "Configure build processes and deployment setup",
-            "details": "Set up build scripts for production, development, and testing. Configure deployment pipeline and Docker setup if needed.",
-            "testStrategy": "Verify build processes work correctly for all environments",
-            "status": "pending"
+            "id": 5,
+            "title": "Create project folder structure and shared interfaces",
+            "description": "Establish the complete folder structure and create initial shared TypeScript interfaces that both frontend and backend will use",
+            "dependencies": [
+              "1.2"
+            ],
+            "details": "Create directory structure: /backend/src/{routes,middleware,services,types}, /frontend/src/{components,views,services,styles}, /shared/src/{interfaces,types,constants}. Create shared/src/interfaces/index.ts with base interfaces: ISession, IMessage, ITodoItem, IUsageInfo matching Python model structure. Set up shared/package.json with 'main' and 'types' fields pointing to compiled output. Configure both frontend and backend to import from '@shared' using TypeScript path mappings. Create .gitignore with node_modules, dist, .cache patterns. Add README.md files in each major directory.",
+            "status": "pending",
+            "testStrategy": "Verify all required directories exist using ls commands. Test shared interface imports work in both frontend and backend by creating test files that import from '@shared'. Validate shared package.json configuration by checking npm pack output. Test .gitignore patterns by creating test files and verifying git status ignores them. Ensure TypeScript path mappings resolve correctly across all projects."
           }
         ]
       },
       {
         "id": 2,
-        "title": "Shared TypeScript Interfaces and Data Models",
-        "description": "Create shared TypeScript interfaces and data models for session data structures",
-        "details": "Implement TypeScript versions of the existing Python data models (TranscriptEntry, UserMessage, AssistantMessage, etc.) with proper type safety and validation. Ensure compatibility with existing JSONL format. Use Context7 MCP server for TypeScript interfaces, validation libraries, and data modeling best practices.",
-        "testStrategy": "Create unit tests for all data models, verify JSONL parsing works correctly, and test type safety across frontend and backend",
-        "dependencies": ["1"],
+        "title": "Implement TypeScript Data Models and JSONL Parser",
+        "description": "Port Python data models to TypeScript and create JSONL parsing functionality",
+        "details": "Convert the existing Python Pydantic models (from python/claude_code_log/models.py) to TypeScript interfaces and classes. Implement JSONL file parsing in Node.js using fs module to read Claude Code transcript files. Create data structures for UsageInfo, TodoItem, Message types, Session metadata. Ensure backward compatibility with existing JSONL format from the Python implementation. Add validation using libraries like zod for runtime type checking.",
+        "testStrategy": "Unit tests for JSONL parsing with existing test data from python/test/test_data/, verify data model compatibility with Python version, test parsing performance with large JSONL files, validate TypeScript interfaces match expected data structures",
         "priority": "high",
+        "dependencies": [
+          1
+        ],
         "status": "pending",
         "subtasks": [
           {
-            "id": "2.1",
-            "title": "Base Data Models",
-            "description": "Create base TypeScript interfaces for core data structures",
-            "details": "Implement base interfaces for TranscriptEntry, UserMessage, AssistantMessage, and other core data types. Use Context7 MCP server for TypeScript interface best practices.",
-            "testStrategy": "Create unit tests for all base interfaces",
-            "status": "pending"
+            "id": 1,
+            "title": "Port Core Data Types and Basic Models",
+            "description": "Convert TodoItem, UsageInfo, and basic content types from Python models.py to TypeScript",
+            "dependencies": [],
+            "details": "Start by creating TypeScript interfaces and types for the fundamental data structures. Port TodoItem with its id, content, and status fields. Convert UsageInfo with input_tokens, output_tokens, cache_creation_input_tokens, and cache_read_input_tokens. Define base content types including TextContent, ImageContent, and ToolUseContent interfaces. Ensure proper type definitions for enums and literal types used in the Python models.",
+            "status": "pending",
+            "testStrategy": "Create unit tests using Jest or Vitest to validate interface structure and type compatibility. Test type guards for discriminating between different content types. Verify enum values match Python equivalents by creating test objects. Use TypeScript compiler API to validate interfaces at runtime. Test serialization/deserialization of basic types to ensure JSON compatibility."
           },
           {
-            "id": "2.2",
-            "title": "Content Type Models",
-            "description": "Implement content type interfaces for different message types",
-            "details": "Create interfaces for TextContent, ToolUseContent, ToolResultContent, ThinkingContent, and ImageContent. Ensure compatibility with existing JSONL format.",
-            "testStrategy": "Test content type parsing and validation",
-            "status": "pending"
+            "id": 2,
+            "title": "Port Message Types and Transcript Entries",
+            "description": "Convert UserMessage, AssistantMessage, and TranscriptEntry types to TypeScript",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Port the message type hierarchy including UserMessage and AssistantMessage classes. Convert TranscriptEntry with its type discriminator pattern. Implement proper union types for message content arrays. Port the Session metadata structure with id, project_id, created_at, and updated_at fields. Ensure compatibility with the existing JSONL format's message structure and maintain the same field names and nesting.",
+            "status": "pending",
+            "testStrategy": "Test message type discrimination using TypeScript type guards and narrowing. Validate union type handling for content arrays with mixed content types. Compare JSON serialization output with Python equivalents using existing test data. Test session metadata parsing with various timestamp formats. Verify field name compatibility by parsing existing JSONL files."
           },
           {
-            "id": "2.3",
-            "title": "Usage and Analytics Models",
-            "description": "Create interfaces for token usage and analytics data",
-            "details": "Implement UsageInfo interface and analytics-related data structures. Include proper validation and type safety.",
-            "testStrategy": "Test usage data parsing and analytics calculations",
-            "status": "pending"
+            "id": 3,
+            "title": "Implement JSONL File Reading and Streaming",
+            "description": "Create Node.js fs-based JSONL file reader with streaming support",
+            "dependencies": [],
+            "details": "Implement JSONL file reading using Node.js fs module with both synchronous and asynchronous options. Create a streaming parser using readline or stream APIs for handling large files efficiently. Build line-by-line parsing logic that handles malformed JSON gracefully. Implement file watching capabilities for real-time updates. Add support for reading compressed JSONL files (.jsonl.gz). Create utility functions for file discovery and path resolution.",
+            "status": "pending",
+            "testStrategy": "Test file reading with both small and large JSONL files using performance benchmarks. Verify streaming parser handles files larger than available memory. Test malformed JSON handling with deliberately corrupted test files. Validate file watching triggers correct callbacks using fs.watch events. Test compressed file reading with actual .jsonl.gz files. Use mock file system for isolated testing."
           },
           {
-            "id": "2.4",
-            "title": "Validation and Schema",
-            "description": "Add validation schemas and runtime type checking",
-            "details": "Implement validation using libraries like Zod or Joi. Create runtime type checking for data integrity. Use Context7 MCP server for validation library best practices.",
-            "testStrategy": "Test validation with various data scenarios",
-            "status": "pending"
+            "id": 4,
+            "title": "Create Content Block and Tool Result Parsers",
+            "description": "Implement parsing logic for complex content blocks and tool execution results",
+            "dependencies": [
+              "2.1",
+              "2.2"
+            ],
+            "details": "Build parsers for different content block types including text, images, and tool use blocks. Implement tool result parsing with proper handling of stdout, stderr, and error fields. Create parsers for thinking blocks and system messages. Handle nested content structures and mixed content arrays. Ensure proper deserialization of base64-encoded image data. Add support for parsing tool input parameters and maintaining their original types.",
+            "status": "pending",
+            "testStrategy": "Test each content block parser with examples from existing JSONL files. Verify tool result parsing handles all field combinations (stdout, stderr, error). Test base64 image decoding produces valid binary data. Validate nested content parsing with deeply nested structures. Test tool input parameter preservation maintains original JavaScript types. Use property-based testing for content block variations."
           },
           {
-            "id": "2.5",
-            "title": "Shared Utilities",
-            "description": "Create shared utility functions for data processing",
-            "details": "Implement utility functions for data transformation, serialization, and common operations. Ensure type safety across all utilities.",
-            "testStrategy": "Test all utility functions with edge cases",
-            "status": "pending"
+            "id": 5,
+            "title": "Add Zod Schemas for Runtime Validation",
+            "description": "Create comprehensive Zod schemas for all data models with runtime type checking",
+            "dependencies": [
+              "2.1",
+              "2.2",
+              "2.4"
+            ],
+            "details": "Define Zod schemas that mirror the TypeScript interfaces for runtime validation. Create schemas for TodoItem, UsageInfo, and all message types. Implement custom validators for complex fields like timestamps and IDs. Add schema composition for nested structures. Create validation functions that provide detailed error messages. Implement schema versioning support for backward compatibility. Add performance-optimized validation modes for production use.",
+            "status": "pending",
+            "testStrategy": "Test Zod schemas validate correct data and reject invalid inputs with specific test cases. Verify custom validators for timestamps accept valid ISO strings and reject malformed dates. Test schema composition with nested validation. Benchmark validation performance with large datasets. Test error message clarity and usefulness for debugging. Validate schema versioning handles migration between data format versions."
           },
           {
-            "id": "2.6",
-            "title": "Type Guards and Assertions",
-            "description": "Implement type guards for runtime type checking",
-            "details": "Create type guard functions to safely check data types at runtime. Implement proper error handling for invalid data.",
-            "testStrategy": "Test type guards with various data types",
-            "status": "pending"
+            "id": 6,
+            "title": "Implement Anthropic SDK Compatibility Layer",
+            "description": "Create compatibility layer for Anthropic message types and SDK integration",
+            "dependencies": [
+              "2.2",
+              "2.5"
+            ],
+            "details": "Build type converters between internal models and Anthropic SDK types. Implement MessageParam and ContentBlock compatibility interfaces. Create adapters for tool use and tool result formats. Ensure proper handling of Anthropic-specific fields like cache_control and thinking blocks. Add type guards and conversion utilities for seamless SDK integration. Maintain compatibility with both old and new Anthropic message formats.",
+            "status": "pending",
+            "testStrategy": "Test type conversion roundtrip (internal → Anthropic → internal) maintains data integrity. Verify MessageParam compatibility with official Anthropic SDK examples. Test tool use format conversion with real tool execution results. Validate cache_control and thinking block field preservation. Test backward compatibility with older Anthropic message formats using archived examples."
+          },
+          {
+            "id": 7,
+            "title": "Create Comprehensive Unit Tests",
+            "description": "Develop unit tests using existing Python test data to verify compatibility",
+            "dependencies": [
+              "2.1",
+              "2.2",
+              "2.3",
+              "2.4",
+              "2.5",
+              "2.6"
+            ],
+            "details": "Write unit tests for all model types using the existing test JSONL files from python/test/test_data/. Test parsing of complete session transcripts including edge cases. Verify backward compatibility by parsing Python-generated JSONL files. Test validation error handling and recovery. Create performance tests for large file parsing. Test streaming parser with interrupted reads. Verify that TypeScript models produce identical JSON output to Python models. Add regression tests for known parsing issues.",
+            "status": "pending",
+            "testStrategy": "Use Jest/Vitest to test all models with python/test/test_data/ files as fixtures. Compare JSON output between TypeScript and Python using deep equality checks. Test error recovery scenarios with corrupted test files. Benchmark parsing performance with files >100MB. Test streaming interruption by artificially stopping reads mid-file. Create snapshot tests to detect regressions in parsed output. Use property-based testing for parsing edge cases."
           }
         ]
       },
       {
         "id": 3,
-        "title": "WebSocket Server Implementation",
-        "description": "Implement WebSocket server for real-time communication between frontend and backend",
-        "details": "Set up WebSocket server using Socket.io or native WebSocket API, implement connection management, and create event system for live session updates. Use Context7 MCP server for Socket.io, WebSocket API, and real-time communication best practices.",
-        "testStrategy": "Test WebSocket connections, verify real-time updates work, and ensure proper error handling and reconnection logic",
-        "dependencies": ["1"],
+        "title": "Build Backend API with Express.js and WebSocket Server",
+        "description": "Create RESTful API endpoints for session data and real-time WebSocket communication",
+        "details": "Implement Express.js server with TypeScript support. Create API endpoints: GET /api/sessions (list all sessions), GET /api/sessions/:id (get session details), GET /api/projects (list projects), POST /api/sessions/continue (trigger Claude Code session continuation). Set up WebSocket server using ws library for real-time updates when new sessions are created or modified. Add CORS configuration for frontend-backend communication. Implement file system monitoring using fs.watch to detect changes in JSONL files.",
+        "testStrategy": "API endpoint testing with supertest, WebSocket connection testing, verify CORS configuration works, test file system monitoring triggers correct WebSocket events, validate API response schemas match TypeScript interfaces",
         "priority": "high",
+        "dependencies": [
+          2
+        ],
         "status": "pending",
         "subtasks": [
           {
-            "id": "3.1",
-            "title": "WebSocket Server Setup",
-            "description": "Set up WebSocket server with Socket.io or native WebSocket",
-            "details": "Install and configure Socket.io or native WebSocket server. Set up basic connection handling and event system. Use Context7 MCP server for WebSocket best practices.",
-            "testStrategy": "Verify WebSocket server starts and accepts connections",
-            "status": "pending"
+            "id": 1,
+            "title": "Set up Express.js server with TypeScript configuration",
+            "description": "Initialize Express.js server with TypeScript support, configure middleware stack, and set up development environment",
+            "dependencies": [],
+            "details": "Create Express application with TypeScript configuration including tsconfig.json setup. Install required dependencies: express, @types/express, typescript, ts-node-dev for hot reloading. Set up middleware for body parsing (express.json), request logging (morgan), and error handling. Configure environment variables using dotenv for port configuration and API settings. Create basic server structure with src/server.ts entry point and proper TypeScript compilation setup.",
+            "status": "pending",
+            "testStrategy": "Test Express server starts successfully with TypeScript compilation using supertest. Verify middleware stack loads in correct order by testing request/response flow. Test environment variable loading with different .env configurations. Validate hot reloading by modifying source files and checking server restarts. Test error handling middleware catches unhandled errors and returns proper HTTP status codes."
           },
           {
-            "id": "3.2",
-            "title": "Connection Management",
-            "description": "Implement connection lifecycle management",
-            "details": "Create connection tracking, authentication, and session management for WebSocket connections. Handle connection/disconnection events properly.",
-            "testStrategy": "Test connection lifecycle with multiple clients",
-            "status": "pending"
+            "id": 2,
+            "title": "Implement RESTful API endpoints for session management",
+            "description": "Create REST endpoints for listing sessions, retrieving session details, and managing projects",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Implement GET /api/sessions endpoint to return all sessions with pagination support. Create GET /api/sessions/:id endpoint to retrieve detailed session information including messages and metadata. Add GET /api/projects endpoint to list all unique projects from sessions. Implement POST /api/sessions/continue endpoint to trigger Claude Code session continuation. Use TypeScript interfaces from Task 2 for response typing. Add request validation middleware and proper HTTP status codes.",
+            "status": "pending",
+            "testStrategy": "Use supertest for API endpoint testing with Express app instance. Test pagination with various limit/offset parameters and verify response structure. Test individual session retrieval with valid/invalid IDs. Validate API response schemas match TypeScript interfaces using JSON schema validation. Test request validation middleware rejects malformed requests with appropriate error messages. Verify proper HTTP status codes (200, 400, 404, 500) are returned."
           },
           {
-            "id": "3.3",
-            "title": "Event System Design",
-            "description": "Design and implement event system for real-time updates",
-            "details": "Create event types for session updates, file changes, and user actions. Implement event broadcasting and filtering mechanisms.",
-            "testStrategy": "Test event system with various scenarios",
-            "status": "pending"
+            "id": 3,
+            "title": "Create WebSocket server for real-time updates",
+            "description": "Set up WebSocket server using ws library to broadcast real-time session updates to connected clients",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Install and configure ws library for WebSocket support. Create WebSocket server on separate port or integrate with Express server using upgrade event. Implement connection handling with client authentication/identification. Define WebSocket message protocol for different event types: session_created, session_updated, session_deleted. Create broadcast mechanism to notify all connected clients of changes. Add heartbeat/ping-pong mechanism to detect disconnected clients.",
+            "status": "pending",
+            "testStrategy": "Test WebSocket connection establishment using ws client library. Verify message broadcast reaches all connected clients by creating multiple test connections. Test heartbeat/ping-pong mechanism prevents connection timeouts. Validate WebSocket message protocol with predefined message types. Test connection cleanup when clients disconnect unexpectedly. Use WebSocket testing utilities to simulate various connection scenarios."
           },
           {
-            "id": "3.4",
-            "title": "Error Handling and Recovery",
-            "description": "Implement robust error handling and recovery mechanisms",
-            "details": "Create error handling for connection failures, message parsing errors, and server issues. Implement automatic reconnection logic.",
-            "testStrategy": "Test error scenarios and recovery mechanisms",
-            "status": "pending"
+            "id": 4,
+            "title": "Implement file system monitoring for JSONL changes",
+            "description": "Set up fs.watch to monitor JSONL file changes and trigger WebSocket broadcasts",
+            "dependencies": [
+              "3.2",
+              "3.3"
+            ],
+            "details": "Configure fs.watch or chokidar to monitor the Claude Code sessions directory for JSONL file changes. Implement debouncing mechanism to handle rapid file changes efficiently. Parse modified JSONL files to extract session changes and new messages. Create event emitter pattern to connect file system events to WebSocket broadcasts. Handle file creation, modification, and deletion events appropriately. Implement error handling for file system operations and inaccessible files.",
+            "status": "pending",
+            "testStrategy": "Test file system monitoring triggers correct events by creating/modifying/deleting test files. Verify debouncing prevents excessive event firing during rapid file changes. Test JSONL parsing on file change events handles corrupted files gracefully. Validate WebSocket broadcasts are triggered by file system events using integration tests. Test error handling with inaccessible files and permission issues. Use mock file system for isolated testing scenarios."
           },
           {
-            "id": "3.5",
-            "title": "Performance Optimization",
-            "description": "Optimize WebSocket performance for large datasets",
-            "details": "Implement message batching, compression, and efficient event distribution. Optimize for handling many concurrent connections.",
-            "testStrategy": "Test performance with large numbers of connections and events",
-            "status": "pending"
+            "id": 5,
+            "title": "Configure CORS and security middleware",
+            "description": "Set up CORS configuration, security headers, and request validation middleware",
+            "dependencies": [
+              "3.1",
+              "3.2"
+            ],
+            "details": "Install and configure cors package with appropriate origin whitelist for frontend communication. Add helmet middleware for security headers (CSP, X-Frame-Options, etc.). Implement rate limiting using express-rate-limit to prevent API abuse. Add input validation and sanitization middleware for all endpoints. Configure HTTPS support for production deployment. Set up API authentication mechanism if needed (JWT or API keys). Ensure WebSocket connections also respect CORS policies.",
+            "status": "pending",
+            "testStrategy": "Test CORS configuration allows frontend origins and blocks unauthorized origins using preflight OPTIONS requests. Verify security headers are present in responses using helmet testing. Test rate limiting blocks excessive requests and returns 429 status code. Validate input sanitization prevents XSS and injection attacks with malicious payloads. Test HTTPS configuration with self-signed certificates in development. Verify API authentication mechanisms reject invalid tokens/keys."
           },
           {
-            "id": "3.6",
-            "title": "Security and Authentication",
-            "description": "Add security measures and authentication for WebSocket connections",
-            "details": "Implement authentication for WebSocket connections, rate limiting, and security best practices. Use Context7 MCP server for WebSocket security guidelines.",
-            "testStrategy": "Test security measures and authentication flow",
-            "status": "pending"
+            "id": 6,
+            "title": "Create API response schemas and error handling",
+            "description": "Define consistent API response formats, implement error handling, and add API documentation",
+            "dependencies": [
+              "3.2",
+              "3.5"
+            ],
+            "details": "Define TypeScript interfaces for all API responses matching Python renderer data structures. Implement consistent error response format with error codes and messages. Create custom error classes for different error types (ValidationError, NotFoundError, etc.). Add global error handling middleware to catch and format all errors consistently. Implement request/response logging for debugging. Generate API documentation using tools like Swagger/OpenAPI. Add API versioning strategy for future compatibility.",
+            "status": "pending",
+            "testStrategy": "Validate API response schemas match defined TypeScript interfaces using JSON schema validation. Test custom error classes generate appropriate HTTP status codes and error messages. Verify global error handler catches all unhandled errors and returns consistent format. Test request/response logging captures relevant information for debugging. Validate generated API documentation matches actual endpoint behavior. Test API versioning handles backward compatibility requirements."
           }
         ]
       },
       {
         "id": 4,
-        "title": "JSONL Parser Implementation",
-        "description": "Implement TypeScript version of JSONL parsing and data processing",
-        "details": "Convert the existing Python JSONL parsing logic to TypeScript, maintaining all functionality including message type detection, token usage tracking, and session organization.",
-        "testStrategy": "Compare output with existing Python implementation, test with various JSONL file formats, and verify all message types are handled correctly",
-        "dependencies": ["2"],
-        "priority": "high",
+        "title": "Create Caching System with File System Integration",
+        "description": "Implement TypeScript equivalent of the Python caching system for performance",
+        "details": "Port the Python caching logic (from python/claude_code_log/cache.py) to TypeScript. Implement cache structure with session metadata, timestamp indexing, and cache invalidation based on file modification times. Use Node.js fs.stat for file modification tracking. Create cache management APIs: cache building, validation, and cleanup. Store cache as JSON files in .cache/ directories within project folders, maintaining compatibility with existing cache structure.",
+        "testStrategy": "Test cache creation and invalidation, verify cache performance improvements, test cache compatibility with existing Python-generated cache files, validate file modification detection works correctly",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
         "status": "pending",
         "subtasks": [
           {
-            "id": "4.1",
-            "title": "JSONL File Reader",
-            "description": "Implement JSONL file reading and parsing",
-            "details": "Create efficient JSONL file reader that can handle large files. Implement streaming parsing for memory efficiency.",
-            "testStrategy": "Test with various JSONL file sizes and formats",
-            "status": "pending"
+            "id": 1,
+            "title": "Port Cache Data Models and TypeScript Interfaces",
+            "description": "Create TypeScript interfaces and classes for CachedFileInfo, SessionCacheData, and ProjectCache matching Python structures",
+            "dependencies": [],
+            "details": "Define TypeScript interfaces for all cache-related data structures from python/claude_code_log/cache.py. Include properties for file paths, modification times, cache versions, session metadata, and timestamp indexing. Ensure all interfaces maintain exact JSON structure compatibility with existing Python cache files. Add JSDoc comments for all interfaces and types.",
+            "status": "pending",
+            "testStrategy": "Compare TypeScript interface definitions with Python cache data structures using existing cache files. Test JSON serialization/deserialization roundtrip maintains data integrity. Validate interface compatibility by parsing existing Python-generated cache files. Verify JSDoc comments provide accurate type documentation. Use TypeScript compiler to validate interface definitions."
           },
           {
-            "id": "4.2",
-            "title": "Message Type Detection",
-            "description": "Implement message type detection and parsing",
-            "details": "Create logic to detect and parse different message types (user, assistant, system, summary). Handle edge cases and malformed data.",
-            "testStrategy": "Test with all message types and edge cases",
-            "status": "pending"
+            "id": 2,
+            "title": "Implement Cache Directory Management and Index Structure",
+            "description": "Create cache directory structure with .cache/ folders and index.json file management",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Implement functions to create and manage .cache/ directories within project folders. Create index.json file structure for storing cache metadata and session references. Build directory traversal logic to locate and manage multiple cache directories across different projects. Implement atomic file write operations to prevent cache corruption during updates.",
+            "status": "pending",
+            "testStrategy": "Test cache directory creation in various project structures with different permission levels. Verify index.json structure matches expected format by comparing with Python implementation. Test directory traversal finds all cache directories across complex project hierarchies. Validate atomic file operations prevent corruption during concurrent access using stress testing. Test cleanup of orphaned cache directories."
           },
           {
-            "id": "4.3",
-            "title": "Token Usage Tracking",
-            "description": "Implement token usage parsing and aggregation",
-            "details": "Parse and track token usage from assistant messages. Implement aggregation for session and project-level statistics.",
-            "testStrategy": "Verify token calculations match Python implementation",
-            "status": "pending"
+            "id": 3,
+            "title": "Build File Modification Tracking System",
+            "description": "Implement file modification time tracking using Node.js fs.stat for cache invalidation",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Create file watcher service using fs.stat to track modification times of cached files. Build comparison logic to detect when files have changed since last cache update. Implement efficient batch file checking to minimize file system operations. Add support for tracking both individual files and entire directory trees.",
+            "status": "pending",
+            "testStrategy": "Test file modification detection accuracy by modifying files and verifying detection. Benchmark batch file checking performance with large file sets (1000+ files). Test directory tree tracking handles nested structures correctly. Validate modification time comparison handles various file systems and timestamp precision. Test file watcher service handles deleted/moved files gracefully."
           },
           {
-            "id": "4.4",
-            "title": "Session Organization",
-            "description": "Implement session grouping and organization logic",
-            "details": "Group messages by session ID, handle session metadata, and create session summaries. Maintain chronological ordering.",
-            "testStrategy": "Test session organization with complex session structures",
-            "status": "pending"
+            "id": 4,
+            "title": "Create Cache Validation and Version Compatibility",
+            "description": "Implement cache validation logic with version checking for Python/TypeScript compatibility",
+            "dependencies": [
+              "4.1",
+              "4.2"
+            ],
+            "details": "Build cache validation functions to verify cache integrity and structure. Implement version compatibility checking between Python and TypeScript cache formats. Create migration logic for handling different cache versions. Add checksum validation to detect corrupted cache files. Implement graceful fallback when cache validation fails.",
+            "status": "pending",
+            "testStrategy": "Test cache validation with valid and corrupted cache files to verify detection accuracy. Test version compatibility with various Python cache versions. Validate migration logic preserves data integrity across versions. Test checksum validation detects file corruption by artificially corrupting test files. Verify graceful fallback rebuilds cache when validation fails."
           },
           {
-            "id": "4.5",
-            "title": "Content Parsing",
-            "description": "Implement content parsing for different message types",
-            "details": "Parse text content, tool use, tool results, thinking content, and images. Handle markdown and code blocks.",
-            "testStrategy": "Test content parsing with various content types",
-            "status": "pending"
+            "id": 5,
+            "title": "Implement JSONL Cache Building and Parsing",
+            "description": "Build cache generation from JSONL session files with efficient streaming parsers",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "details": "Create streaming JSONL parser for processing large session files efficiently. Implement cache building logic that extracts relevant metadata from JSONL entries. Build incremental cache updates to avoid full rebuilds when possible. Add support for parallel processing of multiple JSONL files. Implement memory-efficient processing for large session histories.",
+            "status": "pending",
+            "testStrategy": "Test streaming parser handles files larger than available memory without memory leaks. Verify cache building extracts correct metadata by comparing with manual parsing. Test incremental updates only process changed files using before/after comparisons. Benchmark parallel processing performance with multiple large files. Monitor memory usage during processing of large session histories."
           },
           {
-            "id": "4.6",
-            "title": "Performance Optimization",
-            "description": "Optimize parsing performance for large datasets",
-            "details": "Implement caching, lazy loading, and efficient data structures. Optimize for memory usage and parsing speed.",
-            "testStrategy": "Test performance with large JSONL files",
-            "status": "pending"
+            "id": 6,
+            "title": "Develop Cache Invalidation and Update Logic",
+            "description": "Create intelligent cache invalidation based on file changes and timestamp comparisons",
+            "dependencies": [
+              "4.3",
+              "4.4",
+              "4.5"
+            ],
+            "details": "Implement cache invalidation rules based on file modification times and content changes. Create selective cache updates that only rebuild affected portions. Build dependency tracking to cascade invalidation when related files change. Add cache expiration policies based on age and usage patterns. Implement cache warming strategies for frequently accessed data.",
+            "status": "pending",
+            "testStrategy": "Test cache invalidation triggers correctly when files are modified using simulated file changes. Verify selective updates only rebuild necessary cache portions by monitoring rebuild activity. Test dependency tracking cascades invalidation to related cache entries. Validate cache expiration removes stale entries based on configurable policies. Test cache warming improves performance for frequently accessed data."
+          },
+          {
+            "id": 7,
+            "title": "Build Project-Level Cache Aggregation APIs",
+            "description": "Create APIs for aggregating cache data across projects for statistics and analytics",
+            "dependencies": [
+              "4.5",
+              "4.6"
+            ],
+            "details": "Implement aggregation functions to combine cache data from multiple sessions and projects. Create statistical summaries including session counts, message volumes, and token usage. Build efficient query APIs for filtering and searching cached data. Add support for time-based aggregations and trend analysis. Implement cache statistics endpoints for monitoring cache performance.",
+            "status": "pending",
+            "testStrategy": "Test aggregation functions produce accurate statistics by comparing with manual calculations. Verify query APIs return correct filtered results using various filter combinations. Test time-based aggregations handle different time ranges and granularities. Validate cache statistics endpoints provide useful performance metrics. Benchmark query performance with large aggregated datasets."
+          },
+          {
+            "id": 8,
+            "title": "Test Python Cache Compatibility and Performance",
+            "description": "Comprehensive testing of cache system compatibility with existing Python cache files",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3",
+              "4.4",
+              "4.5",
+              "4.6",
+              "4.7"
+            ],
+            "details": "Create unit tests for all cache operations including read, write, and invalidation. Test compatibility by reading Python-generated cache files and verifying data integrity. Benchmark cache performance against direct file system operations. Test cache behavior under concurrent access scenarios. Validate cache cleanup and garbage collection work correctly. Create integration tests with the Express.js backend API.",
+            "status": "pending",
+            "testStrategy": "Use Jest/Vitest for comprehensive unit testing of all cache operations with mocked file system. Test Python cache compatibility using actual cache files from python implementation. Benchmark cache vs direct file access performance with large datasets. Test concurrent access using multiple worker threads simulating simultaneous operations. Verify cache cleanup removes unused entries and garbage collection frees memory. Create integration tests with Express API endpoints using supertest."
           }
         ]
       },
       {
         "id": 5,
-        "title": "API Endpoints for Session Data",
-        "description": "Create RESTful API endpoints for session data retrieval and caching",
-        "details": "Implement API endpoints for projects, sessions, messages, and analytics. Include caching mechanisms and proper error handling.",
-        "testStrategy": "Test all API endpoints with various data scenarios, verify caching works correctly, and ensure proper error responses",
-        "dependencies": ["4"],
+        "title": "Develop Lit Web Components for Session Visualization",
+        "description": "Build the core frontend components using Lit for displaying sessions and messages",
+        "details": "Create Lit Web Components for: SessionList (displays all sessions with filtering), SessionDetail (shows individual session with messages), MessageCard (renders individual messages with syntax highlighting), FilterBar (real-time filtering controls), Timeline (interactive timeline view). Implement reactive properties for real-time updates from WebSocket connections. Add syntax highlighting using libraries like Prism.js. Ensure components inherit styling from original Python templates to maintain visual continuity.",
+        "testStrategy": "Component unit testing with Lit testing utilities, visual regression testing against Python HTML output, test reactive property updates from WebSocket events, verify syntax highlighting works correctly",
         "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 6,
-        "title": "Real-time File System Monitoring",
-        "description": "Add real-time file system monitoring with Node.js fs.watch",
-        "details": "Implement file system watching for JSONL files, detect new sessions, and trigger WebSocket events for live updates.",
-        "testStrategy": "Test file watching with various scenarios (new files, modified files, deleted files), verify WebSocket events are triggered correctly",
-        "dependencies": ["3", "4"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 7,
-        "title": "Lit Web Components for Session Views",
-        "description": "Implement Lit Web Components for session detail views and message rendering",
-        "details": "Create reusable Lit components for displaying sessions, messages, and various content types. Include syntax highlighting and markdown rendering. Use Context7 MCP server for Lit, Web Components, syntax highlighting libraries, and markdown rendering best practices.",
-        "testStrategy": "Test all components with different data types, verify rendering performance, and ensure accessibility compliance",
-        "dependencies": ["2"],
-        "priority": "high",
+        "dependencies": [
+          3
+        ],
         "status": "pending",
         "subtasks": [
           {
-            "id": "7.1",
-            "title": "Base Component Architecture",
-            "description": "Set up base component architecture and patterns",
-            "details": "Create base component classes, define component interfaces, and establish patterns for Lit components. Use Context7 MCP server for Lit component best practices.",
-            "testStrategy": "Verify base component architecture works correctly",
-            "status": "pending"
+            "id": 1,
+            "title": "Set up Lit component architecture and base styling system",
+            "description": "Initialize the Lit framework infrastructure with base component class, shared styling system, and CSS custom properties for theming",
+            "dependencies": [],
+            "details": "Create a base LitElement class that all components will inherit from. Set up CSS custom properties for colors, spacing, typography that match the Python template styles. Configure shadow DOM styling strategies and shared style sheets. Import and configure any required Lit decorators and utilities. Set up a components directory structure with index files for exports.",
+            "status": "pending",
+            "testStrategy": "Test base component instantiation and inheritance using @lit-labs/testing fixtures. Verify CSS custom properties are accessible in shadow DOM by checking computed styles. Test shared style sheets apply correctly across multiple component instances. Validate component directory structure exports work by importing components from index files. Use Lit testing utilities to test component lifecycle methods."
           },
           {
-            "id": "7.2",
-            "title": "Session List Component",
-            "description": "Create component for displaying session lists",
-            "details": "Implement Lit component for displaying session lists with summaries, timestamps, and navigation. Include filtering and sorting capabilities.",
-            "testStrategy": "Test session list component with various data",
-            "status": "pending"
+            "id": 2,
+            "title": "Build SessionList component with filtering and sorting",
+            "description": "Create the SessionList component that displays all sessions with reactive filtering, sorting capabilities, and session metadata display",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Implement SessionList as a Lit component with reactive properties for sessions array, filter criteria, and sort order. Create session item rendering with timestamp, message count, and session ID display. Add click handlers for session selection. Implement filtering logic for session search by ID, date range, or content. Add sorting options for date, message count, or alphabetical. Port the session list styling from Python templates.",
+            "status": "pending",
+            "testStrategy": "Test reactive property updates trigger re-renders using csrFixture. Verify session item rendering displays correct data by testing with mock session objects. Test click handlers dispatch correct events using event listeners. Validate filtering logic with various filter criteria and session data sets. Test sorting functionality produces correctly ordered results. Compare rendered output with Python template using visual regression testing."
           },
           {
-            "id": "7.3",
-            "title": "Message Display Component",
-            "description": "Create component for displaying individual messages",
-            "details": "Implement component for displaying user and assistant messages with proper formatting, syntax highlighting, and markdown rendering.",
-            "testStrategy": "Test message display with different content types",
-            "status": "pending"
+            "id": 3,
+            "title": "Create SessionDetail component for message display",
+            "description": "Develop the SessionDetail component to show individual session content with all messages in chronological order",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Build SessionDetail component with reactive property for selected session data. Implement message list rendering with proper ordering and grouping. Add session metadata header showing session ID, timestamp, duration, and message count. Create scrollable message container with virtual scrolling for performance with large message lists. Implement message type indicators (user, assistant, system). Port session detail layout and styling from Python templates.",
+            "status": "pending",
+            "testStrategy": "Test session data property updates refresh component display using ssrHydratedFixture. Verify message ordering and grouping logic with chronological message data. Test session metadata calculation displays accurate information. Validate virtual scrolling performance with large message lists (1000+ messages). Test message type indicators visually distinguish different message types. Compare layout with Python templates using screenshot testing."
           },
           {
-            "id": "7.4",
-            "title": "Tool Use Component",
-            "description": "Create specialized component for tool use display",
-            "details": "Implement component for displaying tool use, tool results, and thinking content with collapsible details and proper formatting.",
-            "testStrategy": "Test tool use component with various tool types",
-            "status": "pending"
+            "id": 4,
+            "title": "Implement MessageCard with syntax highlighting",
+            "description": "Build the MessageCard component for rendering individual messages with proper formatting and syntax highlighting for code blocks",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Create MessageCard component with support for different message types (text, code, mixed content). Integrate Prism.js for syntax highlighting with automatic language detection. Implement markdown rendering for formatted text content. Add copy-to-clipboard functionality for code blocks. Style message cards with role-based visual indicators (user vs assistant). Handle tool use displays and structured data rendering. Port message card styling from Python templates.",
+            "status": "pending",
+            "testStrategy": "Test message type rendering with various content types using fixture data. Verify Prism.js syntax highlighting works correctly by testing with different programming languages. Test markdown rendering produces correct HTML output. Validate copy-to-clipboard functionality using simulated user interactions. Test role-based styling applies different visual indicators. Verify tool use displays render structured data correctly."
           },
           {
-            "id": "7.5",
-            "title": "Syntax Highlighting",
-            "description": "Implement syntax highlighting for code blocks",
-            "details": "Add syntax highlighting for code blocks in messages. Use libraries like Prism.js or highlight.js. Use Context7 MCP server for syntax highlighting best practices.",
-            "testStrategy": "Test syntax highlighting with various programming languages",
-            "status": "pending"
+            "id": 5,
+            "title": "Build FilterBar with reactive filtering controls",
+            "description": "Create the FilterBar component with real-time filtering controls that update other components reactively",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Implement FilterBar with input fields for text search, date range pickers, message type filters, and session status filters. Create reactive properties that emit filter change events. Add debounced search input for performance. Implement filter preset buttons for common queries. Add clear filters functionality. Create collapsible advanced filter section. Style the filter bar to match Python template design.",
+            "status": "pending",
+            "testStrategy": "Test filter input fields update reactive properties correctly using user interaction simulation. Verify filter change events are emitted with correct data payloads. Test debounced search prevents excessive event firing with rapid input. Validate filter preset buttons apply correct filter combinations. Test clear filters resets all filter states. Test collapsible section toggles visibility correctly."
           },
           {
-            "id": "7.6",
-            "title": "Markdown Rendering",
-            "description": "Implement markdown rendering for message content",
-            "details": "Add markdown rendering capabilities for message content. Handle tables, lists, links, and other markdown elements. Use Context7 MCP server for markdown rendering libraries.",
-            "testStrategy": "Test markdown rendering with various markdown content",
-            "status": "pending"
+            "id": 6,
+            "title": "Create Timeline component for temporal navigation",
+            "description": "Develop an interactive Timeline component for visualizing and navigating sessions chronologically",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Build Timeline component with D3.js or native SVG for rendering timeline visualization. Implement zoom and pan controls for timeline navigation. Add session markers with visual indicators for session length and message density. Create hover tooltips showing session preview information. Implement click-to-navigate functionality to jump to specific sessions. Add time range selection for filtering. Style timeline with colors and markers from Python templates.",
+            "status": "pending",
+            "testStrategy": "Test timeline rendering displays correct temporal data using mock session datasets. Verify zoom and pan controls update view correctly with mouse/touch interactions. Test session markers accurately represent session length and message density. Validate hover tooltips show relevant session information. Test click navigation dispatches correct events with session IDs. Test time range selection updates timeline display correctly."
           },
           {
-            "id": "7.7",
-            "title": "Accessibility Features",
-            "description": "Add accessibility features to all components",
-            "details": "Implement ARIA attributes, keyboard navigation, and screen reader support for all components. Ensure WCAG compliance.",
-            "testStrategy": "Test accessibility with screen readers and keyboard navigation",
-            "status": "pending"
+            "id": 7,
+            "title": "Port CSS styles from Python templates",
+            "description": "Extract and adapt all CSS styles from existing Python templates to maintain visual consistency across the new Lit components",
+            "dependencies": [
+              "5.2",
+              "5.3",
+              "5.4",
+              "5.5",
+              "5.6"
+            ],
+            "details": "Extract all CSS from Python Jinja2 templates in python/claude_code_log/templates/. Convert CSS to Lit's CSS template literal format. Adapt styles for shadow DOM encapsulation where needed. Create shared style modules for common patterns. Ensure responsive design is maintained. Test visual parity between Python and Lit rendered components. Document any style customization points for future theming.",
+            "status": "pending",
+            "testStrategy": "Compare extracted CSS with original Python templates for completeness using file diff tools. Test CSS template literals render correctly in shadow DOM by checking computed styles. Verify responsive design works across different viewport sizes using browser automation. Test visual parity with Python output using screenshot comparison tools. Validate shared style modules prevent code duplication. Document style customization points for theming support."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Implement Real-time WebSocket Communication",
+        "description": "Add WebSocket-driven live updates for session changes and new data",
+        "details": "Integrate WebSocket client in Lit components to receive real-time updates. Implement WebSocket message types: SESSION_CREATED, SESSION_UPDATED, SESSION_DELETED, CACHE_INVALIDATED. Add automatic reconnection logic with exponential backoff. Update Lit components reactively when WebSocket messages are received. Handle connection state in UI (connected/disconnected indicators). Implement message queuing for offline scenarios.",
+        "testStrategy": "WebSocket connection testing, verify real-time updates work correctly in UI, test reconnection logic, validate message queuing during disconnections, test WebSocket error handling",
+        "priority": "medium",
+        "dependencies": [
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create WebSocket Client Service",
+            "description": "Build a centralized WebSocket client service module in TypeScript for managing WebSocket connections",
+            "dependencies": [],
+            "details": "Create a WebSocketService class that handles connection initialization, configuration with server URL, and basic connection lifecycle. Implement singleton pattern to ensure single WebSocket instance across the application. Add TypeScript interfaces for WebSocket configuration options including URL, protocols, and connection timeouts. Set up event emitter pattern for distributing messages to multiple listeners throughout the application.",
+            "status": "pending",
+            "testStrategy": ""
           },
           {
-            "id": "7.8",
-            "title": "Performance Optimization",
-            "description": "Optimize component rendering performance",
-            "details": "Implement virtual scrolling, lazy loading, and efficient rendering for large message lists. Optimize component lifecycle and updates.",
-            "testStrategy": "Test performance with large message datasets",
-            "status": "pending"
+            "id": 2,
+            "title": "Define Message Protocol and Types",
+            "description": "Establish WebSocket message types and protocol for session-related real-time updates",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Create TypeScript interfaces and enums for message types: SESSION_CREATED, SESSION_UPDATED, SESSION_DELETED, CACHE_INVALIDATED. Define message payload structures for each type including session IDs, timestamps, and change details. Implement message serialization/deserialization utilities. Create type guards for runtime validation of incoming messages. Document message protocol for backend implementation reference.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Automatic Reconnection Logic",
+            "description": "Add robust reconnection mechanism with exponential backoff strategy for connection failures",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Implement exponential backoff algorithm starting at 1 second, doubling up to maximum 30 seconds. Add connection retry counter with configurable maximum attempts. Handle different disconnection scenarios: network failures, server restarts, idle timeouts. Implement jitter to prevent thundering herd problem. Add connection health check with periodic ping/pong messages. Create reconnection state management to track retry attempts and backoff delays.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Add Connection State Management and UI Indicators",
+            "description": "Create connection state tracking system with visual indicators in the user interface",
+            "dependencies": [
+              "6.1",
+              "6.3"
+            ],
+            "details": "Implement connection state enum: CONNECTING, CONNECTED, RECONNECTING, DISCONNECTED, ERROR. Create Lit component for connection status indicator with appropriate icons and colors. Add toast notifications for connection state changes. Implement connection statistics tracking (uptime, reconnection count, latency). Create debugging panel showing WebSocket connection details. Add accessibility announcements for screen readers when connection state changes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Integrate WebSocket Updates with Lit Components",
+            "description": "Connect WebSocket message handlers to Lit component reactive properties for automatic UI updates",
+            "dependencies": [
+              "6.2",
+              "6.4"
+            ],
+            "details": "Create custom Lit controller for WebSocket subscription management in components. Implement reactive property updates when receiving SESSION_CREATED, SESSION_UPDATED, SESSION_DELETED messages. Add optimistic UI updates with rollback on failure. Create HOC (Higher Order Component) pattern for WebSocket-enabled components. Implement efficient change detection to minimize unnecessary re-renders. Add debouncing for rapid successive updates to prevent UI thrashing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Offline Message Queuing and Synchronization",
+            "description": "Build message queuing system for offline scenarios with synchronization on reconnection",
+            "dependencies": [
+              "6.3",
+              "6.5"
+            ],
+            "details": "Create IndexedDB-based message queue for storing outgoing messages during offline periods. Implement queue persistence with maximum size limits and TTL for old messages. Add message deduplication to prevent duplicate sends after reconnection. Create synchronization protocol to reconcile client and server state after reconnection. Implement conflict resolution strategy for concurrent updates. Add progress indicators for queue synchronization process.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Add Session Continuation and Claude Code Integration",
+        "description": "Implement the ability to resume and continue Claude Code sessions directly from the web interface",
+        "details": "Create Node.js child process management to launch Claude Code CLI from the web interface. Implement context preparation and transfer mechanisms to pass session history to Claude Code. Add API endpoints for session continuation: POST /api/sessions/:id/continue (resume existing session), POST /api/sessions/new (start new session from context). Create secure process spawning using child_process.spawn with proper environment setup. Add session status tracking (active/inactive) and process management.",
+        "testStrategy": "Test child process spawning and management, verify Claude Code CLI integration works correctly, test context transfer mechanisms, validate security of process execution, test session status tracking",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Research Claude Code CLI interface and command structure",
+            "description": "Analyze Claude Code CLI documentation, command-line arguments, and invocation patterns to understand how to properly spawn and interact with the CLI from Node.js",
+            "dependencies": [],
+            "details": "Study Claude Code CLI documentation for command structure, available flags, and arguments. Investigate how Claude Code accepts context input (--resume flag, context files, stdin). Document the CLI's output format and how it communicates status. Identify environment variables and configuration requirements. Research best practices for integrating with Claude Code programmatically.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Design secure child process architecture and sandboxing strategy",
+            "description": "Create a secure architecture for spawning Claude Code processes with proper isolation, resource limits, and security boundaries",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Design process isolation strategy using Node.js child_process with restricted permissions. Implement sandboxing with limited file system access and network restrictions. Define resource limits (CPU, memory, execution time). Create security policies for environment variable handling. Design process user/group isolation if needed. Document threat model and security considerations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement session context extraction and serialization",
+            "description": "Build functionality to extract relevant context from existing web sessions and serialize it for Claude Code consumption",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Create context extraction logic to pull session history, messages, and metadata from the database. Implement serialization format compatible with Claude Code's expected input (JSONL or context file format). Build context trimming logic to handle token limits. Add support for extracting file references and project context. Implement context validation to ensure compatibility.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Build context preparation and formatting module",
+            "description": "Create a module that prepares and formats extracted context into the proper structure for Claude Code initialization",
+            "dependencies": [
+              "7.3"
+            ],
+            "details": "Implement context formatter that converts extracted session data to Claude Code's expected format. Build template system for context preparation with variable substitution. Add support for different context types (conversation history, file contents, project structure). Create context compression and optimization logic. Implement context file generation or stdin preparation based on CLI requirements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement secure process spawning and lifecycle management",
+            "description": "Create the core process management system for spawning, monitoring, and controlling Claude Code processes",
+            "dependencies": [
+              "7.2",
+              "7.4"
+            ],
+            "details": "Implement secure child_process.spawn with proper options (shell: false, detached process groups). Create process lifecycle manager with state tracking (spawning, running, terminating). Build process monitoring with health checks and timeout handling. Implement graceful shutdown and force kill mechanisms. Add process resource monitoring and limits enforcement. Create process pool management for concurrent sessions.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create session continuation API endpoints",
+            "description": "Build REST API endpoints for initiating session continuation and managing Claude Code processes",
+            "dependencies": [
+              "7.5"
+            ],
+            "details": "Implement POST /api/sessions/:id/continue endpoint for resuming existing sessions. Create POST /api/sessions/new endpoint for starting new sessions from context. Add GET /api/sessions/:id/status endpoint for process status checking. Implement DELETE /api/sessions/:id/process for terminating processes. Add request validation, authentication, and authorization checks. Create response schemas with proper error handling.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Implement comprehensive security measures and validation",
+            "description": "Add security layers including input validation, command injection prevention, and audit logging",
+            "dependencies": [
+              "7.6"
+            ],
+            "details": "Implement input sanitization for all user-provided data before process spawning. Add command injection prevention with argument escaping and validation. Create audit logging for all process operations and security events. Implement rate limiting for process spawning endpoints. Add security headers and CSRF protection. Create allowlist for permitted Claude Code arguments and flags.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Build error handling and process cleanup system",
+            "description": "Create robust error handling for process failures and implement automatic cleanup mechanisms",
+            "dependencies": [
+              "7.5",
+              "7.7"
+            ],
+            "details": "Implement comprehensive error handling for process spawn failures, crashes, and timeouts. Create automatic cleanup for orphaned processes and temporary files. Build retry logic with exponential backoff for transient failures. Implement error recovery strategies and fallback mechanisms. Add detailed error logging and diagnostics. Create cleanup scheduler for abandoned sessions.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Create UI controls and status indicators for session continuation",
+            "description": "Build frontend components for initiating session continuation and displaying process status",
+            "dependencies": [
+              "7.6",
+              "7.8"
+            ],
+            "details": "Create 'Continue in Claude Code' button component with loading states. Implement process status indicator showing active/inactive/error states. Build progress feedback for context preparation and process spawning. Add error message display with user-friendly explanations. Create session continuation history view. Implement WebSocket updates for real-time status changes. Add confirmation dialogs for potentially destructive operations.",
+            "status": "pending",
+            "testStrategy": ""
           }
         ]
       },
       {
         "id": 8,
-        "title": "Interactive Timeline Component",
-        "description": "Add interactive timeline component with real-time updates",
-        "details": "Create a zoomable, filterable timeline view of all sessions with WebSocket-driven live updates. Use Context7 MCP server for Lit Web Components, timeline libraries, and real-time data visualization best practices.",
-        "testStrategy": "Test timeline with large datasets, verify zoom and filter functionality, and test real-time updates",
-        "dependencies": ["7"],
+        "title": "Build Interactive Filtering and Search Features",
+        "description": "Implement real-time filtering, searching, and navigation capabilities",
+        "details": "Create advanced filtering system with: message type filtering (user, assistant, tool use, thinking), date range filtering with natural language support, full-text search across session content, project-based filtering. Implement search indexing for performance using libraries like lunr.js or fuse.js. Add filter presets and saved searches. Create URL routing for deep-linking to specific filtered views. Ensure filtering works in real-time as user types.",
+        "testStrategy": "Test filtering performance with large datasets, verify search accuracy and relevance, test date range parsing, validate URL routing and deep-linking, test filter combination scenarios",
         "priority": "medium",
-        "status": "pending"
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Message Type Filtering System",
+            "description": "Create filtering logic for different message types (user, assistant, tool use, thinking)",
+            "dependencies": [],
+            "details": "Build the core filtering infrastructure to handle message type categorization. Create TypeScript interfaces for filter states and message types. Implement filter functions that can process sessions based on message type criteria. Add UI controls for toggling message type filters with checkboxes or toggle buttons. Ensure the filtering logic can handle multiple selected types simultaneously.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add Natural Language Date Range Parsing",
+            "description": "Implement date filtering with natural language support using date parsing libraries",
+            "dependencies": [],
+            "details": "Integrate a natural language date parsing library like chrono-js or date-fns. Create input components that accept both standard date formats and natural language inputs like 'yesterday', 'last week', 'past 3 days'. Build date range validation and normalization functions. Implement the filtering logic to match sessions within specified date ranges. Add visual date picker as an alternative input method.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Full-Text Search with Indexing",
+            "description": "Implement search indexing using lunr.js or fuse.js for performant full-text search",
+            "dependencies": [],
+            "details": "Evaluate and choose between lunr.js and fuse.js based on performance requirements and feature set. Create indexing pipeline that processes session content on load and updates. Build search index structure including message content, metadata, and session information. Implement search ranking and relevance scoring. Add highlighting of search terms in results. Create background indexing for large datasets to avoid UI blocking.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Build Project-Based Filtering System",
+            "description": "Implement filtering by project directories and workspace contexts",
+            "dependencies": [],
+            "details": "Parse and extract project information from session metadata and file paths. Create project categorization logic based on directory structures. Build UI components for project selection with autocomplete. Implement project hierarchy navigation if nested projects exist. Add project path validation and normalization. Create project filter persistence in local storage.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement Filter Combination Logic and State Management",
+            "description": "Create state management system for combining multiple filters with AND/OR logic",
+            "dependencies": [
+              "8.1",
+              "8.2",
+              "8.3",
+              "8.4"
+            ],
+            "details": "Design filter state architecture using a state management pattern (Redux-like or MobX-like). Implement filter combination logic supporting AND/OR operations between different filter types. Create filter pipeline that efficiently applies multiple filters in sequence. Build debouncing mechanism for real-time filtering as user types. Add filter count indicators showing how many results match current filters. Implement filter reset and clear functionality.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add URL Routing for Filter Persistence",
+            "description": "Implement URL-based filter state for deep-linking and sharing filtered views",
+            "dependencies": [
+              "8.5"
+            ],
+            "details": "Create URL parameter schema for encoding all filter states (message types, date ranges, search queries, projects). Implement bidirectional sync between URL parameters and filter state. Add browser history management for back/forward navigation with filters. Create shareable link generation for current filter configuration. Implement URL validation and error handling for malformed filter parameters. Add URL shortening or compression for complex filter combinations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Create Saved Searches and Filter Presets",
+            "description": "Build system for saving, managing, and applying filter presets and saved searches",
+            "dependencies": [
+              "8.5",
+              "8.6"
+            ],
+            "details": "Design data structure for storing filter presets with names and descriptions. Implement local storage or IndexedDB persistence for saved searches. Create UI for managing presets including create, edit, delete, and apply operations. Add preset categories like 'Recent', 'Frequent', 'Custom'. Implement quick filter buttons for common searches (today's sessions, errors only, etc.). Add import/export functionality for sharing filter presets between users.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 9,
-        "title": "Filtering and Search Functionality",
-        "description": "Create filtering and search functionality with reactive properties",
-        "details": "Implement real-time filtering by message types, date ranges, and full-text search across session content.",
-        "testStrategy": "Test filtering with various criteria, verify search performance with large datasets, and test reactive updates",
-        "dependencies": ["7"],
+        "title": "Implement Responsive Design with Tailwind CSS",
+        "description": "Create a responsive, mobile-friendly interface using Tailwind CSS utility classes",
+        "details": "Integrate Tailwind CSS with Vite build system. Create responsive layouts that work on desktop, tablet, and mobile devices. Implement component styling using Tailwind utility classes while maintaining visual continuity with the original Python HTML templates. Add dark/light theme support using Tailwind's dark mode features. Create responsive navigation patterns and ensure touch-friendly interactions on mobile devices. Optimize for accessibility with proper ARIA labels and keyboard navigation.",
+        "testStrategy": "Test responsive behavior across different screen sizes, verify accessibility compliance (WCAG 2.1 AA), test theme switching functionality, validate touch interactions on mobile devices, test keyboard navigation",
         "priority": "medium",
-        "status": "pending"
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
       },
       {
         "id": 10,
-        "title": "Responsive Layout System",
-        "description": "Build responsive layout system using Lit's template system",
-        "details": "Create a responsive layout that works on desktop, tablet, and mobile devices using Lit's template system and Tailwind CSS. Use Context7 MCP server for Lit templates, Tailwind CSS, and responsive design best practices.",
-        "testStrategy": "Test layout on various screen sizes, verify responsive behavior, and ensure consistent styling",
-        "dependencies": ["7"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 11,
-        "title": "Claude Code CLI Integration",
-        "description": "Implement Node.js child process management for Claude Code CLI integration",
-        "details": "Create system for launching Claude Code sessions, managing child processes, and handling session resumption. Use Context7 MCP server for Node.js child processes, process management, and CLI integration best practices.",
-        "testStrategy": "Test CLI integration with various scenarios, verify process management, and ensure proper error handling",
-        "dependencies": ["5"],
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 12,
-        "title": "Context Preparation and Transfer",
-        "description": "Create context preparation and transfer mechanisms",
-        "details": "Implement systems for preparing session context, transferring data between web app and Claude Code CLI, and managing session state.",
-        "testStrategy": "Test context transfer with various session types, verify data integrity, and ensure seamless user experience",
-        "dependencies": ["11"],
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 13,
-        "title": "Session Branching Functionality",
-        "description": "Build session branching functionality with WebSocket notifications",
-        "details": "Allow users to create new sessions that branch from specific points in history, with real-time notifications.",
-        "testStrategy": "Test branching with various scenarios, verify WebSocket notifications work correctly, and ensure data consistency",
-        "dependencies": ["12"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 14,
-        "title": "Real-time Session Status Updates",
-        "description": "Implement real-time session status updates",
-        "details": "Provide live updates on session status, progress, and changes through WebSocket connections.",
-        "testStrategy": "Test real-time updates with various scenarios, verify WebSocket stability, and ensure proper error handling",
-        "dependencies": ["6", "11"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 15,
-        "title": "Export and Sharing Capabilities",
-        "description": "Add export and sharing capabilities with server-side processing",
-        "details": "Implement export functionality for sessions in various formats (HTML, JSON, PDF) and sharing mechanisms. Use Context7 MCP server for PDF generation libraries, file handling, and export functionality best practices.",
-        "testStrategy": "Test export with various formats and data sizes, verify sharing functionality, and ensure proper security",
-        "dependencies": ["5"],
+        "title": "Add Export Capabilities and Performance Optimization",
+        "description": "Implement export features and optimize performance for large session datasets",
+        "details": "Add export functionality: export sessions to HTML, JSON, or PDF formats. Implement lazy loading and virtualization for large session lists using techniques like intersection observer API. Add service worker for offline support and progressive web app features. Optimize bundle size with code splitting and tree shaking in Vite. Add compression for large session data transfers. Implement pagination or infinite scrolling for large datasets. Add performance monitoring and analytics.",
+        "testStrategy": "Test export functionality with various formats, verify lazy loading performance improvements, test offline functionality with service worker, validate bundle size optimizations, test pagination with large datasets, performance testing with large session histories",
         "priority": "low",
-        "status": "pending"
-      },
-      {
-        "id": 16,
-        "title": "User Preferences and Customization",
-        "description": "Implement user preferences and customization with persistent storage",
-        "details": "Create system for storing and managing user preferences, themes, layouts, and default views.",
-        "testStrategy": "Test preference persistence, verify customization options work correctly, and ensure data privacy",
-        "dependencies": ["5"],
-        "priority": "low",
-        "status": "pending"
-      },
-      {
-        "id": 17,
-        "title": "Advanced Analytics Views",
-        "description": "Create advanced filtering and analytics views with real-time updates",
-        "details": "Implement analytics dashboard with token usage patterns, development insights, and cross-session analysis.",
-        "testStrategy": "Test analytics with large datasets, verify real-time updates work correctly, and ensure performance",
-        "dependencies": ["9"],
-        "priority": "low",
-        "status": "pending"
-      },
-      {
-        "id": 18,
-        "title": "Offline Support and Performance Optimization",
-        "description": "Add offline support with service workers and performance optimizations",
-        "details": "Implement service workers for offline functionality, optimize performance for large datasets, and add caching strategies. Use Context7 MCP server for Service Workers, performance optimization, and caching best practices.",
-        "testStrategy": "Test offline functionality, verify performance with large datasets, and ensure proper caching behavior",
-        "dependencies": ["7"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 19,
-        "title": "WebSocket Reconnection and State Synchronization",
-        "description": "Implement WebSocket reconnection and state synchronization",
-        "details": "Create robust WebSocket reconnection logic, state synchronization mechanisms, and conflict resolution.",
-        "testStrategy": "Test reconnection with various network scenarios, verify state synchronization, and ensure data consistency",
-        "dependencies": ["3"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 20,
-        "title": "Comprehensive Testing Suite",
-        "description": "Comprehensive testing of TypeScript backend and Lit frontend",
-        "details": "Create unit tests, integration tests, and end-to-end tests for both backend and frontend components. Use Context7 MCP server for Jest, Playwright, testing frameworks, and testing best practices.",
-        "testStrategy": "Achieve 80%+ test coverage, verify all critical paths are tested, and ensure test reliability",
-        "dependencies": ["1", "7"],
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 21,
-        "title": "Performance Optimization",
-        "description": "Performance optimization and accessibility improvements",
-        "details": "Optimize application performance, implement accessibility features, and ensure WCAG 2.1 AA compliance. Use Context7 MCP server for web performance optimization, accessibility guidelines, and WCAG compliance best practices.",
-        "testStrategy": "Test performance with large datasets, verify accessibility compliance, and ensure responsive design",
-        "dependencies": ["7", "10"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 22,
-        "title": "Documentation and User Onboarding",
-        "description": "Create comprehensive documentation and user onboarding materials",
-        "details": "Write user documentation, create onboarding tutorials, and provide developer documentation for the codebase. Use Context7 MCP server for documentation tools, technical writing best practices, and developer documentation standards.",
-        "testStrategy": "Verify documentation accuracy, test onboarding flow, and ensure developer documentation is complete",
-        "dependencies": ["20"],
-        "priority": "medium",
-        "status": "pending"
-      },
-      {
-        "id": 23,
-        "title": "WebSocket Connection Stability",
-        "description": "WebSocket connection stability and error handling",
-        "details": "Implement robust error handling for WebSocket connections, connection monitoring, and graceful degradation.",
-        "testStrategy": "Test WebSocket stability under various conditions, verify error handling, and ensure graceful degradation",
-        "dependencies": ["19"],
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 24,
-        "title": "Beta Release Preparation",
-        "description": "Prepare for beta release and user feedback collection",
-        "details": "Finalize beta version, set up feedback collection mechanisms, and prepare for user testing.",
-        "testStrategy": "Verify beta release readiness, test feedback collection, and ensure smooth user experience",
-        "dependencies": ["20", "21", "22", "23"],
-        "priority": "high",
-        "status": "pending"
-      },
-      {
-        "id": 25,
-        "title": "Advanced Session Features",
-        "description": "Implement smart code analysis and pattern recognition",
-        "details": "Add advanced features like code analysis, pattern recognition, cross-session linking, and learning insights.",
-        "testStrategy": "Test advanced features with various scenarios, verify accuracy of analysis, and ensure performance",
-        "dependencies": ["17"],
-        "priority": "low",
-        "status": "pending"
+        "dependencies": [
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
-      "created": "2025-08-08T01:36:10.162Z",
-      "updated": "2025-08-08T01:36:10.163Z",
+      "created": "2025-08-14T23:58:05.580Z",
+      "updated": "2025-08-14T23:58:05.580Z",
       "description": "Tasks for master context"
     }
   }
