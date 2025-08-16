@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "npm run build:backend && npm run build:frontend",
-    "dev:backend": "ts-node-dev backend/src/server.ts",
-    "dev:frontend": "vite --config frontend/vite.config.ts",
+    "dev:backend": "ts-node-dev --project backend/tsconfig.json backend/src/server.ts",
+    "dev:frontend": "cd frontend && vite",
     "build:backend": "tsc --project backend/tsconfig.json",
-    "build:frontend": "vite build --config frontend/vite.config.ts",
+    "build:frontend": "cd frontend && vite build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=unit",
