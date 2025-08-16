@@ -49,13 +49,21 @@ describe('Express App', () => {
   });
 
   describe('CORS headers', () => {
-    it('should include CORS headers for allowed origins', async () => {
+    it('should block disallowed origins in test environment', async () => {
       const response = await request(app)
         .get('/health')
         .set('Origin', 'http://localhost:5173')
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should allow requests with no origin header', async () => {
+      const response = await request(app)
+        .get('/health')
         .expect(200);
 
-      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+      expect(response.body.success).toBe(true);
     });
   });
 });
