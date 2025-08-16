@@ -7,17 +7,26 @@ import { projectPathValidation, handleValidationErrors } from '../middleware/val
 const router = Router();
 
 // Helper function to find JSONL files recursively
-function findJsonlFiles(dir: string): string[] {
+function findJsonlFiles(dir: string, visited = new Set<string>()): string[] {
   const files: string[] = [];
   
   try {
+    // Resolve symbolic links to check for circular references
+    const realPath = fs.realpathSync(dir);
+    
+    // Check if we've already visited this directory (prevents infinite recursion)
+    if (visited.has(realPath)) {
+      return files;
+    }
+    visited.add(realPath);
+    
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       
-      if (entry.isDirectory()) {
-        files.push(...findJsonlFiles(fullPath));
+      if (entry.isDirectory() && !entry.isSymbolicLink()) {
+        files.push(...findJsonlFiles(fullPath, visited));
       } else if (entry.name.endsWith('.jsonl')) {
         files.push(fullPath);
       }
@@ -84,7 +93,8 @@ function parseSessionsFromJsonl(filePath: string): ISession[] {
 
 // Helper function to extract project name from path
 function getProjectName(cwd: string): string {
-  const segments = cwd.split(path.sep).filter(s => s);
+  // Handle both Unix and Windows path separators
+  const segments = cwd.split(/[/\\]/).filter(s => s);
   return segments[segments.length - 1] || 'Unknown';
 }
 

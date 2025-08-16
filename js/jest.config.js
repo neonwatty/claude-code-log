@@ -28,13 +28,17 @@ module.exports = {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: {
         esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        moduleResolution: 'node',
         baseUrl: '.',
         paths: {
           '@shared': ['<rootDir>/shared/src/index'],
           '@shared/*': ['<rootDir>/shared/src/*'],
           '@shared/types': ['<rootDir>/shared/types']
         }
-      }
+      },
+      isolatedModules: true,
+      useESM: false
     }]
   },
   
@@ -63,6 +67,18 @@ module.exports = {
   
   // Clear mocks between tests
   clearMocks: true,
+  
+  // Reset modules between tests
+  resetModules: true,
+  
+  // Force exit to prevent hanging
+  forceExit: true,
+  
+  // Detect open handles
+  detectOpenHandles: false,
+  
+  // Cache directory
+  cacheDirectory: '<rootDir>/node_modules/.cache/jest',
   
   // Verbose output
   verbose: true

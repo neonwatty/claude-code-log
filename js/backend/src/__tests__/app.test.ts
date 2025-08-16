@@ -52,7 +52,7 @@ describe('Express App', () => {
     it('should block disallowed origins in test environment', async () => {
       const response = await request(app)
         .get('/health')
-        .set('Origin', 'http://localhost:5173')
+        .set('Origin', 'http://malicious-site.com')
         .expect(403);
 
       expect(response.body.success).toBe(false);

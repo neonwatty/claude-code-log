@@ -173,6 +173,9 @@ describe('Security Middleware', () => {
 
   describe('requestSizeLimit', () => {
     beforeEach(() => {
+      // Create a new app with a higher express.json() limit to test our middleware
+      app = express();
+      app.use(express.json({ limit: '15mb' })); // Set higher than our 10MB limit
       app.use(requestSizeLimit);
       app.post('/test', (req, res) => {
         res.json({ success: true });
@@ -191,17 +194,19 @@ describe('Security Middleware', () => {
     });
 
     it('should reject oversized requests', async () => {
-      // Mock a large content-length header
+      // Create a large payload that exceeds the 10MB limit
+      const largeString = 'x'.repeat(11 * 1024 * 1024); // 11MB string
+      const largeBody = { data: largeString };
+
       const response = await request(app)
         .post('/test')
-        .set('Content-Length', '11000000') // 11MB
-        .send({})
+        .send(largeBody)
         .expect(413);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error).toBe('Request payload too large');
       expect(response.body.timestamp).toBeDefined();
-    });
+    }, 10000); // 10 second timeout
 
     it('should handle missing content-length header', async () => {
       // Most requests will have content-length automatically set

@@ -38,7 +38,9 @@ describe('Error Handler Middleware', () => {
             next(new UnauthorizedError('Access denied'));
             break;
           case 'syntax':
-            next(new SyntaxError('Invalid JSON'));
+            const syntaxError = new SyntaxError('Invalid JSON');
+            (syntaxError as any).body = {}; // Simulate body-parser JSON error
+            next(syntaxError);
             break;
           case 'cors':
             next(new Error('Not allowed by CORS'));

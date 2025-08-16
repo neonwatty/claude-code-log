@@ -185,6 +185,23 @@ export interface IProject {
   totalTokens: number;
 }
 
+// User interface for frontend demo data
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+// Log entry interface for frontend demo data  
+export interface LogEntry {
+  id: string;
+  userId?: string;
+  message: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error' | 'debug';
+}
+
 // API response interface (already exists but included for completeness)
 export interface IApiResponse<T = any> {
   success: boolean;

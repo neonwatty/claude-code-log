@@ -121,66 +121,63 @@ describe('WebSocket Server', () => {
     });
 
     it('should broadcast session created events', (done) => {
-      let messageCount = 0;
-      
       testClient.on('message', (data) => {
-        messageCount++;
-        if (messageCount === 1) {
-          // Skip welcome message
-          return;
-        }
-        
         const message = JSON.parse(data.toString());
-        expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
-        expect(message.data).toHaveProperty('sessionId', 'test-session-123');
-        expect(message.data).toHaveProperty('cwd', '/test/project');
-        done();
+        
+        // Look for the specific message type we're testing
+        if (message.type === WebSocketMessageType.SESSION_CREATED) {
+          expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
+          expect(message.data).toHaveProperty('sessionId', 'test-session-123');
+          expect(message.data).toHaveProperty('cwd', '/test/project');
+          done();
+        }
+        // Ignore other messages (like welcome messages)
       });
 
-      // Trigger broadcast
-      wsManager.broadcastSessionCreated('test-session-123', '/test/project');
+      // Add delay to ensure connection is fully established
+      setTimeout(() => {
+        wsManager.broadcastSessionCreated('test-session-123', '/test/project');
+      }, 10);
     });
 
     it('should broadcast session updated events', (done) => {
-      let messageCount = 0;
-      
       testClient.on('message', (data) => {
-        messageCount++;
-        if (messageCount === 1) {
-          // Skip welcome message
-          return;
-        }
-        
         const message = JSON.parse(data.toString());
-        expect(message.type).toBe(WebSocketMessageType.SESSION_UPDATED);
-        expect(message.data).toHaveProperty('sessionId', 'test-session-456');
-        expect(message.data).toHaveProperty('entryCount', 5);
-        done();
+        
+        // Look for the specific message type we're testing
+        if (message.type === WebSocketMessageType.SESSION_UPDATED) {
+          expect(message.type).toBe(WebSocketMessageType.SESSION_UPDATED);
+          expect(message.data).toHaveProperty('sessionId', 'test-session-456');
+          expect(message.data).toHaveProperty('entryCount', 5);
+          done();
+        }
+        // Ignore other messages (like welcome messages)
       });
 
-      // Trigger broadcast
-      wsManager.broadcastSessionUpdated('test-session-456', '/test/project', 5);
+      // Add delay to ensure connection is fully established
+      setTimeout(() => {
+        wsManager.broadcastSessionUpdated('test-session-456', '/test/project', 5);
+      }, 10);
     });
 
     it('should broadcast file changed events', (done) => {
-      let messageCount = 0;
-      
       testClient.on('message', (data) => {
-        messageCount++;
-        if (messageCount === 1) {
-          // Skip welcome message
-          return;
-        }
-        
         const message = JSON.parse(data.toString());
-        expect(message.type).toBe(WebSocketMessageType.FILE_CHANGED);
-        expect(message.data).toHaveProperty('filePath', '/test/file.jsonl');
-        expect(message.data).toHaveProperty('changeType', 'modified');
-        done();
+        
+        // Look for the specific message type we're testing
+        if (message.type === WebSocketMessageType.FILE_CHANGED) {
+          expect(message.type).toBe(WebSocketMessageType.FILE_CHANGED);
+          expect(message.data).toHaveProperty('filePath', '/test/file.jsonl');
+          expect(message.data).toHaveProperty('changeType', 'modified');
+          done();
+        }
+        // Ignore other messages (like welcome messages)
       });
 
-      // Trigger broadcast
-      wsManager.broadcastFileChanged('/test/file.jsonl', 'modified');
+      // Add delay to ensure connection is fully established
+      setTimeout(() => {
+        wsManager.broadcastFileChanged('/test/file.jsonl', 'modified');
+      }, 10);
     });
 
     it('should broadcast to multiple clients', (done) => {
@@ -189,37 +186,34 @@ describe('WebSocket Server', () => {
       let client2Received = false;
       
       client2.on('open', () => {
-        let messageCount1 = 0;
-        let messageCount2 = 0;
-        
         testClient.on('message', (data) => {
-          messageCount1++;
-          if (messageCount1 === 1) return; // Skip welcome
-          
           const message = JSON.parse(data.toString());
-          expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
-          client1Received = true;
-          if (client1Received && client2Received) {
-            client2.close();
-            done();
+          if (message.type === WebSocketMessageType.SESSION_CREATED) {
+            expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
+            client1Received = true;
+            if (client1Received && client2Received) {
+              client2.close();
+              done();
+            }
           }
         });
         
         client2.on('message', (data) => {
-          messageCount2++;
-          if (messageCount2 === 1) return; // Skip welcome
-          
           const message = JSON.parse(data.toString());
-          expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
-          client2Received = true;
-          if (client1Received && client2Received) {
-            client2.close();
-            done();
+          if (message.type === WebSocketMessageType.SESSION_CREATED) {
+            expect(message.type).toBe(WebSocketMessageType.SESSION_CREATED);
+            client2Received = true;
+            if (client1Received && client2Received) {
+              client2.close();
+              done();
+            }
           }
         });
         
-        // Trigger broadcast to both clients
-        wsManager.broadcastSessionCreated('test-session-multi', '/test/project');
+        // Add delay to ensure both connections are fully established
+        setTimeout(() => {
+          wsManager.broadcastSessionCreated('test-session-multi', '/test/project');
+        }, 10);
       });
       
       client2.on('error', done);
@@ -250,45 +244,38 @@ describe('WebSocket Server', () => {
     });
 
     it('should respond to heartbeat messages', (done) => {
-      let messageCount = 0;
-      
       testClient.on('message', (data) => {
-        messageCount++;
-        if (messageCount === 1) {
-          // Skip welcome message, send heartbeat
-          const heartbeatMessage = {
-            type: WebSocketMessageType.HEARTBEAT,
-            timestamp: new Date().toISOString()
-          };
-          testClient.send(JSON.stringify(heartbeatMessage));
-          return;
-        }
-        
-        // Should receive pong response
         const message = JSON.parse(data.toString());
-        expect(message.type).toBe(WebSocketMessageType.PONG);
-        done();
+        
+        // Look for pong response to our heartbeat
+        if (message.type === WebSocketMessageType.PONG) {
+          expect(message.type).toBe(WebSocketMessageType.PONG);
+          done();
+        }
       });
+
+      // Send heartbeat after connection is established
+      setTimeout(() => {
+        const heartbeatMessage = {
+          type: WebSocketMessageType.HEARTBEAT,
+          timestamp: new Date().toISOString()
+        };
+        testClient.send(JSON.stringify(heartbeatMessage));
+      }, 10);
     });
 
     it('should handle pong messages from clients', (done) => {
-      let messageCount = 0;
-      
-      testClient.on('message', (data) => {
-        messageCount++;
-        if (messageCount === 1) {
-          // Skip welcome message, send pong
-          const pongMessage = {
-            type: WebSocketMessageType.PONG,
-            timestamp: new Date().toISOString()
-          };
-          testClient.send(JSON.stringify(pongMessage));
-          
-          // If no error occurs, test passes
-          setTimeout(done, 100);
-          return;
-        }
-      });
+      // Add delay to ensure connection is established, then send pong
+      setTimeout(() => {
+        const pongMessage = {
+          type: WebSocketMessageType.PONG,
+          timestamp: new Date().toISOString()
+        };
+        testClient.send(JSON.stringify(pongMessage));
+        
+        // If no error occurs after a brief delay, test passes
+        setTimeout(done, 50);
+      }, 10);
     });
   });
 

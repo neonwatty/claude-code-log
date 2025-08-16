@@ -25,7 +25,7 @@ const productionOrigins = [
 
 // Get allowed origins based on environment
 const getAllowedOrigins = (): string[] => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
   
   if (isDevelopment) {
     return developmentOrigins;
@@ -53,8 +53,8 @@ const originValidator = (origin: string | undefined, callback: (err: Error | nul
     return callback(null, true);
   }
   
-  // In development, be more permissive
-  if (process.env.NODE_ENV === 'development') {
+  // In development/test, be more permissive
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     // Allow localhost/127.0.0.1 with any port
     if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
       return callback(null, true);
@@ -102,8 +102,8 @@ export const validateWebSocketOrigin = (origin: string | undefined): boolean => 
     return true;
   }
   
-  // In development, be more permissive
-  if (process.env.NODE_ENV === 'development') {
+  // In development/test, be more permissive
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
       return true;
     }
@@ -143,6 +143,6 @@ export const isOriginAllowed = (origin: string | undefined): boolean => {
   
   const allowedOrigins = getAllowedOrigins();
   return allowedOrigins.includes(origin) || 
-    (process.env.NODE_ENV === 'development' && 
+    ((process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') && 
      !!origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/));
 };

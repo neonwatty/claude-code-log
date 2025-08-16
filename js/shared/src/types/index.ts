@@ -26,7 +26,9 @@ export type {
   ITranscriptEntry,
   ISession,
   IProject,
-  IApiResponse
+  IApiResponse,
+  User,
+  LogEntry
 } from '../interfaces';
 
 // Utility types for common patterns
