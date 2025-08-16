@@ -19,10 +19,14 @@
     "sourceMap": true
   },
   "include": [
-    "**/*.ts"
+    "src/**/*.ts",
+    "types.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
   ]
 }

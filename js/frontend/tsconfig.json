@@ -19,7 +19,9 @@
     "useDefineForClassFields": false,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared": ["../shared/src/index"],
+      "@shared/*": ["../shared/src/*"],
+      "@shared/types": ["../shared/types"]
     }
   },
   "include": [

@@ -16,17 +16,23 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared": ["../shared/src/index"],
+      "@shared/*": ["../shared/src/*"],
+      "@shared/types": ["../shared/types"]
     }
   },
   "include": [
     "src/**/*",
-    "../shared/**/*"
+    "../shared/src/interfaces/**/*.ts",
+    "../shared/src/constants/**/*.ts",
+    "../shared/src/index.ts",
+    "../shared/types.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/__tests__/**"
   ]
 }

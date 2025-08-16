@@ -35,3 +35,6 @@ const testUser: User = {
 };
 
 console.log('Test user:', testUser);
+
+// Register the custom element
+customElements.define('app-main', AppMain);

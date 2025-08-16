@@ -1,0 +1,26 @@
+{
+  "name": "@claude-code-log/shared",
+  "version": "1.0.0",
+  "description": "Shared TypeScript interfaces and types for Claude Code Log project",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "files": [
+    "dist/"
+  ],
+  "keywords": [
+    "typescript",
+    "interfaces",
+    "claude",
+    "shared"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
