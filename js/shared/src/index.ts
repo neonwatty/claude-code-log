@@ -9,5 +9,8 @@ export * from './types';
 // Export all constants
 export * from './constants';
 
+// Export all schemas for runtime validation
+export * from './schemas';
+
 // Legacy exports for backward compatibility with existing code  
 export type { User, LogEntry, ApiResponse } from '../types';
