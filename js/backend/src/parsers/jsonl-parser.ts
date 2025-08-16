@@ -384,8 +384,8 @@ export class JsonlWatcher {
       const errors: ParseError[] = [];
       let lineNumber = 0;
 
-      stream.on('data', (chunk: string) => {
-        buffer += chunk;
+      stream.on('data', (chunk: string | Buffer) => {
+        buffer += chunk.toString();
         const lines = buffer.split('\n');
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
