@@ -1,6 +1,6 @@
 import express from 'express';
 import compression from 'compression';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import apiRoutes from './routes/index';
 
 // Enhanced middleware

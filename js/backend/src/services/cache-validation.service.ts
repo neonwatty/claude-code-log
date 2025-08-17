@@ -1,7 +1,7 @@
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { 
   ProjectCache, 

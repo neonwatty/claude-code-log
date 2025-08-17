@@ -1,0 +1,508 @@
+/* Layout Styles - Ported from Python Templates */
+/* Common layout patterns and container styles */
+
+/* Base Layout */
+.layout-container {
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  padding: var(--layout-container-padding);
+  font-family: var(--font-family-mono);
+  line-height: var(--line-height-relaxed);
+  background: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* Card Base Styling - Neumorphic Design */
+.card-base {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-neumorphic);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+  transition: all var(--transition-fast);
+}
+
+.card-base:hover {
+  box-shadow: var(--shadow-neumorphic-hover);
+  transform: var(--transform-hover);
+}
+
+/* Card Variations */
+.card-message {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--message-padding);
+  border-radius: var(--border-radius-md);
+  border-left: var(--color-border-light) 1px solid;
+  background-color: var(--color-message-user-bg);
+  box-shadow: var(--shadow-neumorphic);
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+.card-session-header {
+  background-color: var(--color-surface-header);
+  border-radius: var(--border-radius-md);
+  padding: var(--session-header-padding);
+  margin: 30px 0 var(--spacing-xl) 0;
+  box-shadow: var(--shadow-neumorphic);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+.card-navigation {
+  background-color: var(--color-surface-filter);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-neumorphic);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+/* Filter Toolbar */
+.filter-toolbar {
+  background-color: var(--color-surface-filter);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-neumorphic);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.filter-toolbar.visible {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+/* Flexbox Layouts */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-start {
+  display: flex;
+  align-items: flex-start;
+}
+
+.flex-end {
+  display: flex;
+  align-items: flex-end;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-auto {
+  flex: auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+/* Grid Layouts */
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* Gap Utilities */
+.gap-xs {
+  gap: var(--spacing-xs);
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+.gap-xl {
+  gap: var(--spacing-xl);
+}
+
+/* Spacing Utilities */
+.m-0 { margin: 0; }
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+
+.mt-0 { margin-top: 0; }
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-0 { margin-bottom: 0; }
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.ml-0 { margin-left: 0; }
+.ml-xs { margin-left: var(--spacing-xs); }
+.ml-sm { margin-left: var(--spacing-sm); }
+.ml-md { margin-left: var(--spacing-md); }
+.ml-lg { margin-left: var(--spacing-lg); }
+.ml-xl { margin-left: var(--spacing-xl); }
+
+.mr-0 { margin-right: 0; }
+.mr-xs { margin-right: var(--spacing-xs); }
+.mr-sm { margin-right: var(--spacing-sm); }
+.mr-md { margin-right: var(--spacing-md); }
+.mr-lg { margin-right: var(--spacing-lg); }
+.mr-xl { margin-right: var(--spacing-xl); }
+
+.p-0 { padding: 0; }
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+.pt-0 { padding-top: 0; }
+.pt-xs { padding-top: var(--spacing-xs); }
+.pt-sm { padding-top: var(--spacing-sm); }
+.pt-md { padding-top: var(--spacing-md); }
+.pt-lg { padding-top: var(--spacing-lg); }
+.pt-xl { padding-top: var(--spacing-xl); }
+
+.pb-0 { padding-bottom: 0; }
+.pb-xs { padding-bottom: var(--spacing-xs); }
+.pb-sm { padding-bottom: var(--spacing-sm); }
+.pb-md { padding-bottom: var(--spacing-md); }
+.pb-lg { padding-bottom: var(--spacing-lg); }
+.pb-xl { padding-bottom: var(--spacing-xl); }
+
+.pl-0 { padding-left: 0; }
+.pl-xs { padding-left: var(--spacing-xs); }
+.pl-sm { padding-left: var(--spacing-sm); }
+.pl-md { padding-left: var(--spacing-md); }
+.pl-lg { padding-left: var(--spacing-lg); }
+.pl-xl { padding-left: var(--spacing-xl); }
+
+.pr-0 { padding-right: 0; }
+.pr-xs { padding-right: var(--spacing-xs); }
+.pr-sm { padding-right: var(--spacing-sm); }
+.pr-md { padding-right: var(--spacing-md); }
+.pr-lg { padding-right: var(--spacing-lg); }
+.pr-xl { padding-right: var(--spacing-xl); }
+
+/* Position Utilities */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+}
+
+/* Display Utilities */
+.block {
+  display: block;
+}
+
+.inline {
+  display: inline;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+/* Overflow Utilities */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-scroll {
+  overflow: scroll;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+/* Width and Height Utilities */
+.w-full {
+  width: 100%;
+}
+
+.w-auto {
+  width: auto;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.h-auto {
+  height: auto;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* Floating Action Buttons */
+.floating-btn {
+  position: fixed;
+  right: var(--spacing-xl);
+  background-color: var(--color-surface-header);
+  color: var(--color-text-muted);
+  border: none;
+  border-radius: var(--border-radius-xl);
+  width: var(--floating-btn-size);
+  height: var(--floating-btn-size);
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-floating);
+  transition: all var(--transition-medium);
+  z-index: var(--z-floating);
+  text-decoration: none;
+}
+
+.floating-btn:hover {
+  background-color: var(--color-surface-active);
+  transform: var(--transform-hover-float);
+  color: var(--color-text);
+}
+
+.floating-btn:visited {
+  color: var(--color-text-muted);
+}
+
+/* Floating Button Positioning */
+.floating-btn.scroll-top {
+  bottom: var(--spacing-xl);
+}
+
+.floating-btn.toggle-details {
+  bottom: 80px;
+}
+
+.floating-btn.filter-messages {
+  bottom: 140px;
+}
+
+.floating-btn.timeline-toggle {
+  bottom: 200px;
+}
+
+/* Session Dividers */
+.session-divider {
+  margin: 70px 0;
+  border-top: 2px solid var(--color-border-light);
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .layout-container {
+    padding: var(--spacing-sm);
+  }
+  
+  .filter-toolbar.visible {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .card-base,
+  .card-message,
+  .card-session-header,
+  .card-navigation {
+    padding: var(--spacing-md);
+  }
+  
+  .floating-btn {
+    right: var(--spacing-md);
+    width: 45px;
+    height: 45px;
+    font-size: var(--font-size-lg);
+  }
+  
+  .grid-auto-fit {
+    grid-template-columns: 1fr;
+  }
+  
+  .flex-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-container {
+    padding: var(--spacing-xs);
+  }
+  
+  .card-base,
+  .card-message,
+  .card-session-header,
+  .card-navigation {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+/* Print Layout */
+@media print {
+  .layout-container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+  
+  .card-base,
+  .card-message,
+  .card-session-header,
+  .card-navigation {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    background: white;
+  }
+  
+  .floating-btn {
+    display: none;
+  }
+  
+  .filter-toolbar {
+    display: none;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .card-base:hover,
+  .floating-btn:hover {
+    transform: none;
+  }
+}
+
+/* Focus Visible */
+.focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

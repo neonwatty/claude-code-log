@@ -404,7 +404,7 @@ export class CacheAggregationService extends EventEmitter {
    * Gets top sessions by various criteria
    */
   public getTopSessions(criteria: 'tokens' | 'messages' | 'duration' = 'tokens', limit: number = 10): SessionSummary[] {
-    let allSessions: SessionSummary[] = [];
+    const allSessions: SessionSummary[] = [];
 
     for (const [projectPath, cache] of this.aggregatedCache) {
       for (const sessionData of Object.values(cache.sessions)) {

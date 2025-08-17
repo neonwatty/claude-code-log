@@ -1,5 +1,6 @@
 import { LitElement, CSSResult, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { baseStyles } from '../../styles/shared/index.js';
 
 /**
  * Base component that all application components inherit from
@@ -26,155 +27,38 @@ export abstract class BaseComponent extends LitElement {
 
   /**
    * Common base styles that all components inherit
+   * Now uses shared styles from the design system
    */
-  static override styles: CSSResult[] = [css`
-    :host {
-      /* CSS Custom Properties for theming - matching Python template styles */
-      --color-primary: #2196f3;
-      --color-secondary: #9c27b0;
-      --color-success: #4caf50;
-      --color-warning: #ff9800;
-      --color-error: #f44336;
-      --color-info: #2196f3;
-      --color-tool-use: #e91e63;
-      --color-tool-result: #4caf50;
-      --color-thinking: #9e9e9e;
-      --color-image: #ff5722;
-      --color-text: #333;
-      --color-text-muted: #666;
-      --color-text-light: #555;
+  static override styles: CSSResult[] = [
+    baseStyles,
+    css`
+      :host {
+        /* Component defaults */
+        box-sizing: border-box;
+        font-family: var(--font-family-mono);
+        line-height: var(--line-height-relaxed);
+        color: var(--color-text);
+      }
 
-      /* Background and surface colors */
-      --color-background: linear-gradient(90deg, #f3d6d2, #f1dcce, #f0e4ca, #eeecc7, #e3ecc3, #d5eac0, #c6e8bd, #b9e6bc, #b6e3c5, #b3e1cf);
-      --color-surface: #ffffff66;
-      --color-surface-hover: #ffffff88;
-      --color-surface-active: #ffffffaa;
+      /* Component-specific utilities not covered by shared styles */
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
 
-      /* Shadow and border colors */
-      --color-shadow-light: #eeeeee44;
-      --color-shadow-dark: #00000011;
-      --color-shadow-hover-light: #eeeeee66;
-      --color-shadow-hover-dark: #00000022;
-      --color-border-light: #ffffff66;
-      --color-border-dark: #00000017;
+      .error {
+        color: var(--color-message-system-error);
+        background-color: var(--color-message-system-error-bg);
+        padding: var(--spacing-sm);
+        border-radius: var(--border-radius-sm);
+        border-left: var(--color-message-system-error) 3px solid;
+      }
 
-      /* Typography */
-      --font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', 'Ubuntu Mono', 'Cascadia Code', 'Menlo', 'Consolas', monospace;
-      --font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --line-height: 1.5;
-
-      /* Spacing */
-      --spacing-xs: 4px;
-      --spacing-sm: 8px;
-      --spacing-md: 16px;
-      --spacing-lg: 24px;
-      --spacing-xl: 32px;
-
-      /* Border radius */
-      --border-radius-sm: 3px;
-      --border-radius-md: 8px;
-      --border-radius-lg: 12px;
-
-      /* Transitions */
-      --transition-fast: 0.2s ease;
-      --transition-normal: 0.3s ease;
-
-      /* Z-index scale */
-      --z-dropdown: 100;
-      --z-sticky: 200;
-      --z-modal: 1000;
-      --z-floating: 1100;
-
-      /* Component defaults */
-      box-sizing: border-box;
-      font-family: var(--font-family-mono);
-      line-height: var(--line-height);
-      color: var(--color-text);
-    }
-
-    :host([dark-mode]) {
-      /* Dark mode overrides */
-      --color-background: linear-gradient(90deg, #2a1f1d, #2e2320, #322722, #362b25, #3a2f28, #3e332b, #42372e, #463b31, #4a3f34, #4e4337);
-      --color-surface: #ffffff11;
-      --color-surface-hover: #ffffff22;
-      --color-surface-active: #ffffff33;
-      --color-text: #e0e0e0;
-      --color-text-muted: #aaa;
-      --color-text-light: #ccc;
-    }
-
-    /* Common utility classes */
-    .card {
-      background-color: var(--color-surface);
-      border-radius: var(--border-radius-md);
-      padding: var(--spacing-md);
-      box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
-      border-left: var(--color-border-light) 1px solid;
-      border-top: var(--color-border-light) 1px solid;
-      border-bottom: var(--color-border-dark) 1px solid;
-      border-right: var(--color-border-dark) 1px solid;
-      transition: all var(--transition-fast);
-    }
-
-    .card:hover {
-      box-shadow: -10px -10px 15px var(--color-shadow-hover-light), 10px 10px 15px var(--color-shadow-hover-dark);
-      transform: translateY(-1px);
-    }
-
-    .header {
-      font-weight: 600;
-      margin-bottom: var(--spacing-sm);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: var(--spacing-sm);
-    }
-
-    .timestamp {
-      font-size: 0.85em;
-      color: var(--color-text-muted);
-      font-weight: normal;
-    }
-
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .error {
-      color: var(--color-error);
-      background-color: #ffebee88;
-      padding: var(--spacing-sm);
-      border-radius: var(--border-radius-sm);
-      border-left: var(--color-error) 3px solid;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* Code styling */
-    code {
-      background-color: #f5f5f5;
-      padding: 2px 4px;
-      border-radius: var(--border-radius-sm);
-      font-family: var(--font-family-mono);
-      font-size: 0.9em;
-    }
-
-    pre {
-      background-color: #12121212;
-      padding: 10px;
-      border-radius: var(--border-radius-sm);
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      word-break: break-word;
-      font-family: var(--font-family-mono);
-      line-height: var(--line-height);
-      overflow-x: auto;
-    }
-  `];
+      .hidden {
+        display: none !important;
+      }
+    `
+  ];
 
   /**
    * Set loading state and re-render

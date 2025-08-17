@@ -1,15 +1,15 @@
 import { CacheDirectoryService } from '../../services/cache-directory.service';
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
+import * as path from 'path';
 import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from '../../utils/cache';
 
 // Mock dependencies
 jest.mock('fs/promises');
 jest.mock('fs');
 
-const mockFs = fs as jest.Mocked<typeof fs>;
-const mockFsSync = fsSync as jest.Mocked<typeof fsSync>;
+const mockFs = jest.mocked(fs);
+const mockFsSync = jest.mocked(fsSync);
 
 describe('CacheDirectoryService', () => {
   let service: CacheDirectoryService;
@@ -36,10 +36,10 @@ describe('CacheDirectoryService', () => {
   describe('Cache Directory Creation', () => {
     it('should create cache directory and index file', async () => {
       const mockStats = { mtime: new Date('2023-01-01') };
-      mockFs.mkdir = jest.fn().mockResolvedValue(undefined);
-      mockFs.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
+      mockFs.mkdir.mockResolvedValue(undefined);
+      mockFs.readFile.mockRejectedValue(new Error('File not found'));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
 
       const result = await service.createCacheDirectory(mockProjectPath);
 
@@ -62,10 +62,10 @@ describe('CacheDirectoryService', () => {
         total_message_count: 0
       };
 
-      mockFs.mkdir = jest.fn().mockResolvedValue(undefined);
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(existingIndex));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
+      mockFs.mkdir.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(JSON.stringify(existingIndex));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
 
       const result = await service.createCacheDirectory(mockProjectPath);
 
@@ -77,10 +77,10 @@ describe('CacheDirectoryService', () => {
       const eventSpy = jest.fn();
       service.on('directoryEvent', eventSpy);
 
-      mockFs.mkdir = jest.fn().mockResolvedValue(undefined);
-      mockFs.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
+      mockFs.mkdir.mockResolvedValue(undefined);
+      mockFs.readFile.mockRejectedValue(new Error('File not found'));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
 
       await service.createCacheDirectory(mockProjectPath);
 
@@ -102,8 +102,8 @@ describe('CacheDirectoryService', () => {
         { name: 'file.txt', isDirectory: () => false }
       ];
 
-      mockFs.readdir = jest.fn().mockResolvedValue(mockEntries as any);
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify({
+      mockFs.readdir.mockResolvedValue(mockEntries as any);
+      mockFs.readFile.mockResolvedValue(JSON.stringify({
         version: CACHE_FORMAT_VERSION,
         project_path: '/search/path1',
         sessions: {}
@@ -116,7 +116,7 @@ describe('CacheDirectoryService', () => {
     });
 
     it('should handle discovery errors gracefully', async () => {
-      mockFs.readdir = jest.fn().mockRejectedValue(new Error('Permission denied'));
+      mockFs.readdir.mockRejectedValue(new Error('Permission denied'));
 
       const result = await service.discoverCacheDirectories(['/invalid/path']);
 
@@ -132,7 +132,7 @@ describe('CacheDirectoryService', () => {
         sessions: {}
       };
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(validIndex));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(validIndex));
 
       const isValid = await service.validateCacheDirectory('/cache/path');
 
@@ -140,7 +140,7 @@ describe('CacheDirectoryService', () => {
     });
 
     it('should return false for invalid cache structure', async () => {
-      mockFs.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.readFile.mockRejectedValue(new Error('File not found'));
 
       const isValid = await service.validateCacheDirectory('/invalid/path');
 
@@ -148,7 +148,7 @@ describe('CacheDirectoryService', () => {
     });
 
     it('should return false for malformed JSON', async () => {
-      mockFs.readFile = jest.fn().mockResolvedValue('invalid json');
+      mockFs.readFile.mockResolvedValue('invalid json');
 
       const isValid = await service.validateCacheDirectory('/cache/path');
 
@@ -182,9 +182,9 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(existingCache));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue(JSON.stringify(existingCache));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
 
       await service.updateCacheMetadata(mockProjectPath, updates);
 
@@ -217,7 +217,7 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(mockCache));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(mockCache));
 
       const stats = await service.getCacheStats(mockProjectPath);
 
@@ -256,10 +256,10 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(mockCache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.readFile.mockResolvedValue(JSON.stringify(mockCache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000) // Same time
-      });
+      } as any);
 
       const result = await service.validateCacheConsistency(mockProjectPath);
 
@@ -288,10 +288,10 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(mockCache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.readFile.mockResolvedValue(JSON.stringify(mockCache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1641081600000) // Different time
-      });
+      } as any);
 
       const result = await service.validateCacheConsistency(mockProjectPath);
 
@@ -313,7 +313,7 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(mockCache));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(mockCache));
 
       const result = await service.validateCacheConsistency(mockProjectPath);
 
@@ -332,7 +332,7 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.rm = jest.fn().mockResolvedValue(undefined);
+      mockFs.rm.mockResolvedValue(undefined);
 
       await service.removeCacheDirectory(mockProjectPath);
 
@@ -355,7 +355,7 @@ describe('CacheDirectoryService', () => {
         isValid: true
       });
 
-      mockFs.rm = jest.fn().mockResolvedValue(undefined);
+      mockFs.rm.mockResolvedValue(undefined);
 
       await service.removeCacheDirectory(mockProjectPath);
 
@@ -374,8 +374,8 @@ describe('CacheDirectoryService', () => {
       const filePath = '/test/file.json';
       const tempPath = `${filePath}.tmp`;
 
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
 
       // Access private method for testing
       await (service as any).atomicWriteJson(filePath, testData);
@@ -393,8 +393,8 @@ describe('CacheDirectoryService', () => {
       const filePath = '/test/file.json';
       const tempPath = `${filePath}.tmp`;
 
-      mockFs.writeFile = jest.fn().mockRejectedValue(new Error('Write failed'));
-      mockFs.unlink = jest.fn().mockResolvedValue(undefined);
+      mockFs.writeFile.mockRejectedValue(new Error('Write failed'));
+      mockFs.unlink.mockResolvedValue(undefined);
 
       await expect((service as any).atomicWriteJson(filePath, testData))
         .rejects.toThrow('Write failed');
@@ -407,7 +407,7 @@ describe('CacheDirectoryService', () => {
     it('should initialize service with search paths', async () => {
       const searchPaths = ['/path1', '/path2'];
 
-      mockFs.readdir = jest.fn().mockResolvedValue([]);
+      mockFs.readdir.mockResolvedValue([]);
 
       await service.initialize(searchPaths);
 

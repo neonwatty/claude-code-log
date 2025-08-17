@@ -1,0 +1,324 @@
+/* Typography Styles - Ported from Python Templates */
+/* Consistent typography system for all components */
+
+/* Base Typography */
+.typography-base {
+  font-family: var(--font-family-mono);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+}
+
+/* Headings */
+.heading-primary {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-header);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  line-height: var(--line-height-tight);
+}
+
+.heading-secondary {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-section);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: var(--line-height-base);
+}
+
+.heading-tertiary {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-base);
+}
+
+.heading-quaternary {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-section);
+  margin: 0 0 var(--spacing-xs) 0;
+  line-height: var(--line-height-base);
+}
+
+/* Body Text */
+.text-body {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text);
+  line-height: var(--line-height-base);
+}
+
+.text-small {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-base);
+}
+
+.text-xsmall {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-light);
+  line-height: var(--line-height-base);
+}
+
+/* Code and Monospace */
+.code-inline {
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: var(--border-radius-xs);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+}
+
+.code-block {
+  background-color: #12121212;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+  overflow-x: auto;
+}
+
+/* Timestamps and Metadata */
+.timestamp {
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-normal);
+  font-family: var(--font-family-mono);
+}
+
+.metadata {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  font-weight: var(--font-weight-normal);
+  margin-top: 2px;
+}
+
+/* Component Headers */
+.header-base {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  color: var(--color-text);
+}
+
+.header-large {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.header-medium {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.header-small {
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Message Type Headers */
+.message-header {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+/* Labels and Tags */
+.label-base {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-lg);
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.label-primary {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.label-secondary {
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary);
+}
+
+.label-muted {
+  background-color: var(--color-surface-disabled);
+  color: var(--color-text-muted);
+}
+
+/* Link Styles */
+.link-base {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
+}
+
+.link-base:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.link-base:visited {
+  color: var(--color-text-muted);
+}
+
+/* Session Link Styles */
+.session-link {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
+  text-decoration: none;
+  color: var(--color-text-section);
+  transition: background-color var(--transition-fast);
+  display: block;
+}
+
+.session-link:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.session-link-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  margin-bottom: 2px;
+}
+
+.session-link-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-top: 2px;
+}
+
+/* Special Text Styles */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.text-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Font Weight Utilities */
+.font-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  .heading-primary {
+    font-size: var(--font-size-xl);
+  }
+  
+  .heading-secondary {
+    font-size: var(--font-size-lg);
+  }
+  
+  .session-link-title {
+    font-size: var(--font-size-base);
+  }
+  
+  .session-link-meta {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Dark Mode Typography Adjustments */
+@media (prefers-color-scheme: dark) {
+  .code-inline {
+    background-color: #333333;
+    color: var(--color-text);
+  }
+  
+  .code-block {
+    background-color: #1a1a1a;
+    color: var(--color-text);
+  }
+}
+
+/* High Contrast Typography */
+@media (prefers-contrast: high) {
+  .code-inline,
+  .code-block {
+    border: 1px solid var(--color-border-dark);
+  }
+  
+  .link-base {
+    text-decoration: underline;
+  }
+}
+
+/* Print Typography */
+@media print {
+  .heading-primary,
+  .heading-secondary,
+  .heading-tertiary,
+  .heading-quaternary {
+    color: #000;
+  }
+  
+  .text-body,
+  .text-small,
+  .text-xsmall {
+    color: #000;
+  }
+  
+  .link-base {
+    color: #000;
+    text-decoration: underline;
+  }
+}

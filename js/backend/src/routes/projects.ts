@@ -110,7 +110,7 @@ router.get('/', async (req: Request, res: Response) => {
       path.join(process.env.HOME || '/', 'Library', 'Application Support', 'claude-code')
     ];
     
-    let allSessions: ISession[] = [];
+    const allSessions: ISession[] = [];
     
     for (const searchPath of searchPaths) {
       if (fs.existsSync(searchPath)) {
@@ -184,7 +184,7 @@ router.get('/by-path/:encodedPath', async (req: Request, res: Response) => {
       path.join(process.env.HOME || '/', 'Library', 'Application Support', 'claude-code')
     ];
     
-    let allSessions: ISession[] = [];
+    const allSessions: ISession[] = [];
     
     for (const searchPath of searchPaths) {
       if (fs.existsSync(searchPath)) {

@@ -214,5 +214,5 @@ export function validateToolInput(tool: AnthropicTool, input: Record<string, any
   
   // Basic validation - check that all required fields are present
   const requiredFields = schema.required;
-  return requiredFields.every((field: string) => input.hasOwnProperty(field));
+  return requiredFields.every((field: string) => Object.prototype.hasOwnProperty.call(input, field));
 }

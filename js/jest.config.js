@@ -1,12 +1,12 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   
   // Roots for test discovery
   roots: [
     '<rootDir>/backend/src',
-    '<rootDir>/frontend/src', 
+    '<rootDir>/frontend/', 
     '<rootDir>/shared/src'
   ],
   
@@ -20,7 +20,19 @@ module.exports = {
   moduleNameMapper: {
     '^@shared$': '<rootDir>/shared/src/index',
     '^@shared/(.*)$': '<rootDir>/shared/src/$1',
-    '^@shared/types$': '<rootDir>/shared/types'
+    '^@shared/types$': '<rootDir>/shared/types',
+    // Map all .js imports in shared schemas to .ts files
+    '^../../../../shared/src/schemas/index\\.js$': '<rootDir>/shared/src/schemas/index.ts',
+    '^../../src/components/(.*)$': '<rootDir>/frontend/src/components/$1',
+    '^../../src/styles/(.*)$': '<rootDir>/frontend/src/styles/$1',
+    // Map specific frontend component .js imports to .ts files
+    '^../../src/components/(.*)\\.js$': '<rootDir>/frontend/src/components/$1.ts',
+    '^../base/(.*)\\.js$': '<rootDir>/frontend/src/components/base/$1.ts',
+    // Mock @open-wc/testing for compatibility
+    '@open-wc/testing': '<rootDir>/frontend/__tests__/__mocks__/@open-wc-testing-mock.js',
+    // Handle CSS imports for Lit components
+    '\\.css\\?inline$': 'identity-obj-proxy',
+    '\\.css$': 'identity-obj-proxy'
   },
   
   // TypeScript transformation
@@ -29,18 +41,23 @@ module.exports = {
       tsconfig: {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        allowJs: true,
         moduleResolution: 'node',
+        module: 'commonjs',
         baseUrl: '.',
         paths: {
           '@shared': ['<rootDir>/shared/src/index'],
           '@shared/*': ['<rootDir>/shared/src/*'],
           '@shared/types': ['<rootDir>/shared/types']
         }
-      },
-      isolatedModules: true,
-      useESM: false
+      }
     }]
   },
+  
+  // Setup files for different test environments
+  setupFilesAfterEnv: [
+    '<rootDir>/jest.setup.js'
+  ],
   
   // Coverage configuration
   collectCoverageFrom: [
@@ -49,21 +66,31 @@ module.exports = {
     'frontend/src/**/*.ts',
     '!**/*.d.ts',
     '!**/node_modules/**',
-    '!**/dist/**'
+    '!**/dist/**',
+    '!frontend/src/styles/**/*.css'
   ],
   
   // Coverage thresholds
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 50,
-      lines: 50,
-      statements: 50
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60
+    },
+    'frontend/src/components/**/*.ts': {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
     }
   },
   
-  // Test environment setup
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // Test environment configuration for frontend tests
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons'],
+    url: 'http://localhost'
+  },
   
   // Clear mocks between tests
   clearMocks: true,
@@ -81,5 +108,17 @@ module.exports = {
   cacheDirectory: '<rootDir>/node_modules/.cache/jest',
   
   // Verbose output
-  verbose: true
+  verbose: true,
+  
+  // Handle ES modules properly - disabled for CommonJS compatibility
+  // extensionsToTreatAsEsm: ['.ts'],
+  
+  // Transform ignored patterns - allow ES modules for web testing libraries
+  transformIgnorePatterns: [
+    'node_modules/(?!(lit|@lit|@lit-labs|lit-html|lit-element|@open-wc|@esm-bundle|@web|chai)/)'
+  ],
+  
+  // Global setup for web components
+  globalSetup: undefined,
+  globalTeardown: undefined
 };

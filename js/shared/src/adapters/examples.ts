@@ -9,8 +9,7 @@ import {
 import {
   AnthropicMessageCreateParams,
   AnthropicMessage,
-  AnthropicTool,
-  AnthropicToolChoice
+  AnthropicTool
 } from './types';
 
 import {

@@ -1,6 +1,6 @@
-import request from 'supertest';
+const request = require('supertest');
 import app from '../../app';
-import fs from 'fs';
+const fs = require('fs');
 import { IApiResponse } from '../../../../shared/src';
 
 // Mock fs module
@@ -45,11 +45,21 @@ describe('Projects API Routes', () => {
     // Mock fs.existsSync to return true for test paths
     mockFs.existsSync.mockReturnValue(true);
     
-    // Mock fs.readdirSync for directory traversal
-    mockFs.readdirSync.mockReturnValue([
-      { name: 'test.jsonl', isDirectory: () => false } as any,
-      { name: 'subdir', isDirectory: () => true } as any
-    ]);
+    // Mock fs.realpathSync to return the same path (no symbolic links)
+    mockFs.realpathSync.mockImplementation((path) => path as string);
+    
+    // Mock fs.readdirSync for directory traversal - return different results based on path
+    mockFs.readdirSync.mockImplementation((dirPath: string) => {
+      // For the main directory, return a jsonl file
+      if (dirPath.endsWith('subdir')) {
+        // For subdirectories, return empty to prevent infinite recursion
+        return [];
+      }
+      // For root directories, return a jsonl file
+      return [
+        { name: 'test.jsonl', isDirectory: () => false, isSymbolicLink: () => false } as any
+      ];
+    });
     
     // Mock fs.readFileSync for JSONL content
     const jsonlContent = testProjectData

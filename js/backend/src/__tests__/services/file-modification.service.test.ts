@@ -1,14 +1,14 @@
 import { FileModificationService } from '../../services/file-modification.service';
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
+import * as path from 'path';
 
 // Mock dependencies
 jest.mock('fs/promises');
 jest.mock('fs');
 
-const mockFs = fs as jest.Mocked<typeof fs>;
-const mockFsSync = fsSync as jest.Mocked<typeof fsSync>;
+const mockFs = jest.mocked(fs);
+const mockFsSync = jest.mocked(fsSync);
 
 describe('FileModificationService', () => {
   let service: FileModificationService;
@@ -38,7 +38,7 @@ describe('FileModificationService', () => {
         mtime: new Date('2023-01-01T10:00:00Z')
       };
 
-      mockFs.stat = jest.fn().mockResolvedValue(mockStats);
+      mockFs.stat.mockResolvedValue(mockStats as any);
 
       const result = await service.trackFile(filePath);
 
@@ -51,7 +51,7 @@ describe('FileModificationService', () => {
     it('should handle non-existent files', async () => {
       const filePath = '/test/missing.jsonl';
 
-      mockFs.stat = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.stat.mockRejectedValue(new Error('File not found'));
 
       const result = await service.trackFile(filePath);
 
@@ -65,7 +65,7 @@ describe('FileModificationService', () => {
       const eventSpy = jest.fn();
 
       service.on('fileModificationEvent', eventSpy);
-      mockFs.stat = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.stat.mockRejectedValue(new Error('File not found'));
 
       await service.trackFile(filePath);
 
@@ -91,8 +91,8 @@ describe('FileModificationService', () => {
         mtime: new Date('2023-01-01T10:00:00Z')
       };
 
-      mockFs.readdir = jest.fn().mockResolvedValue(mockEntries as any);
-      mockFs.stat = jest.fn().mockResolvedValue(mockStats);
+      mockFs.readdir.mockResolvedValue(mockEntries as any);
+      mockFs.stat.mockResolvedValue(mockStats as any);
 
       const options = { recursive: false, pattern: /\.jsonl$/ };
       const files = await service.trackDirectory(dirPath, options);
@@ -114,8 +114,8 @@ describe('FileModificationService', () => {
         mtime: new Date('2023-01-01T10:00:00Z')
       };
 
-      mockFs.readdir = jest.fn().mockResolvedValue(mockEntries as any);
-      mockFs.stat = jest.fn().mockResolvedValue(mockStats);
+      mockFs.readdir.mockResolvedValue(mockEntries as any);
+      mockFs.stat.mockResolvedValue(mockStats as any);
 
       const options = {
         recursive: false,
@@ -142,10 +142,10 @@ describe('FileModificationService', () => {
         mtime: new Date('2023-01-01T10:00:00Z')
       };
 
-      mockFs.readdir = jest.fn()
+      mockFs.readdir
         .mockResolvedValueOnce(rootEntries as any)
         .mockResolvedValueOnce(subEntries as any);
-      mockFs.stat = jest.fn().mockResolvedValue(mockStats);
+      mockFs.stat.mockResolvedValue(mockStats as any);
 
       const options = { recursive: true, pattern: /\.jsonl$/ };
       const files = await service.trackDirectory(dirPath, options);
@@ -169,11 +169,11 @@ describe('FileModificationService', () => {
       };
 
       // First call - track the file
-      mockFs.stat = jest.fn().mockResolvedValueOnce(oldStats);
+      mockFs.stat.mockResolvedValueOnce(oldStats as any);
       await service.trackFile(filePath);
 
       // Second call - file has changed
-      mockFs.stat = jest.fn().mockResolvedValueOnce(newStats);
+      mockFs.stat.mockResolvedValueOnce(newStats as any);
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(true);
@@ -188,7 +188,7 @@ describe('FileModificationService', () => {
         mtime: new Date('2023-01-01T10:00:00Z')
       };
 
-      mockFs.stat = jest.fn().mockResolvedValue(newStats);
+      mockFs.stat.mockResolvedValue(newStats as any);
 
       const result = await service.checkFileModification(filePath);
 
@@ -204,11 +204,11 @@ describe('FileModificationService', () => {
       };
 
       // First call - track the file
-      mockFs.stat = jest.fn().mockResolvedValueOnce(oldStats);
+      mockFs.stat.mockResolvedValueOnce(oldStats as any);
       await service.trackFile(filePath);
 
       // Second call - file no longer exists
-      mockFs.stat = jest.fn().mockRejectedValueOnce(new Error('File not found'));
+      mockFs.stat.mockRejectedValueOnce(new Error('File not found'));
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(true);
@@ -223,7 +223,7 @@ describe('FileModificationService', () => {
       };
 
       // Track the file twice with same stats
-      mockFs.stat = jest.fn().mockResolvedValue(stats);
+      mockFs.stat.mockResolvedValue(stats as any);
       await service.trackFile(filePath);
 
       const result = await service.checkFileModification(filePath);
@@ -247,11 +247,11 @@ describe('FileModificationService', () => {
       service.on('fileModificationEvent', eventSpy);
 
       // Track the file
-      mockFs.stat = jest.fn().mockResolvedValueOnce(oldStats);
+      mockFs.stat.mockResolvedValueOnce(oldStats as any);
       await service.trackFile(filePath);
 
       // Modify the file
-      mockFs.stat = jest.fn().mockResolvedValueOnce(newStats);
+      mockFs.stat.mockResolvedValueOnce(newStats as any);
       await service.checkFileModification(filePath);
 
       expect(eventSpy).toHaveBeenCalledWith(
@@ -271,10 +271,10 @@ describe('FileModificationService', () => {
       const stats3 = { size: 512, mtime: new Date('2023-01-01T12:00:00Z') };
 
       // Track files first
-      mockFs.stat = jest.fn()
-        .mockResolvedValueOnce(stats1)
-        .mockResolvedValueOnce(stats2)
-        .mockResolvedValueOnce(stats3);
+      mockFs.stat
+        .mockResolvedValueOnce(stats1 as any)
+        .mockResolvedValueOnce(stats2 as any)
+        .mockResolvedValueOnce(stats3 as any);
 
       for (const filePath of filePaths) {
         await service.trackFile(filePath);
@@ -282,10 +282,10 @@ describe('FileModificationService', () => {
 
       // Modify file2
       const newStats2 = { size: 4096, mtime: new Date('2023-01-01T13:00:00Z') };
-      mockFs.stat = jest.fn()
-        .mockResolvedValueOnce(stats1) // file1 unchanged
-        .mockResolvedValueOnce(newStats2) // file2 changed
-        .mockResolvedValueOnce(stats3); // file3 unchanged
+      mockFs.stat
+        .mockResolvedValueOnce(stats1 as any) // file1 unchanged
+        .mockResolvedValueOnce(newStats2 as any) // file2 changed
+        .mockResolvedValueOnce(stats3 as any); // file3 unchanged
 
       const result = await service.batchCheckFiles(filePaths);
 
@@ -299,17 +299,15 @@ describe('FileModificationService', () => {
       const filePaths = ['/test/file1.jsonl', '/test/error.jsonl'];
       const stats1 = { size: 1024, mtime: new Date('2023-01-01T10:00:00Z') };
 
-      // Track files first
-      mockFs.stat = jest.fn()
-        .mockResolvedValueOnce(stats1)
-        .mockRejectedValueOnce(new Error('Permission denied'));
-
+      // Track first file successfully
+      mockFs.stat.mockResolvedValueOnce(stats1 as any);
       await service.trackFile(filePaths[0]);
 
-      // Batch check with one error
-      mockFs.stat = jest.fn()
-        .mockResolvedValueOnce(stats1)
-        .mockRejectedValueOnce(new Error('Permission denied'));
+      // Reset mock and set up for batch check
+      mockFs.stat.mockReset();
+      mockFs.stat
+        .mockResolvedValueOnce(stats1 as any) // For file1.jsonl - should be unchanged (same stats)
+        .mockRejectedValueOnce(new Error('Permission denied')); // For error.jsonl
 
       const result = await service.batchCheckFiles(filePaths);
 
@@ -324,7 +322,7 @@ describe('FileModificationService', () => {
 
       service.on('fileModificationEvent', eventSpy);
 
-      mockFs.stat = jest.fn().mockResolvedValue(stats);
+      mockFs.stat.mockResolvedValue(stats as any);
       await service.trackFile(filePaths[0]);
 
       const result = await service.batchCheckFiles(filePaths);
@@ -345,7 +343,7 @@ describe('FileModificationService', () => {
       const stats2 = { size: 2048, mtime: { getTime: () => 1640995300000 } };
 
       // Mock sync stats
-      (mockFsSync.statSync as jest.Mock) = jest.fn()
+      mockFsSync.statSync
         .mockReturnValueOnce(stats1 as any)
         .mockReturnValueOnce(stats2 as any);
 
@@ -360,7 +358,7 @@ describe('FileModificationService', () => {
       const filePaths = ['/test/file1.jsonl', '/test/error.jsonl'];
       const stats1 = { size: 1024, mtime: { getTime: () => 1640995200000 } };
 
-      (mockFsSync.statSync as jest.Mock) = jest.fn()
+      mockFsSync.statSync
         .mockReturnValueOnce(stats1 as any)
         .mockImplementationOnce(() => {
           throw new Error('Permission denied');

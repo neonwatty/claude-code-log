@@ -1,12 +1,12 @@
 import { CacheValidationService } from '../../services/cache-validation.service';
-import fs from 'fs/promises';
-import path from 'path';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from '../../utils/cache';
 
 // Mock dependencies
 jest.mock('fs/promises');
 
-const mockFs = fs as jest.Mocked<typeof fs>;
+const mockFs = jest.mocked(fs);
 
 describe('CacheValidationService', () => {
   let service: CacheValidationService;
@@ -72,10 +72,10 @@ describe('CacheValidationService', () => {
       const validCache = createValidCache();
       const indexPath = path.join(mockProjectPath, '.cache', CACHE_INDEX_FILENAME);
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(validCache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.readFile.mockResolvedValue(JSON.stringify(validCache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000) // Same as cached
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath);
 
@@ -85,7 +85,7 @@ describe('CacheValidationService', () => {
     });
 
     it('should detect missing cache index', async () => {
-      mockFs.access = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.access.mockRejectedValue(new Error('File not found'));
 
       const result = await service.validateCache(mockProjectPath);
 
@@ -95,8 +95,8 @@ describe('CacheValidationService', () => {
     });
 
     it('should detect invalid JSON', async () => {
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue('invalid json');
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue('invalid json');
 
       const result = await service.validateCache(mockProjectPath);
 
@@ -110,8 +110,8 @@ describe('CacheValidationService', () => {
         // Missing required fields
       };
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(invalidCache));
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(invalidCache));
 
       const result = await service.validateCache(mockProjectPath);
 
@@ -125,8 +125,8 @@ describe('CacheValidationService', () => {
         version: '0.5.0'
       };
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(oldCache));
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
 
       const result = await service.validateCache(mockProjectPath, {
         enableVersionMigration: false
@@ -140,11 +140,11 @@ describe('CacheValidationService', () => {
     it('should detect file modifications', async () => {
       const cache = createValidCache();
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(cache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995300000) // Different from cached
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath);
 
@@ -158,11 +158,11 @@ describe('CacheValidationService', () => {
 
       service.on('validationEvent', eventSpy);
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(cache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       await service.validateCache(mockProjectPath);
 
@@ -290,13 +290,13 @@ describe('CacheValidationService', () => {
 
       const indexPath = path.join(mockProjectPath, '.cache', CACHE_INDEX_FILENAME);
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(oldCache));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath, {
         enableVersionMigration: true
@@ -325,13 +325,13 @@ describe('CacheValidationService', () => {
         message_count: 5
       };
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(oldCache));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath, {
         enableVersionMigration: true
@@ -347,8 +347,8 @@ describe('CacheValidationService', () => {
         project_path: mockProjectPath
       };
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(oldCache));
-      mockFs.writeFile = jest.fn().mockRejectedValue(new Error('Write failed'));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
+      mockFs.writeFile.mockRejectedValue(new Error('Write failed'));
 
       const result = await service.validateCache(mockProjectPath, {
         enableVersionMigration: true
@@ -371,12 +371,12 @@ describe('CacheValidationService', () => {
       const eventSpy = jest.fn();
       service.on('validationEvent', eventSpy);
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(oldCache));
-      mockFs.writeFile = jest.fn().mockResolvedValue(undefined);
-      mockFs.rename = jest.fn().mockResolvedValue(undefined);
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
+      mockFs.writeFile.mockResolvedValue(undefined);
+      mockFs.rename.mockResolvedValue(undefined);
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       await service.validateCache(mockProjectPath, {
         enableVersionMigration: true
@@ -402,7 +402,7 @@ describe('CacheValidationService', () => {
         total_message_count: 0
       };
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(validCache));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(validCache));
 
       const result = await service.quickValidate(mockProjectPath);
 
@@ -410,7 +410,7 @@ describe('CacheValidationService', () => {
     });
 
     it('should return false for missing cache', async () => {
-      mockFs.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.readFile.mockRejectedValue(new Error('File not found'));
 
       const result = await service.quickValidate(mockProjectPath);
 
@@ -420,7 +420,7 @@ describe('CacheValidationService', () => {
     it('should return false for invalid structure', async () => {
       const invalidCache = { invalid: 'data' };
 
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(invalidCache));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(invalidCache));
 
       const result = await service.quickValidate(mockProjectPath);
 
@@ -433,7 +433,7 @@ describe('CacheValidationService', () => {
       const eventSpy = jest.fn();
       service.on('validationEvent', eventSpy);
 
-      mockFs.rm = jest.fn().mockResolvedValue(undefined);
+      mockFs.rm.mockResolvedValue(undefined);
 
       const result = await service.repairCache(mockProjectPath);
 
@@ -450,11 +450,18 @@ describe('CacheValidationService', () => {
     });
 
     it('should handle repair failure', async () => {
-      mockFs.rm = jest.fn().mockRejectedValue(new Error('Permission denied'));
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockFs.rm.mockRejectedValue(new Error('Permission denied'));
 
       const result = await service.repairCache(mockProjectPath);
 
       expect(result).toBe(false);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Failed to repair cache for ${mockProjectPath}:`,
+        expect.any(Error)
+      );
+      
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -468,7 +475,7 @@ describe('CacheValidationService', () => {
       };
 
       // Mock file existence checks
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(cache));
+      mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
 
       const details = await service.getValidationDetails(mockProjectPath);
 
@@ -482,8 +489,8 @@ describe('CacheValidationService', () => {
     });
 
     it('should handle non-existent cache gracefully', async () => {
-      mockFs.access = jest.fn().mockRejectedValue(new Error('File not found'));
-      mockFs.readFile = jest.fn().mockRejectedValue(new Error('File not found'));
+      mockFs.access.mockRejectedValue(new Error('File not found'));
+      mockFs.readFile.mockRejectedValue(new Error('File not found'));
 
       const details = await service.getValidationDetails(mockProjectPath);
 
@@ -507,11 +514,11 @@ describe('CacheValidationService', () => {
         total_message_count: 0
       };
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(cache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath, {
         enableChecksumValidation: true
@@ -538,11 +545,11 @@ describe('CacheValidationService', () => {
         corruptedFields: ['sessions']
       });
 
-      mockFs.access = jest.fn().mockResolvedValue(undefined); // File exists
-      mockFs.readFile = jest.fn().mockResolvedValue(JSON.stringify(cache));
-      mockFs.stat = jest.fn().mockResolvedValue({
+      mockFs.access.mockResolvedValue(undefined); // File exists
+      mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
+      mockFs.stat.mockResolvedValue({
         mtime: new Date(1640995200000)
-      });
+      } as any);
 
       const result = await service.validateCache(mockProjectPath, {
         enableChecksumValidation: true,

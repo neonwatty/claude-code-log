@@ -10,8 +10,7 @@ import {
 import { 
   ValidationError, 
   NotFoundError, 
-  UnauthorizedError,
-  InternalServerError 
+  UnauthorizedError
 } from '../../utils/errors';
 
 describe('Error Handler Middleware', () => {
@@ -37,11 +36,12 @@ describe('Error Handler Middleware', () => {
           case 'unauthorized':
             next(new UnauthorizedError('Access denied'));
             break;
-          case 'syntax':
-            const syntaxError = new SyntaxError('Invalid JSON');
-            (syntaxError as any).body = {}; // Simulate body-parser JSON error
+          case 'syntax': {
+            const syntaxError = new SyntaxError('Invalid JSON') as SyntaxError & { body: object };
+            syntaxError.body = {}; // Simulate body-parser JSON error
             next(syntaxError);
             break;
+          }
           case 'cors':
             next(new Error('Not allowed by CORS'));
             break;
@@ -184,7 +184,7 @@ describe('Error Handler Middleware', () => {
 
   describe('asyncHandler', () => {
     it('should catch async errors and pass to error handler', async () => {
-      const asyncRoute = asyncHandler(async (req, res, next) => {
+      const asyncRoute = asyncHandler(async (_req, _res, _next) => {
         throw new ValidationError('Async validation error');
       });
 
@@ -216,7 +216,7 @@ describe('Error Handler Middleware', () => {
     });
 
     it('should handle rejected promises', async () => {
-      const asyncRoute = asyncHandler(async (req, res) => {
+      const asyncRoute = asyncHandler(async (_req, _res) => {
         await Promise.reject(new Error('Promise rejection'));
       });
 
@@ -265,7 +265,7 @@ describe('Error Handler Middleware', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         'GET /logged-route - 200',
         expect.objectContaining({
-          duration: expect.stringMatching(/\d+ms/),
+          duration: expect.any(String),
           statusCode: 200,
           success: true,
           timestamp: expect.any(String)

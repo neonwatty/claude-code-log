@@ -1,0 +1,438 @@
+/* Session detail component styles - ported from Python templates */
+
+/* Session detail container */
+.session-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-background);
+  font-family: var(--font-family-mono);
+}
+
+/* Session header styles */
+.session-detail-header {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+.session-detail-title {
+  font-size: 1.2em;
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.session-detail-metadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  font-size: 0.9em;
+  color: var(--color-text-muted);
+}
+
+.session-metadata-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.session-metadata-label {
+  font-weight: 600;
+}
+
+/* Message container styles */
+.session-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-dark) transparent;
+}
+
+.session-messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.session-messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.session-messages-container::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-dark);
+  border-radius: 4px;
+}
+
+/* Message styles - matching Python template */
+.session-message {
+  margin-bottom: 1em;
+  padding: 1em;
+  border-radius: var(--border-radius-md);
+  border-left: var(--color-border-light) 1px solid;
+  background-color: var(--color-surface);
+  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+  transition: all var(--transition-fast);
+}
+
+/* Message type colors - matching Python template */
+.session-message.user {
+  border-left-color: var(--color-primary);
+}
+
+.session-message.assistant {
+  border-left-color: var(--color-secondary);
+}
+
+.session-message.system {
+  border-left-color: var(--color-warning);
+}
+
+.session-message.system-warning {
+  border-left-color: var(--color-warning);
+  background-color: #fff3e088;
+}
+
+.session-message.system-error {
+  border-left-color: var(--color-error);
+  background-color: #ffebee88;
+}
+
+.session-message.system-info {
+  border-left-color: var(--color-info);
+  background-color: #e3f2fd88;
+}
+
+.session-message.tool_use {
+  border-left-color: var(--color-tool-use);
+}
+
+.session-message.tool_result {
+  border-left-color: var(--color-tool-result);
+}
+
+.session-message.thinking {
+  border-left-color: var(--color-thinking);
+}
+
+.session-message.image {
+  border-left-color: var(--color-image);
+}
+
+/* Sidechain message styling - matching Python template */
+.session-message.sidechain {
+  opacity: 0.85;
+  background-color: var(--color-surface-hover);
+  border-left-width: 2px;
+  border-left-style: dashed;
+}
+
+.sidechain-message-indicator {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  margin-bottom: 5px;
+  padding: 2px 6px;
+  background-color: var(--color-surface-active);
+  border-radius: var(--border-radius-sm);
+  display: inline-block;
+}
+
+/* Message header */
+.session-message-header {
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.session-message-type {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.session-message-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.8em;
+  color: var(--color-text-muted);
+}
+
+/* Message content */
+.session-message-content {
+  word-wrap: break-word;
+  line-height: var(--line-height);
+}
+
+.session-message-content pre {
+  background-color: var(--color-surface-hover);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-family: var(--font-family-mono);
+  line-height: var(--line-height);
+}
+
+/* Tool content styling - matching Python template */
+.session-tool-content {
+  background-color: var(--color-surface-hover);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+  overflow-x: auto;
+  box-shadow: -4px -4px 10px var(--color-shadow-light), 4px 4px 10px var(--color-shadow-dark);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+.session-tool-result {
+  background-color: #e8f5e866;
+  border-left: var(--color-tool-result) 1px solid;
+}
+
+.session-tool-use {
+  background-color: #e3f2fd66;
+  border-left: var(--color-tool-use) 1px solid;
+}
+
+.session-tool-input {
+  background-color: #fff3cd66;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs);
+  margin: var(--spacing-xs) 0;
+  font-size: 0.9em;
+  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+/* Thinking content styling - matching Python template */
+.session-thinking-content {
+  background-color: #f0f0f066;
+  border-left: var(--color-thinking) 1px solid;
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  font-style: italic;
+  color: var(--color-text-light);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.session-thinking-text {
+  font-style: italic;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--color-text-light);
+}
+
+/* Session summary styling - matching Python template */
+.session-summary-content {
+  background-color: var(--color-surface);
+  border-left: var(--color-tool-result) 4px solid;
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+  font-style: italic;
+  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+/* Session divider - matching Python template */
+.session-detail-divider {
+  margin: 70px 0;
+  border-top: 2px solid var(--color-border-light);
+  position: relative;
+}
+
+.session-detail-divider::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--color-border-dark);
+}
+
+/* Filter toolbar - matching filter styles */
+.session-detail-filter-toolbar {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+  box-shadow: -3px -3px 6px var(--color-shadow-light), 3px 3px 6px var(--color-shadow-dark);
+  border-left: var(--color-border-light) 1px solid;
+  border-top: var(--color-border-light) 1px solid;
+  border-bottom: var(--color-border-dark) 1px solid;
+  border-right: var(--color-border-dark) 1px solid;
+}
+
+.session-detail-filter-toggle {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border-dark);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.session-detail-filter-toggle.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.session-detail-filter-toggle:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.session-detail-filter-toggle.active:hover {
+  background-color: var(--color-primary);
+  opacity: 0.9;
+}
+
+/* Token usage display */
+.session-token-usage {
+  font-size: 0.75em;
+  color: var(--color-text-muted);
+}
+
+/* Empty states */
+.session-detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+.session-detail-empty-icon {
+  font-size: 2em;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Message filtering */
+.session-message.filtered-hidden {
+  display: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .session-detail-metadata {
+    grid-template-columns: 1fr;
+  }
+  
+  .session-detail-filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .session-message-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .session-message-meta {
+    align-items: flex-start;
+  }
+
+  .session-detail-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Virtual scrolling optimizations */
+.session-messages-virtual-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.session-messages-virtual-viewport {
+  height: 100%;
+  overflow-y: auto;
+  will-change: transform;
+}
+
+.session-messages-virtual-spacer {
+  pointer-events: none;
+}
+
+/* Image content styling */
+.session-image-content {
+  margin: var(--spacing-sm) 0;
+}
+
+.session-image-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius-sm);
+  box-shadow: -3px -3px 6px var(--color-shadow-light), 3px 3px 6px var(--color-shadow-dark);
+}
+
+/* Code syntax highlighting support */
+.session-message-content code {
+  background-color: var(--color-surface-hover);
+  padding: 2px 4px;
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+}
+
+/* Collapsible details support for future expansion */
+.session-collapsible-details {
+  margin-top: -2em;
+}
+
+.session-collapsible-details summary {
+  position: relative;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.session-collapsible-details:not([open]) .preview-content {
+  margin-top: 4px;
+}
+
+.session-collapsible-details[open] .preview-content {
+  display: none;
+}
+
+.session-collapsible-details:not([open]) .details-content {
+  display: none;
+}

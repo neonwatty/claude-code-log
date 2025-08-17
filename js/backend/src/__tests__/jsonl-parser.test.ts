@@ -14,7 +14,7 @@ import {
   loadTranscript,
   findJsonlFiles,
 } from '../parsers/jsonl-parser';
-import { ITextContent, IToolUseContent } from '../../../shared/src/interfaces';
+import { ITextContent } from '../../../shared/src/interfaces';
 
 describe('JSONL Parser', () => {
   let tempDir: string;

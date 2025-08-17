@@ -1,6 +1,6 @@
 import { WebSocketManager, getWebSocketManager } from '../../websocket/server';
 import { FileMonitor } from '../../services/fileMonitor';
-import fs from 'fs';
+import * as fs from 'fs';
 import chokidar from 'chokidar';
 
 // Mock dependencies
@@ -14,7 +14,7 @@ jest.mock('../../websocket/server', () => {
   };
 });
 
-const mockFs = fs as jest.Mocked<typeof fs>;
+const mockFs = jest.mocked(fs);
 const mockChokidar = chokidar as jest.Mocked<typeof chokidar>;
 const mockGetWebSocketManager = getWebSocketManager as jest.MockedFunction<typeof getWebSocketManager>;
 
@@ -37,11 +37,11 @@ describe('FileMonitor + WebSocket Integration', () => {
     mockFs.existsSync.mockReturnValue(true);
     
     // Mock file system operations that FileMonitor uses
-    (mockFs.statSync as jest.Mock) = jest.fn().mockReturnValue({
+    mockFs.statSync.mockReturnValue({
       size: 1024,
       mtime: new Date('2023-01-01T10:00:00Z')
-    });
-    (mockFs.readFileSync as jest.Mock) = jest.fn().mockReturnValue('');
+    } as any);
+    mockFs.readFileSync.mockReturnValue('');
 
     // Create instances
     wsManager = new WebSocketManager();

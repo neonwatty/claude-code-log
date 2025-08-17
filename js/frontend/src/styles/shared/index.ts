@@ -1,54 +1,50 @@
 import { css, unsafeCSS } from 'lit';
 
 /**
- * Global CSS styles that can be imported into Lit components
- * These styles are based on the Python template styles for visual continuity
+ * Shared styles ported from Python templates
+ * These styles maintain visual consistency across all Lit components
  */
 
-// Import CSS file content as a string (will be handled by bundler)
-import globalCssText from './global.css?inline';
-
-/**
- * Global styles as a Lit CSSResult that can be imported by components
- */
-export const globalStyles = css`${unsafeCSS(globalCssText)}`;
+// Import CSS file content as strings (will be handled by bundler)
+import variablesCssText from './variables.css?inline';
+import typographyCssText from './typography.css?inline';
+import layoutCssText from './layout.css?inline';
+import utilitiesCssText from './utilities.css?inline';
 
 /**
- * Message type styles for quick application
+ * Shared styles as Lit CSSResults
  */
-export const messageTypeStyles = css`
-  .message {
-    margin-bottom: 1em;
-    padding: 1em;
-    border-radius: var(--border-radius-md);
-    border-left: var(--color-border-light) 1px solid;
-    background-color: #e3f2fd55;
-    box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
-    border-top: var(--color-border-light) 1px solid;
-    border-bottom: var(--color-border-dark) 1px solid;
-    border-right: var(--color-border-dark) 1px solid;
-  }
+export const variablesStyles = css`${unsafeCSS(variablesCssText)}`;
+export const typographyStyles = css`${unsafeCSS(typographyCssText)}`;
+export const layoutStyles = css`${unsafeCSS(layoutCssText)}`;
+export const utilitiesStyles = css`${unsafeCSS(utilitiesCssText)}`;
+
+/**
+ * Combined shared styles for easy importing
+ * Use this when you want all shared styles in a component
+ */
+export const sharedStyles = css`
+  ${variablesStyles}
+  ${typographyStyles}
+  ${layoutStyles}
+  ${utilitiesStyles}
 `;
 
 /**
- * Utility function to create message type specific styles
+ * Base styles for all components
+ * Includes variables and essential typography
  */
-export function createMessageTypeStyle(messageType: string): ReturnType<typeof css> {
-  const colorMap: Record<string, string> = {
-    user: 'var(--message-user-color)',
-    assistant: 'var(--message-assistant-color)',
-    system: 'var(--message-system-color)',
-    'tool-use': 'var(--message-tool-use-color)',
-    'tool-result': 'var(--message-tool-result-color)',
-    thinking: 'var(--message-thinking-color)',
-    image: 'var(--message-image-color)',
-  };
+export const baseStyles = css`
+  ${variablesStyles}
+  ${typographyStyles}
+`;
 
-  const color = colorMap[messageType] || 'var(--color-primary)';
-  
-  return css`
-    :host([message-type="${unsafeCSS(messageType)}"]) {
-      border-left-color: ${unsafeCSS(color)};
-    }
-  `;
-}
+/**
+ * Export individual styles for selective use
+ */
+export {
+  variablesStyles as variables,
+  typographyStyles as typography,
+  layoutStyles as layout,
+  utilitiesStyles as utilities
+};
