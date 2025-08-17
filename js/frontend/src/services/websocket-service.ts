@@ -24,7 +24,7 @@ import {
  * Default configuration values
  */
 const DEFAULT_CONFIG: Partial<IWebSocketConfig> = {
-  reconnectInterval: 3000,
+  reconnectInterval: 1000, // Start at 1 second as specified in task
   maxReconnectAttempts: 10,
   heartbeatInterval: 30000,
   connectionTimeout: 10000,
@@ -47,10 +47,18 @@ export class WebSocketService {
   private reconnectTimer: number | null = null;
   private heartbeatTimer: number | null = null;
   private connectionTimer: number | null = null;
+  private healthCheckTimer: number | null = null;
   
   private clientId: string | null = null;
   private messageQueue: WebSocketEventMessage[] = [];
   private isIntentionalDisconnect = false;
+  
+  // Enhanced reconnection state
+  private lastConnectTime: number | null = null;
+  private lastDisconnectTime: number | null = null;
+  private lastPongReceived: number | null = null;
+  private connectionHealthy = true;
+  private consecutiveFailures = 0;
 
   /**
    * Private constructor for singleton pattern
@@ -185,6 +193,43 @@ export class WebSocketService {
   }
 
   /**
+   * Get reconnection state information
+   */
+  public getReconnectionInfo(): {
+    attempt: number;
+    maxAttempts: number;
+    consecutiveFailures: number;
+    isReconnecting: boolean;
+    connectionHealthy: boolean;
+    lastConnectTime: number | null;
+    lastDisconnectTime: number | null;
+  } {
+    return {
+      attempt: this.reconnectAttempt,
+      maxAttempts: this.config.maxReconnectAttempts || 10,
+      consecutiveFailures: this.consecutiveFailures,
+      isReconnecting: this.connectionState === WebSocketConnectionState.RECONNECTING,
+      connectionHealthy: this.connectionHealthy,
+      lastConnectTime: this.lastConnectTime,
+      lastDisconnectTime: this.lastDisconnectTime
+    };
+  }
+
+  /**
+   * Force a reconnection attempt (useful for manual retry)
+   */
+  public forceReconnect(): void {
+    if (this.isConnected()) {
+      this.log('Force reconnect requested - closing current connection');
+      this.socket?.close(1000, 'Force reconnect');
+    } else if (this.connectionState !== WebSocketConnectionState.CONNECTING) {
+      this.log('Force reconnect requested - attempting connection');
+      this.reconnectAttempt = 0; // Reset attempts for manual retry
+      this.connect();
+    }
+  }
+
+  /**
    * Create WebSocket connection
    */
   private createConnection(): void {
@@ -226,9 +271,13 @@ export class WebSocketService {
     
     this.clearConnectionTimeout();
     this.reconnectAttempt = 0;
+    this.consecutiveFailures = 0;
+    this.lastConnectTime = Date.now();
+    this.connectionHealthy = true;
     this.updateConnectionState(WebSocketConnectionState.CONNECTED);
     
     this.startHeartbeat();
+    this.startConnectionHealthCheck();
     this.flushMessageQueue();
     
     this.eventEmitter.emit('connection:open', event);
@@ -240,15 +289,20 @@ export class WebSocketService {
   private handleClose(event: CloseEvent): void {
     this.log(`Connection closed - Code: ${event.code}, Reason: ${event.reason}`);
     
+    this.lastDisconnectTime = Date.now();
     this.cleanup();
     this.updateConnectionState(WebSocketConnectionState.DISCONNECTED);
+    
+    // Classify disconnection type for different reconnection strategies
+    const disconnectionType = this.classifyDisconnection(event);
+    this.log(`Disconnection type: ${disconnectionType}`);
     
     this.eventEmitter.emit('connection:close', event);
     
     // Attempt reconnection if not intentional disconnect
     if (!this.isIntentionalDisconnect && 
         this.reconnectAttempt < (this.config.maxReconnectAttempts || 10)) {
-      this.scheduleReconnect();
+      this.scheduleReconnect(disconnectionType);
     }
   }
 
@@ -331,6 +385,13 @@ export class WebSocketService {
       case WebSocketMessageType.HEARTBEAT:
         // Respond with PONG
         this.sendPong();
+        break;
+        
+      case WebSocketMessageType.PONG:
+        // Track pong responses for connection health
+        this.lastPongReceived = Date.now();
+        this.connectionHealthy = true;
+        this.log('Received pong - connection healthy');
         break;
 
       case WebSocketMessageType.SESSION_CREATED:
@@ -429,23 +490,33 @@ export class WebSocketService {
   }
 
   /**
-   * Schedule reconnection attempt
+   * Schedule reconnection attempt with exponential backoff and jitter
    */
-  private scheduleReconnect(): void {
+  private scheduleReconnect(disconnectionType: string = 'unknown'): void {
     if (this.reconnectTimer) return;
     
     this.reconnectAttempt++;
-    const delay = Math.min(
-      this.config.reconnectInterval! * Math.pow(1.5, this.reconnectAttempt - 1),
-      30000 // Max 30 seconds
+    this.consecutiveFailures++;
+    
+    // Exponential backoff: start at 1 second, double each time, max 30 seconds
+    const baseDelay = this.config.reconnectInterval || 1000;
+    const exponentialDelay = Math.min(
+      baseDelay * Math.pow(2, this.reconnectAttempt - 1),
+      30000 // Max 30 seconds as specified in task
     );
     
-    this.log(`Scheduling reconnection attempt ${this.reconnectAttempt} in ${delay}ms`);
+    // Add jitter (0-50% of delay) to prevent thundering herd
+    const jitter = Math.random() * 0.5 * exponentialDelay;
+    const delay = Math.floor(exponentialDelay + jitter);
+    
+    this.log(`Scheduling reconnection attempt ${this.reconnectAttempt}/${this.config.maxReconnectAttempts} in ${delay}ms (type: ${disconnectionType})`);
     
     this.updateConnectionState(WebSocketConnectionState.RECONNECTING);
     this.eventEmitter.emit('connection:reconnecting', {
       attempt: this.reconnectAttempt,
-      maxAttempts: this.config.maxReconnectAttempts!
+      maxAttempts: this.config.maxReconnectAttempts!,
+      delay: delay,
+      disconnectionType: disconnectionType
     });
     
     this.reconnectTimer = window.setTimeout(() => {
@@ -483,6 +554,7 @@ export class WebSocketService {
    * Handle connection error
    */
   private handleConnectionError(error: Error): void {
+    this.lastDisconnectTime = Date.now();
     this.cleanup();
     
     // Connection timeouts should result in disconnected state, not error
@@ -493,9 +565,9 @@ export class WebSocketService {
     }
     
     if (!this.isIntentionalDisconnect && 
-        !error.message.includes('timeout') &&
         this.reconnectAttempt < (this.config.maxReconnectAttempts || 10)) {
-      this.scheduleReconnect();
+      const errorType = error.message.includes('timeout') ? 'timeout' : 'error';
+      this.scheduleReconnect(errorType);
     }
   }
 
@@ -530,10 +602,88 @@ export class WebSocketService {
   }
 
   /**
+   * Classify disconnection type for reconnection strategy
+   */
+  private classifyDisconnection(event: CloseEvent): string {
+    // Standard WebSocket close codes
+    switch (event.code) {
+      case 1000: // Normal closure
+        return 'normal';
+      case 1001: // Going away
+        return 'going_away';
+      case 1006: // Abnormal closure (no close frame)
+        return 'abnormal';
+      case 1008: // Policy violation
+        return 'policy_violation';
+      case 1009: // Message too big
+        return 'message_too_big';
+      case 1011: // Server error
+        return 'server_error';
+      case 1012: // Service restart
+        return 'service_restart';
+      case 1013: // Try again later
+        return 'try_again_later';
+      case 1015: // TLS handshake failure
+        return 'tls_failure';
+      default:
+        // Classify based on connection duration
+        if (this.lastConnectTime && this.lastDisconnectTime) {
+          const connectionDuration = this.lastDisconnectTime - this.lastConnectTime;
+          if (connectionDuration < 5000) {
+            return 'quick_disconnect';
+          } else if (connectionDuration > 300000) { // 5 minutes
+            return 'idle_timeout';
+          }
+        }
+        return 'unknown';
+    }
+  }
+
+  /**
+   * Start connection health check with periodic ping
+   */
+  private startConnectionHealthCheck(): void {
+    this.stopConnectionHealthCheck();
+    
+    // Check connection health every 60 seconds
+    this.healthCheckTimer = window.setInterval(() => {
+      if (this.isConnected()) {
+        const now = Date.now();
+        const timeSinceLastPong = this.lastPongReceived ? now - this.lastPongReceived : Infinity;
+        
+        // If no pong received in 90 seconds, consider connection unhealthy
+        if (timeSinceLastPong > 90000) {
+          this.connectionHealthy = false;
+          this.log('Connection health check failed - no pong received', 'warn');
+          
+          // Force reconnection if connection seems dead
+          if (this.socket) {
+            this.socket.close(1006, 'Health check failed');
+          }
+        } else {
+          // Send a ping to check if connection is alive
+          this.sendHeartbeat();
+        }
+      }
+    }, 60000); // Every 60 seconds
+  }
+
+  /**
+   * Stop connection health check
+   */
+  private stopConnectionHealthCheck(): void {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = null;
+    }
+  }
+
+  /**
    * Cleanup timers and resources
    */
   private cleanup(): void {
     this.stopHeartbeat();
+    this.stopConnectionHealthCheck();
     this.clearConnectionTimeout();
     
     if (this.reconnectTimer) {

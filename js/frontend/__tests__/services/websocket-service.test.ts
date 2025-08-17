@@ -210,7 +210,8 @@ describe('WebSocketService', () => {
       jest.advanceTimersByTime(5000);
       
       expect(mockWebSocket.close).toHaveBeenCalled();
-      expect(service.getConnectionState()).toBe(WebSocketConnectionState.DISCONNECTED);
+      // With enhanced reconnection logic, it should be in RECONNECTING state after timeout
+      expect(service.getConnectionState()).toBe(WebSocketConnectionState.RECONNECTING);
     });
 
     it('should handle disconnection', () => {

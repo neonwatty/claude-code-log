@@ -149,7 +149,12 @@ export interface IWebSocketEventMap {
   'connection:open': Event;
   'connection:close': CloseEvent;
   'connection:error': Event;
-  'connection:reconnecting': { attempt: number; maxAttempts: number };
+  'connection:reconnecting': { 
+    attempt: number; 
+    maxAttempts: number; 
+    delay?: number; 
+    disconnectionType?: string; 
+  };
   
   // Message events
   'message': WebSocketEventMessage;
