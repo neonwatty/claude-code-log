@@ -81,6 +81,28 @@ describe('Services Module Exports', () => {
     expect(service.getConnectionState()).toBeDefined();
   });
 
+  it('should export ConnectionManager class and factory function', async () => {
+    const { ConnectionManager, getConnectionManager } = await import('../../src/services/index');
+    
+    expect(ConnectionManager).toBeDefined();
+    expect(typeof ConnectionManager).toBe('function');
+    expect(ConnectionManager.name).toBe('ConnectionManager');
+    
+    expect(getConnectionManager).toBeDefined();
+    expect(typeof getConnectionManager).toBe('function');
+  });
+
+  it('should export AccessibilityService class and factory function', async () => {
+    const { AccessibilityService, getAccessibilityService } = await import('../../src/services/index');
+    
+    expect(AccessibilityService).toBeDefined();
+    expect(typeof AccessibilityService).toBe('function');
+    expect(AccessibilityService.name).toBe('AccessibilityService');
+    
+    expect(getAccessibilityService).toBeDefined();
+    expect(typeof getAccessibilityService).toBe('function');
+  });
+
   it('should maintain module structure integrity', async () => {
     const module = await import('../../src/services/index');
     const exportedKeys = Object.keys(module);
@@ -88,8 +110,12 @@ describe('Services Module Exports', () => {
     // Verify expected exports are present
     expect(exportedKeys).toContain('WebSocketService');
     expect(exportedKeys).toContain('getWebSocketService');
+    expect(exportedKeys).toContain('ConnectionManager');
+    expect(exportedKeys).toContain('getConnectionManager');
+    expect(exportedKeys).toContain('AccessibilityService');
+    expect(exportedKeys).toContain('getAccessibilityService');
     
-    // Verify no unexpected exports
-    expect(exportedKeys).toHaveLength(2);
+    // Verify expected number of exports (6 total)
+    expect(exportedKeys).toHaveLength(6);
   });
 });

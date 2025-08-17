@@ -13,6 +13,10 @@ export * from './message-card/index.js';
 export * from './filter-bar/index.js';
 export * from './timeline/index.js';
 
+// Connection and notification components
+export * from './connection-status/index.js';
+export * from './toast-notifications/index.js';
+
 /**
  * Component registration function
  * Call this to register all custom elements
