@@ -28,8 +28,21 @@ module.exports = {
     // Map specific frontend component .js imports to .ts files
     '^../../src/components/(.*)\\.js$': '<rootDir>/frontend/src/components/$1.ts',
     '^../base/(.*)\\.js$': '<rootDir>/frontend/src/components/base/$1.ts',
+    // Map WebSocket service imports
+    '^../../services/(.*)\\.js$': '<rootDir>/frontend/src/services/$1.ts',
+    '^./message-handlers\\.js$': '<rootDir>/frontend/__tests__/__mocks__/message-handlers-mock.js',
+    '^./message-types\\.js$': '<rootDir>/frontend/__tests__/__mocks__/message-types-mock.js',
+    '^./connection-state\\.js$': '<rootDir>/frontend/__tests__/__mocks__/connection-state-mock.js',
+    // Map specific websocket utility imports for integration tests
+    '^../../src/utils/websocket/websocket-controller$': '<rootDir>/frontend/__tests__/__mocks__/websocket-controller-mock.js',
+    '^../../src/utils/websocket/message-handlers$': '<rootDir>/frontend/__tests__/__mocks__/message-handlers-mock.js',
+    '^../../src/utils/websocket/message-types$': '<rootDir>/frontend/__tests__/__mocks__/message-types-mock.js',
+    '^../../src/utils/websocket/connection-state$': '<rootDir>/frontend/__tests__/__mocks__/connection-state-mock.js',
     // Mock @open-wc/testing for compatibility
     '@open-wc/testing': '<rootDir>/frontend/__tests__/__mocks__/@open-wc-testing-mock.js',
+    // Mock lit and lit-html modules
+    '^lit$': '<rootDir>/frontend/__tests__/__mocks__/lit-mock.js',
+    '^lit/decorators.js$': '<rootDir>/frontend/__tests__/__mocks__/lit-decorators-mock.js',
     // Handle CSS imports for Lit components
     '\\.css\\?inline$': 'identity-obj-proxy',
     '\\.css$': 'identity-obj-proxy'

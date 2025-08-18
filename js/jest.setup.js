@@ -78,6 +78,7 @@ const originalExpect = global.expect;
 const originalObjectContaining = originalExpect.objectContaining;
 const originalStringContaining = originalExpect.stringContaining;
 const originalAny = originalExpect.any;
+const originalAnything = originalExpect.anything;
 
 // Mock the Chai-style expect with jest-compatible methods
 global.expect = function(actual) {
@@ -135,3 +136,4 @@ global.expect = function(actual) {
 global.expect.objectContaining = originalObjectContaining;
 global.expect.stringContaining = originalStringContaining;
 global.expect.any = originalAny;
+global.expect.anything = originalAnything;

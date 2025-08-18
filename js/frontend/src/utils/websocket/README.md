@@ -160,9 +160,64 @@ try {
 
 ## Frontend Usage
 
-### Message Handling
+### Lit Component Integration
 
-Use the provided utilities for type-safe message handling:
+For Lit components, use the `WebSocketController` for reactive property updates:
+
+```typescript
+import { WebSocketController } from './utils/websocket/websocket-controller';
+import { BaseComponent } from '../components/base/base-component';
+
+@customElement('my-component')
+export class MyComponent extends BaseComponent {
+  @property({ type: Array })
+  sessions: SessionData[] = [];
+
+  private webSocketController: WebSocketController;
+
+  constructor() {
+    super();
+    this.webSocketController = new WebSocketController(this, undefined, {
+      debug: true,
+      debounceMs: 250,
+      optimisticUpdates: true
+    });
+    
+    // Subscribe to session updates
+    this.webSocketController.onSessionCreated((session) => {
+      this.sessions = [...this.sessions, session];
+    });
+  }
+}
+```
+
+### HOC Pattern Usage
+
+Use the Higher Order Component pattern for simpler integration:
+
+```typescript
+import { withWebSocket } from './utils/websocket/websocket-controller';
+
+const WebSocketEnabledComponent = withWebSocket(BaseComponent, {
+  debug: true,
+  optimisticUpdates: true
+});
+
+@customElement('enhanced-component')
+export class EnhancedComponent extends WebSocketEnabledComponent {
+  // Automatic WebSocket integration with this.webSocketController
+  
+  protected override firstUpdated() {
+    this.webSocketController.onSessionCreated((session) => {
+      this.updateFromWebSocket('sessions', [...this.sessions, session]);
+    });
+  }
+}
+```
+
+### Manual Message Handling
+
+For custom WebSocket handling, use the message utilities:
 
 ```typescript
 import { 
@@ -194,6 +249,54 @@ websocket.onmessage = (event) => {
   }
 };
 ```
+
+### WebSocket Controller Features
+
+The `WebSocketController` provides several advanced features for Lit components:
+
+#### Optimistic Updates
+
+Perform optimistic UI updates that can be rolled back on failure:
+
+```typescript
+// Perform optimistic update
+this.webSocketController.optimisticUpdate('sessions', newSessionsArray, 5000);
+
+// Confirm the update (prevents rollback)
+this.webSocketController.confirmOptimisticUpdate('sessions');
+
+// Or let it rollback automatically after timeout
+```
+
+#### Debounced Updates
+
+Prevent UI thrashing from rapid WebSocket messages:
+
+```typescript
+const controller = new WebSocketController(this, undefined, {
+  debounceMs: 250 // Debounce updates for 250ms
+});
+```
+
+#### Connection State Monitoring
+
+Monitor WebSocket connection state in your components:
+
+```typescript
+const isConnected = this.webSocketController.isConnected();
+const connectionState = this.webSocketController.getConnectionState();
+
+// Render connection status
+html`
+  <div class="status ${isConnected ? 'connected' : 'disconnected'}">
+    ${connectionState}
+  </div>
+`;
+```
+
+#### Efficient Change Detection
+
+The controller automatically triggers Lit's reactive update cycle only when necessary, minimizing unnecessary re-renders.
 
 ### Type Guards
 
