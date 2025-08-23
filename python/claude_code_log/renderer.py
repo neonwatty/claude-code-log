@@ -7,7 +7,7 @@ from typing import List, Optional, Union, Dict, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .cache import CacheManager
-from datetime import datetime
+from datetime import datetime, timezone
 import html
 import mistune
 from jinja2 import Environment, FileSystemLoader
@@ -514,8 +514,8 @@ class TemplateProject:
             self.name, self.working_directories
         )
 
-        # Format last modified date
-        last_modified_dt = datetime.fromtimestamp(self.last_modified)
+        # Format last modified date (in UTC)
+        last_modified_dt = datetime.fromtimestamp(self.last_modified, timezone.utc)
         self.formatted_date = last_modified_dt.strftime("%Y-%m-%d %H:%M:%S")
 
         # Format interaction time range

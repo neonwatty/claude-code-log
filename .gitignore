@@ -154,3 +154,5 @@ dev-debug.log
 # Task files
 # tasks.json
 # tasks/ 
+# TFQ test failure queue database
+.tfq/

@@ -99,7 +99,7 @@ export class SessionContextService {
     // Extract key topics and intents from conversation
     const keyTopics = this.extractKeyTopics(userMessages, assistantMessages);
     const codePatterns = this.extractCodePatterns(toolUses, toolResults);
-    const projectContext = this.extractProjectContext(session);
+    const projectContext = await this.extractProjectContext(session);
     
     // Calculate session statistics
     const sessionStats = {
@@ -288,11 +288,11 @@ export class SessionContextService {
   /**
    * Extract project context information
    */
-  private extractProjectContext(session: ISession) {
+  private async extractProjectContext(session: ISession) {
     const cwd = session.cwd;
     const projectType = this.inferProjectType(cwd);
-    const mainLanguages = this.inferMainLanguages(cwd);
-    const frameworks = this.inferFrameworks(cwd);
+    const mainLanguages = await this.inferMainLanguages(cwd);
+    const frameworks = await this.inferFrameworks(cwd);
     
     return {
       projectType,
@@ -358,10 +358,11 @@ export class SessionContextService {
   }
 
   /**
-   * Identify relevant files for context
+   * Identify relevant files for context with advanced discovery
    */
   private async identifyRelevantFiles(workingDirectory: string, contextData: SessionContextData): Promise<string[]> {
     const relevantFiles: string[] = [];
+    const fileMetadata = new Map<string, { size: number; lastModified: Date }>();
     
     try {
       // Add modified files from session
@@ -375,27 +376,163 @@ export class SessionContextService {
       // Add common project files
       const commonFiles = [
         'package.json',
+        'package-lock.json',
         'tsconfig.json',
+        'vite.config.ts',
+        'vitest.config.ts',
         'README.md',
         '.gitignore',
         'CHANGELOG.md',
+        'CLAUDE.md',
+        '.env.example',
+        'docker-compose.yml',
+        'Dockerfile',
       ];
       
       for (const file of commonFiles) {
         const filePath = path.join(workingDirectory, file);
         try {
-          await fs.access(filePath);
+          const stats = await fs.stat(filePath);
           relevantFiles.push(filePath);
+          fileMetadata.set(filePath, {
+            size: stats.size,
+            lastModified: stats.mtime,
+          });
         } catch (error) {
           // File doesn't exist, skip
         }
       }
       
+      // Discover source files based on project structure
+      const sourceDirectories = ['src', 'lib', 'app', 'components', 'pages', 'utils', 'services'];
+      for (const dir of sourceDirectories) {
+        const dirPath = path.join(workingDirectory, dir);
+        try {
+          await fs.access(dirPath);
+          const sourceFiles = await this.discoverSourceFiles(dirPath, 3); // 3 levels deep
+          relevantFiles.push(...sourceFiles);
+        } catch (error) {
+          // Directory doesn't exist
+        }
+      }
+      
+      // Add recently modified files (last 7 days)
+      const recentFiles = await this.findRecentlyModifiedFiles(workingDirectory);
+      relevantFiles.push(...recentFiles);
+      
     } catch (error) {
       console.warn('Error identifying relevant files:', error);
     }
     
-    return relevantFiles.slice(0, 50); // Limit to 50 files
+    // Remove duplicates and sort by relevance
+    const uniqueFiles = Array.from(new Set(relevantFiles));
+    return this.sortFilesByRelevance(uniqueFiles, contextData).slice(0, 100); // Limit to 100 files
+  }
+
+  /**
+   * Discover source files recursively with depth limit
+   */
+  private async discoverSourceFiles(dirPath: string, maxDepth: number, currentDepth: number = 0): Promise<string[]> {
+    if (currentDepth >= maxDepth) return [];
+    
+    const sourceFiles: string[] = [];
+    
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        
+        // Skip excluded patterns
+        if (this.isExcludedPath(fullPath)) continue;
+        
+        if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase();
+          const sourceExtensions = ['.ts', '.js', '.tsx', '.jsx', '.vue', '.svelte', '.py', '.rs', '.go', '.java', '.c', '.cpp', '.h', '.hpp'];
+          
+          if (sourceExtensions.includes(ext)) {
+            sourceFiles.push(fullPath);
+          }
+        } else if (entry.isDirectory()) {
+          // Recurse into subdirectories
+          const subFiles = await this.discoverSourceFiles(fullPath, maxDepth, currentDepth + 1);
+          sourceFiles.push(...subFiles);
+        }
+      }
+    } catch (error) {
+      // Ignore directory access errors
+    }
+    
+    return sourceFiles;
+  }
+
+  /**
+   * Find recently modified files (last 7 days)
+   */
+  private async findRecentlyModifiedFiles(workingDirectory: string): Promise<string[]> {
+    const recentFiles: string[] = [];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    try {
+      const entries = await fs.readdir(workingDirectory, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        if (entry.isFile()) {
+          const filePath = path.join(workingDirectory, entry.name);
+          
+          // Skip excluded patterns
+          if (this.isExcludedPath(filePath)) continue;
+          
+          try {
+            const stats = await fs.stat(filePath);
+            if (stats.mtime > sevenDaysAgo) {
+              recentFiles.push(filePath);
+            }
+          } catch (error) {
+            // Ignore file access errors
+          }
+        }
+      }
+    } catch (error) {
+      // Ignore directory access errors
+    }
+    
+    return recentFiles;
+  }
+
+  /**
+   * Check if a path should be excluded from context
+   */
+  private isExcludedPath(filePath: string): boolean {
+    return SessionContextService.EXCLUDED_FILE_PATTERNS.some(pattern => 
+      pattern.test(filePath)
+    );
+  }
+
+  /**
+   * Sort files by relevance to session context
+   */
+  private sortFilesByRelevance(files: string[], contextData: SessionContextData): string[] {
+    return files.sort((a, b) => {
+      let scoreA = 0;
+      let scoreB = 0;
+      
+      // Higher score for files mentioned in session
+      if (contextData.codePatterns.modifiedFiles.some(f => a.includes(f))) scoreA += 10;
+      if (contextData.codePatterns.modifiedFiles.some(f => b.includes(f))) scoreB += 10;
+      
+      // Higher score for main source files
+      const mainExtensions = ['.ts', '.js', '.tsx', '.jsx'];
+      if (mainExtensions.some(ext => a.endsWith(ext))) scoreA += 5;
+      if (mainExtensions.some(ext => b.endsWith(ext))) scoreB += 5;
+      
+      // Higher score for configuration files
+      const configFiles = ['package.json', 'tsconfig.json', 'vite.config.ts'];
+      if (configFiles.some(file => a.endsWith(file))) scoreA += 8;
+      if (configFiles.some(file => b.endsWith(file))) scoreB += 8;
+      
+      return scoreB - scoreA; // Higher scores first
+    });
   }
 
   /**
@@ -427,35 +564,197 @@ export class SessionContextService {
   }
 
   /**
-   * Infer main programming languages
+   * Infer main programming languages from directory structure
    */
-  private inferMainLanguages(cwd: string): string[] {
-    // In a real implementation, this would scan the directory
-    // For now, we'll make educated guesses based on context
-    return ['TypeScript', 'JavaScript']; // Default for this project
+  private async inferMainLanguages(cwd: string): Promise<string[]> {
+    const languages = new Set<string>();
+    
+    try {
+      const entries = await fs.readdir(cwd, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        if (entry.isFile()) {
+          const ext = path.extname(entry.name).toLowerCase();
+          switch (ext) {
+            case '.ts': languages.add('TypeScript'); break;
+            case '.js': languages.add('JavaScript'); break;
+            case '.py': languages.add('Python'); break;
+            case '.rs': languages.add('Rust'); break;
+            case '.go': languages.add('Go'); break;
+            case '.java': languages.add('Java'); break;
+            case '.cpp': case '.cc': case '.cxx': languages.add('C++'); break;
+            case '.c': languages.add('C'); break;
+            case '.cs': languages.add('C#'); break;
+            case '.rb': languages.add('Ruby'); break;
+            case '.php': languages.add('PHP'); break;
+            case '.swift': languages.add('Swift'); break;
+            case '.kt': languages.add('Kotlin'); break;
+          }
+        }
+      }
+    } catch (error) {
+      // Fallback to default
+      return ['TypeScript', 'JavaScript'];
+    }
+    
+    return Array.from(languages);
   }
 
   /**
-   * Infer frameworks used
+   * Infer frameworks from package.json and project structure
    */
-  private inferFrameworks(cwd: string): string[] {
-    // In a real implementation, this would check package.json, etc.
-    // For now, return common frameworks
-    return ['Express.js', 'Lit', 'Node.js']; // Based on the current project
+  private async inferFrameworks(cwd: string): Promise<string[]> {
+    const frameworks = new Set<string>();
+    
+    try {
+      // Check package.json
+      const packageJsonPath = path.join(cwd, 'package.json');
+      try {
+        const packageContent = await fs.readFile(packageJsonPath, 'utf-8');
+        const packageJson = JSON.parse(packageContent);
+        
+        // Check dependencies for frameworks
+        const allDeps = {
+          ...packageJson.dependencies,
+          ...packageJson.devDependencies,
+        };
+        
+        Object.keys(allDeps).forEach(dep => {
+          if (dep.includes('express')) frameworks.add('Express.js');
+          if (dep.includes('lit')) frameworks.add('Lit');
+          if (dep.includes('react')) frameworks.add('React');
+          if (dep.includes('vue')) frameworks.add('Vue.js');
+          if (dep.includes('angular')) frameworks.add('Angular');
+          if (dep.includes('next')) frameworks.add('Next.js');
+          if (dep.includes('nuxt')) frameworks.add('Nuxt.js');
+          if (dep.includes('svelte')) frameworks.add('Svelte');
+          if (dep.includes('vite')) frameworks.add('Vite');
+          if (dep.includes('webpack')) frameworks.add('Webpack');
+          if (dep.includes('jest')) frameworks.add('Jest');
+          if (dep.includes('vitest')) frameworks.add('Vitest');
+        });
+      } catch (error) {
+        // package.json not found or invalid
+      }
+      
+      // Check for common framework files
+      const frameworkFiles = [
+        { file: 'angular.json', framework: 'Angular' },
+        { file: 'vue.config.js', framework: 'Vue.js' },
+        { file: 'nuxt.config.js', framework: 'Nuxt.js' },
+        { file: 'svelte.config.js', framework: 'Svelte' },
+        { file: 'vite.config.ts', framework: 'Vite' },
+        { file: 'webpack.config.js', framework: 'Webpack' },
+        { file: 'cargo.toml', framework: 'Cargo' },
+        { file: 'go.mod', framework: 'Go Modules' },
+        { file: 'requirements.txt', framework: 'Python' },
+        { file: 'pyproject.toml', framework: 'Python' },
+      ];
+      
+      for (const { file, framework } of frameworkFiles) {
+        try {
+          await fs.access(path.join(cwd, file));
+          frameworks.add(framework);
+        } catch (error) {
+          // File doesn't exist
+        }
+      }
+      
+      // Always add Node.js if we have package.json
+      try {
+        await fs.access(path.join(cwd, 'package.json'));
+        frameworks.add('Node.js');
+      } catch (error) {
+        // No package.json
+      }
+      
+    } catch (error) {
+      // Return defaults if detection fails
+      return ['Express.js', 'Lit', 'Node.js'];
+    }
+    
+    return Array.from(frameworks);
   }
 
   /**
-   * Transfer context data for external use
+   * Serialize context data to JSON for transfer
+   */
+  serializeContextData(contextData: SessionContextData): string {
+    try {
+      return JSON.stringify(contextData, null, 2);
+    } catch (error) {
+      throw new Error(`Failed to serialize context data: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Deserialize context data from JSON
+   */
+  deserializeContextData(serializedData: string): SessionContextData {
+    try {
+      const data = JSON.parse(serializedData);
+      
+      // Validate deserialized data
+      if (!this.validateContextData(data)) {
+        throw new Error('Invalid context data structure after deserialization');
+      }
+      
+      return data;
+    } catch (error) {
+      throw new Error(`Failed to deserialize context data: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Transfer context data for external use with file operations
    */
   async transferContext(sessionId: string, targetPath?: string): Promise<ContextTransferData> {
+    const startTime = Date.now();
+    
     try {
-      // This would implement context transfer to external systems
-      // For now, return basic transfer data
+      if (!targetPath) {
+        // Return in-memory transfer
+        return {
+          sessionId,
+          transferTime: new Date().toISOString(),
+          status: 'completed',
+          transferMethod: 'memory',
+          processingTimeMs: Date.now() - startTime,
+        };
+      }
+      
+      // Ensure target directory exists
+      const targetDir = path.dirname(targetPath);
+      await this.ensureDirectoryExists(targetDir);
+      
+      // Check if we can write to target path
+      try {
+        await fs.access(targetDir, fs.constants.W_OK);
+      } catch (error) {
+        throw new Error(`Cannot write to target directory: ${targetDir}`);
+      }
+      
+      // Write context transfer marker
+      const transferMarker = {
+        sessionId,
+        transferTime: new Date().toISOString(),
+        source: 'SessionContextService',
+        version: '1.0.0',
+      };
+      
+      await fs.writeFile(
+        path.join(targetDir, `context-transfer-${sessionId}.json`),
+        JSON.stringify(transferMarker, null, 2),
+        'utf-8'
+      );
+      
       return {
         sessionId,
         transferTime: new Date().toISOString(),
         targetPath,
         status: 'completed',
+        transferMethod: 'file',
+        processingTimeMs: Date.now() - startTime,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -465,7 +764,72 @@ export class SessionContextService {
         targetPath,
         status: 'failed',
         error: errorMessage,
+        transferMethod: targetPath ? 'file' : 'memory',
+        processingTimeMs: Date.now() - startTime,
       };
+    }
+  }
+
+  /**
+   * Create context snapshot for session continuation
+   */
+  async createContextSnapshot(session: ISession, config?: ClaudeContextConfig): Promise<{
+    contextData: SessionContextData;
+    serializedData: string;
+    checksum: string;
+    metadata: {
+      createdAt: string;
+      sessionId: string;
+      version: string;
+      size: number;
+    };
+  }> {
+    try {
+      // Extract context data
+      const contextData = await this.extractSessionContext(session);
+      
+      // Serialize the data
+      const serializedData = this.serializeContextData(contextData);
+      
+      // Calculate checksum for integrity verification
+      const checksum = await this.calculateChecksum(serializedData);
+      
+      // Create metadata
+      const metadata = {
+        createdAt: new Date().toISOString(),
+        sessionId: session.id,
+        version: '1.0.0',
+        size: serializedData.length,
+      };
+      
+      return {
+        contextData,
+        serializedData,
+        checksum,
+        metadata,
+      };
+    } catch (error) {
+      throw new Error(`Failed to create context snapshot: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Calculate checksum for data integrity
+   */
+  private async calculateChecksum(data: string): Promise<string> {
+    const crypto = await import('crypto');
+    return crypto.createHash('sha256').update(data).digest('hex');
+  }
+
+  /**
+   * Verify context snapshot integrity
+   */
+  async verifyContextSnapshot(serializedData: string, expectedChecksum: string): Promise<boolean> {
+    try {
+      const actualChecksum = await this.calculateChecksum(serializedData);
+      return actualChecksum === expectedChecksum;
+    } catch (error) {
+      return false;
     }
   }
 
