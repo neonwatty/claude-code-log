@@ -19,7 +19,7 @@ import {
   ContextPreparationResult,
   ALLOWED_CLAUDE_COMMANDS,
 } from '../../../shared/src/schemas/claude-integration.js';
-import { ISession } from '../../../shared/src/schemas/session.js';
+import { ZodSession } from '../../../shared/src/schemas/index.js';
 import { SessionContextService } from './session-context.service.js';
 
 /**
@@ -361,13 +361,15 @@ export class ClaudeIntegrationService extends EventEmitter {
   /**
    * Prepare session context for Claude Code continuation
    */
-  async prepareSessionContext(request: ContextPreparationRequest, session: ISession): Promise<ContextPreparationResult> {
+  async prepareSessionContext(request: ContextPreparationRequest, session: ZodSession): Promise<ContextPreparationResult> {
     try {
       const config = request.config || {};
       const workingDirectory = request.workingDirectory || session.cwd;
       
       // Prepare context using the context service
       const result = await this.contextService.prepareSessionContext(session, {
+        includeGuidelines: true,
+        maxContextFiles: 50,
         ...config,
         workingDirectory,
       });
@@ -393,12 +395,13 @@ export class ClaudeIntegrationService extends EventEmitter {
   /**
    * Continue session with automatic context preparation
    */
-  async continueSessionWithContext(request: SessionContinuationWithContextRequest, session: ISession): Promise<SessionContinuationResponse> {
+  async continueSessionWithContext(request: SessionContinuationWithContextRequest, session: ZodSession): Promise<SessionContinuationResponse> {
     try {
       // Prepare context if requested
       if (request.prepareContext && !request.useExistingClaudeMd) {
         const contextRequest: ContextPreparationRequest = {
           sessionId: request.sessionId,
+          generateOnly: false,
           workingDirectory: request.workingDirectory,
           config: request.contextConfig,
         };
@@ -434,9 +437,11 @@ export class ClaudeIntegrationService extends EventEmitter {
   /**
    * Get session context data without starting a process
    */
-  async getSessionContextData(sessionId: string, session: ISession): Promise<ContextPreparationResult> {
+  async getSessionContextData(sessionId: string, session: ZodSession): Promise<ContextPreparationResult> {
     try {
       const result = await this.contextService.prepareSessionContext(session, {
+        includeGuidelines: true,
+        maxContextFiles: 50,
         workingDirectory: session.cwd,
       });
       

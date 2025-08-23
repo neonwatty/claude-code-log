@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { ISession, ILogEntry } from '../../../shared/src/schemas/session.js';
+import { ZodSession, ZodTranscriptEntry } from '../../../shared/src/schemas/index.js';
 import {
   SessionContextData,
   ClaudeContextConfig,
@@ -41,8 +41,8 @@ export class SessionContextService {
    * Prepare session context for Claude Code CLI continuation
    */
   async prepareSessionContext(
-    session: ISession,
-    config: ClaudeContextConfig = {}
+    session: ZodSession,
+    config: ClaudeContextConfig = { includeGuidelines: true, maxContextFiles: 50 }
   ): Promise<ContextPreparationResult> {
     try {
       const startTime = Date.now();
@@ -87,14 +87,14 @@ export class SessionContextService {
   /**
    * Extract meaningful context from session data
    */
-  private async extractSessionContext(session: ISession): Promise<SessionContextData> {
+  private async extractSessionContext(session: ZodSession): Promise<SessionContextData> {
     const entries = session.entries || [];
     
     // Group entries by type and analyze patterns
-    const userMessages = entries.filter(e => e.type === 'user');
-    const assistantMessages = entries.filter(e => e.type === 'assistant');
-    const toolUses = entries.filter(e => e.type === 'tool_use');
-    const toolResults = entries.filter(e => e.type === 'tool_result');
+    const userMessages = entries.filter((e: ZodTranscriptEntry) => e.type === 'user');
+    const assistantMessages = entries.filter((e: ZodTranscriptEntry) => e.type === 'assistant');
+    const toolUses = entries.filter((e: ZodTranscriptEntry) => e.type === 'tool_use');
+    const toolResults = entries.filter((e: ZodTranscriptEntry) => e.type === 'tool_result');
     
     // Extract key topics and intents from conversation
     const keyTopics = this.extractKeyTopics(userMessages, assistantMessages);
@@ -217,14 +217,14 @@ export class SessionContextService {
   /**
    * Extract key topics from conversation
    */
-  private extractKeyTopics(userMessages: ILogEntry[], assistantMessages: ILogEntry[]): string[] {
+  private extractKeyTopics(userMessages: ZodTranscriptEntry[], assistantMessages: ZodTranscriptEntry[]): string[] {
     const topics = new Set<string>();
     
     // Extract from user messages
     userMessages.forEach(msg => {
       if (msg.message?.content) {
         const content = Array.isArray(msg.message.content) 
-          ? msg.message.content.map(c => typeof c === 'string' ? c : c.text).join(' ')
+          ? msg.message.content.map((c: any) => typeof c === 'string' ? c : c.text).join(' ')
           : msg.message.content;
         
         // Look for common development topics
@@ -239,10 +239,10 @@ export class SessionContextService {
           /test\s+(\w+)/gi,
         ];
         
-        topicPatterns.forEach(pattern => {
+        topicPatterns.forEach((pattern: RegExp) => {
           const matches = content.match(pattern);
           if (matches) {
-            matches.forEach(match => topics.add(match.trim()));
+            matches.forEach((match: string) => topics.add(match.trim()));
           }
         });
       }
@@ -254,14 +254,14 @@ export class SessionContextService {
   /**
    * Extract code patterns from tool uses
    */
-  private extractCodePatterns(toolUses: ILogEntry[], toolResults: ILogEntry[]) {
+  private extractCodePatterns(toolUses: ZodTranscriptEntry[], toolResults: ZodTranscriptEntry[]) {
     const modifiedFiles = new Set<string>();
     const commonPatterns = new Set<string>();
     
     // Extract file modifications from tool results
     [...toolUses, ...toolResults].forEach(entry => {
       if (entry.message?.tool_calls) {
-        entry.message.tool_calls.forEach(call => {
+        entry.message.tool_calls.forEach((call: any) => {
           if (call.function?.name === 'str_replace_editor' && call.function.arguments) {
             try {
               const args = JSON.parse(call.function.arguments);
@@ -312,7 +312,7 @@ export class SessionContextService {
     const summary = recentUserMessages.map(msg => {
       if (msg.message?.content) {
         const content = Array.isArray(msg.message.content) 
-          ? msg.message.content.map(c => typeof c === 'string' ? c : c.text).join(' ')
+          ? msg.message.content.map((c: any) => typeof c === 'string' ? c : c.text).join(' ')
           : msg.message.content;
         
         // Extract first sentence or up to 100 characters
@@ -328,7 +328,7 @@ export class SessionContextService {
   /**
    * Extract recent context for immediate continuation
    */
-  private extractRecentContext(recentEntries: ILogEntry[]): string {
+  private extractRecentContext(recentEntries: ZodTranscriptEntry[]): string {
     return recentEntries.map(entry => {
       const timestamp = new Date(entry.timestamp).toLocaleTimeString();
       const type = entry.type.toUpperCase();
@@ -541,7 +541,7 @@ export class SessionContextService {
   private async ensureDirectoryExists(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== 'EEXIST') {
         throw error;
       }
@@ -718,8 +718,6 @@ export class SessionContextService {
           sessionId,
           transferTime: new Date().toISOString(),
           status: 'completed',
-          transferMethod: 'memory',
-          processingTimeMs: Date.now() - startTime,
         };
       }
       
@@ -753,8 +751,6 @@ export class SessionContextService {
         transferTime: new Date().toISOString(),
         targetPath,
         status: 'completed',
-        transferMethod: 'file',
-        processingTimeMs: Date.now() - startTime,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -764,8 +760,6 @@ export class SessionContextService {
         targetPath,
         status: 'failed',
         error: errorMessage,
-        transferMethod: targetPath ? 'file' : 'memory',
-        processingTimeMs: Date.now() - startTime,
       };
     }
   }
