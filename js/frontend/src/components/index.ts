@@ -9,6 +9,7 @@ export * from './base/index.js';
 // UI Components will be exported here as they are created
 export * from './session-list/index.js';
 export * from './session-detail/index.js';
+export * from './session-continuation/index.js';
 export * from './message-card/index.js';
 export * from './filter-bar/index.js';
 export * from './timeline/index.js';
