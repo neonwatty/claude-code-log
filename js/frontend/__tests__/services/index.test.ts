@@ -103,6 +103,30 @@ describe('Services Module Exports', () => {
     expect(typeof getAccessibilityService).toBe('function');
   });
 
+  it('should export ClaudeIntegrationService class and factory function', async () => {
+    const { ClaudeIntegrationService, getClaudeIntegrationService } = await import('../../src/services/index');
+    
+    expect(ClaudeIntegrationService).toBeDefined();
+    expect(typeof ClaudeIntegrationService).toBe('function');
+    expect(ClaudeIntegrationService.name).toBe('ClaudeIntegrationService');
+    
+    expect(getClaudeIntegrationService).toBeDefined();
+    expect(typeof getClaudeIntegrationService).toBe('function');
+  });
+
+  it('should export Claude integration utility functions', async () => {
+    const { isProcessActive, isProcessFinished, getProcessStateLabel } = await import('../../src/services/index');
+    
+    expect(isProcessActive).toBeDefined();
+    expect(typeof isProcessActive).toBe('function');
+    
+    expect(isProcessFinished).toBeDefined();
+    expect(typeof isProcessFinished).toBe('function');
+    
+    expect(getProcessStateLabel).toBeDefined();
+    expect(typeof getProcessStateLabel).toBe('function');
+  });
+
   it('should maintain module structure integrity', async () => {
     const module = await import('../../src/services/index');
     const exportedKeys = Object.keys(module);
@@ -114,8 +138,13 @@ describe('Services Module Exports', () => {
     expect(exportedKeys).toContain('getConnectionManager');
     expect(exportedKeys).toContain('AccessibilityService');
     expect(exportedKeys).toContain('getAccessibilityService');
+    expect(exportedKeys).toContain('ClaudeIntegrationService');
+    expect(exportedKeys).toContain('getClaudeIntegrationService');
+    expect(exportedKeys).toContain('isProcessActive');
+    expect(exportedKeys).toContain('isProcessFinished');
+    expect(exportedKeys).toContain('getProcessStateLabel');
     
-    // Verify expected number of exports (6 classes/functions - type exports don't appear in Object.keys)
-    expect(exportedKeys).toHaveLength(6);
+    // Verify expected number of exports (11 classes/functions - type exports don't appear in Object.keys)
+    expect(exportedKeys).toHaveLength(11);
   });
 });
