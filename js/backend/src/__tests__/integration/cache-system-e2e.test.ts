@@ -11,21 +11,21 @@ import { promises as fs } from 'fs';
 import { CACHE_FORMAT_VERSION } from '../../utils/cache';
 
 // Mock filesystem
-jest.mock('fs/promises', () => ({
-  readFile: jest.fn(),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  access: jest.fn().mockResolvedValue(undefined),
-  stat: jest.fn().mockResolvedValue({ mtime: new Date(1672574400000), size: 1024 }),
-  rename: jest.fn().mockResolvedValue(undefined),
-  mkdir: jest.fn().mockResolvedValue(undefined),
-  readdir: jest.fn().mockResolvedValue([]),
-  rm: jest.fn().mockResolvedValue(undefined)
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn(),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+  access: vi.fn().mockResolvedValue(undefined),
+  stat: vi.fn().mockResolvedValue({ mtime: new Date(1672574400000), size: 1024 }),
+  rename: vi.fn().mockResolvedValue(undefined),
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  readdir: vi.fn().mockResolvedValue([]),
+  rm: vi.fn().mockResolvedValue(undefined)
 }));
 
-const mockFs = jest.mocked(fs);
-jest.mock('../../parsers/jsonl-parser', () => ({
-  findJsonlFiles: jest.fn(() => ['/test/project/session1.jsonl', '/test/project/session2.jsonl']),
-  loadTranscriptAsync: jest.fn(() => Promise.resolve({
+const mockFs = vi.mocked(fs);
+vi.mock('../../parsers/jsonl-parser', () => ({
+  findJsonlFiles: vi.fn(() => ['/test/project/session1.jsonl', '/test/project/session2.jsonl']),
+  loadTranscriptAsync: vi.fn(() => Promise.resolve({
     entries: [
       {
         type: 'user',
@@ -50,14 +50,14 @@ jest.mock('../../parsers/jsonl-parser', () => ({
     ],
     errors: []
   })),
-  extractTextContent: jest.fn((content) => {
+  extractTextContent: vi.fn((content) => {
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
       return content.map(item => item.text || '').join(' ');
     }
     return '';
   }),
-  parseJsonlLine: jest.fn()
+  parseJsonlLine: vi.fn()
 }));
 
 // mockFs already declared above
@@ -75,7 +75,7 @@ describe('Cache System End-to-End Integration', () => {
   const testProjectPath = '/test/project';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     services = {
       directory: CacheDirectoryService.getInstance(),
       validation: CacheValidationService.getInstance(),

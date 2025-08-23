@@ -3,7 +3,7 @@
  * Tests singleton pattern, connection lifecycle, and event emission
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { WebSocketService } from '../../src/services/websocket-service';
 import { WebSocketConnectionState, WebSocketMessageType, MessageType } from '../../src/types/websocket';
 import { serializeMessage } from '../../src/utils/websocket/message-handlers';
@@ -63,8 +63,8 @@ class MockWebSocket {
     return true;
   }
 
-  send = jest.fn();
-  close = jest.fn((code?: number, reason?: string) => {
+  send = vi.fn();
+  close = vi.fn((code?: number, reason?: string) => {
     this.readyState = MockWebSocket.CLOSED;
     const closeEvent = new CloseEvent('close', { code, reason });
     this.dispatchEvent(closeEvent);
@@ -76,13 +76,25 @@ describe('WebSocketService', () => {
   let mockWebSocket: MockWebSocket;
   let lastCreatedMockWebSocket: MockWebSocket | null = null;
 
+  // Set up fake timers once for the entire test suite
+  beforeAll(() => {
+    vi.useFakeTimers({
+      shouldAdvanceTime: true,
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval']
+    });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     // Reset singleton
     (WebSocketService as any).instance = null;
     lastCreatedMockWebSocket = null;
     
     // Create jest mock constructor that captures the created instance
-    const WebSocketMock = jest.fn((url: string, protocols?: string | string[]) => {
+    const WebSocketMock = vi.fn((url: string, protocols?: string | string[]) => {
       const instance = new MockWebSocket(url, protocols);
       lastCreatedMockWebSocket = instance;
       return instance;
@@ -96,13 +108,12 @@ describe('WebSocketService', () => {
     
     (global as any).WebSocket = WebSocketMock;
     
-    // Mock timers
-    jest.useFakeTimers();
+    // Clear any pending timers
+    vi.clearAllTimers();
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
     
     // Clean up service
     if (service) {
@@ -149,10 +160,10 @@ describe('WebSocketService', () => {
     it('should establish connection when connect() is called', () => {
       service.connect();
       
-      expect(jest.getTimerCount()).toBeGreaterThan(0); // Connection timeout timer
+      expect(vi.getTimerCount()).toBeGreaterThan(0); // Connection timeout timer
       
       // Get the created WebSocket instance
-      const WebSocketMock = (global as any).WebSocket as jest.MockedFunction<any>;
+      const WebSocketMock = (global as any).WebSocket as MockedFunction<any>;
       expect(WebSocketMock).toHaveBeenCalledTimes(1);
       expect(lastCreatedMockWebSocket).not.toBeNull();
       mockWebSocket = lastCreatedMockWebSocket!;
@@ -162,7 +173,7 @@ describe('WebSocketService', () => {
     });
 
     it('should handle successful connection', () => {
-      const openHandler = jest.fn();
+      const openHandler = vi.fn();
       service.on('connection:open', openHandler);
       
       service.connect();
@@ -207,7 +218,7 @@ describe('WebSocketService', () => {
       mockWebSocket = lastCreatedMockWebSocket!;
       
       // Advance time to trigger timeout
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
       
       expect(mockWebSocket.close).toHaveBeenCalled();
       // With enhanced reconnection logic, it should be in RECONNECTING state after timeout
@@ -215,7 +226,7 @@ describe('WebSocketService', () => {
     });
 
     it('should handle disconnection', () => {
-      const closeHandler = jest.fn();
+      const closeHandler = vi.fn();
       service.on('connection:close', closeHandler);
       
       service.connect();
@@ -240,7 +251,7 @@ describe('WebSocketService', () => {
     });
 
     it('should emit session:created events', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       service.on('session:created', handler);
       
       const message = {
@@ -261,7 +272,7 @@ describe('WebSocketService', () => {
     });
 
     it('should emit session:updated events', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       service.on('session:updated', handler);
       
       const message = {
@@ -283,7 +294,7 @@ describe('WebSocketService', () => {
     });
 
     it('should handle once listeners correctly', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       service.once('session:deleted', handler);
       
       const message = {
@@ -305,7 +316,7 @@ describe('WebSocketService', () => {
     });
 
     it('should allow unsubscribing from events', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const unsubscribe = service.on('error', handler);
       
       const message = {
@@ -347,7 +358,7 @@ describe('WebSocketService', () => {
       mockWebSocket.dispatchEvent(new Event('open'));
       
       // Advance timer to trigger heartbeat
-      jest.advanceTimersByTime(30000);
+      vi.advanceTimersByTime(30000);
       
       expect(mockWebSocket.send).toHaveBeenCalledWith(
         expect.stringContaining(WebSocketMessageType.HEARTBEAT)
@@ -425,7 +436,7 @@ describe('WebSocketService', () => {
     });
 
     it('should track connection state changes', () => {
-      const stateHandler = jest.fn();
+      const stateHandler = vi.fn();
       service.on('state:changed', stateHandler);
       
       expect(service.getConnectionState()).toBe(WebSocketConnectionState.DISCONNECTED);
@@ -460,7 +471,7 @@ describe('WebSocketService', () => {
 
     describe('Session Message Handling', () => {
       it('should handle SESSION_CREATED messages', () => {
-        const sessionCreatedHandler = jest.fn();
+        const sessionCreatedHandler = vi.fn();
         service.on('session:created', sessionCreatedHandler);
 
         const message: SessionCreatedMessage = {
@@ -487,7 +498,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle SESSION_UPDATED messages', () => {
-        const sessionUpdatedHandler = jest.fn();
+        const sessionUpdatedHandler = vi.fn();
         service.on('session:updated', sessionUpdatedHandler);
 
         const message: SessionUpdatedMessage = {
@@ -531,7 +542,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle SESSION_DELETED messages', () => {
-        const sessionDeletedHandler = jest.fn();
+        const sessionDeletedHandler = vi.fn();
         service.on('session:deleted', sessionDeletedHandler);
 
         const message: SessionDeletedMessage = {
@@ -554,7 +565,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle CACHE_INVALIDATED messages', () => {
-        const cacheInvalidatedHandler = jest.fn();
+        const cacheInvalidatedHandler = vi.fn();
         (service as any).on('cache:invalidated', cacheInvalidatedHandler);
 
         const message: CacheInvalidatedMessage = {
@@ -580,8 +591,8 @@ describe('WebSocketService', () => {
 
     describe('Message Validation and Error Handling', () => {
       it('should handle malformed JSON messages gracefully', () => {
-        const errorHandler = jest.fn();
-        const messageHandler = jest.fn();
+        const errorHandler = vi.fn();
+        const messageHandler = vi.fn();
         
         service.on('error', errorHandler);
         service.on('message', messageHandler);
@@ -604,7 +615,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle invalid message format gracefully', () => {
-        const errorHandler = jest.fn();
+        const errorHandler = vi.fn();
         service.on('error', errorHandler);
 
         const invalidMessage = JSON.stringify({
@@ -626,7 +637,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle unknown message types gracefully', () => {
-        const errorHandler = jest.fn();
+        const errorHandler = vi.fn();
         service.on('error', errorHandler);
 
         const unknownMessage = JSON.stringify({
@@ -652,7 +663,7 @@ describe('WebSocketService', () => {
 
     describe('Backward Compatibility', () => {
       it('should still handle legacy message format', () => {
-        const sessionCreatedHandler = jest.fn();
+        const sessionCreatedHandler = vi.fn();
         service.on('session:created', sessionCreatedHandler);
 
         // Legacy format (lowercase with underscores)
@@ -676,8 +687,8 @@ describe('WebSocketService', () => {
       });
 
       it('should handle both new and legacy message formats in same session', () => {
-        const sessionCreatedHandler = jest.fn();
-        const sessionUpdatedHandler = jest.fn();
+        const sessionCreatedHandler = vi.fn();
+        const sessionUpdatedHandler = vi.fn();
         
         service.on('session:created', sessionCreatedHandler);
         service.on('session:updated', sessionUpdatedHandler);
@@ -723,7 +734,7 @@ describe('WebSocketService', () => {
 
     describe('Message Type Guards Integration', () => {
       it('should use type guards to ensure type safety in handlers', () => {
-        const universalHandler = jest.fn();
+        const universalHandler = vi.fn();
         
         // Register a handler that uses type guards
         service.on('message', (message) => {
@@ -767,7 +778,7 @@ describe('WebSocketService', () => {
 
     describe('Performance with New Protocol', () => {
       it('should handle rapid message processing efficiently', async () => {
-        const messageHandler = jest.fn();
+        const messageHandler = vi.fn();
         service.on('session:created', messageHandler);
 
         const messageCount = 100;
@@ -805,7 +816,7 @@ describe('WebSocketService', () => {
       });
 
       it('should handle large message payloads efficiently', () => {
-        const sessionCreatedHandler = jest.fn();
+        const sessionCreatedHandler = vi.fn();
         service.on('session:created', sessionCreatedHandler);
 
         // Create message with large metadata

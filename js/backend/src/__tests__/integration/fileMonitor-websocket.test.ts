@@ -2,21 +2,30 @@ import { WebSocketManager, getWebSocketManager } from '../../websocket/server';
 import { FileMonitor } from '../../services/fileMonitor';
 import * as fs from 'fs';
 import chokidar from 'chokidar';
+import { vi, describe, it, beforeEach, afterEach, expect } from 'vitest';
+import type { MockedFunction, Mocked } from 'vitest';
 
 // Mock dependencies
-jest.mock('fs');
-jest.mock('chokidar');
-jest.mock('../../websocket/server', () => {
-  const originalModule = jest.requireActual('../../websocket/server');
+vi.mock('fs');
+vi.mock('chokidar');
+vi.mock('../../websocket/server', async () => {
+  const originalModule = await vi.importActual('../../websocket/server');
   return {
     ...originalModule,
-    getWebSocketManager: jest.fn(),
+    getWebSocketManager: vi.fn(),
+    WebSocketManager: vi.fn().mockImplementation(() => ({
+      broadcastFileChanged: vi.fn(),
+      broadcastSessionCreated: vi.fn(),
+      broadcastSessionUpdated: vi.fn(),
+      broadcastSessionDeleted: vi.fn(),
+      stop: vi.fn().mockResolvedValue(undefined)
+    }))
   };
 });
 
-const mockFs = jest.mocked(fs);
-const mockChokidar = chokidar as jest.Mocked<typeof chokidar>;
-const mockGetWebSocketManager = getWebSocketManager as jest.MockedFunction<typeof getWebSocketManager>;
+const mockFs = vi.mocked(fs);
+const mockChokidar = chokidar as Mocked<typeof chokidar>;
+const mockGetWebSocketManager = getWebSocketManager as MockedFunction<typeof getWebSocketManager>;
 
 describe('FileMonitor + WebSocket Integration', () => {
   let fileMonitor: FileMonitor;
@@ -24,16 +33,15 @@ describe('FileMonitor + WebSocket Integration', () => {
   let mockWatcher: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
 
     // Setup mock watcher
     mockWatcher = {
-      on: jest.fn(),
-      close: jest.fn().mockResolvedValue(undefined)
+      on: vi.fn(),
+      close: vi.fn().mockResolvedValue(undefined)
     };
     
-    mockChokidar.watch = jest.fn().mockReturnValue(mockWatcher);
+    mockChokidar.watch = vi.fn().mockReturnValue(mockWatcher);
     mockFs.existsSync.mockReturnValue(true);
     
     // Mock file system operations that FileMonitor uses
@@ -46,12 +54,6 @@ describe('FileMonitor + WebSocket Integration', () => {
     // Create instances
     wsManager = new WebSocketManager();
     
-    // Mock WebSocket manager methods
-    wsManager.broadcastFileChanged = jest.fn();
-    wsManager.broadcastSessionCreated = jest.fn();
-    wsManager.broadcastSessionUpdated = jest.fn();
-    wsManager.broadcastSessionDeleted = jest.fn();
-    
     // Configure getWebSocketManager to return our mocked instance
     mockGetWebSocketManager.mockReturnValue(wsManager);
     
@@ -59,8 +61,9 @@ describe('FileMonitor + WebSocket Integration', () => {
   });
 
   afterEach(() => {
-    fileMonitor.stop();
-    jest.useRealTimers();
+    if (fileMonitor && typeof fileMonitor.stop === 'function') {
+      fileMonitor.stop();
+    }
   });
 
   describe('File Change to WebSocket Event Flow', () => {
@@ -68,11 +71,13 @@ describe('FileMonitor + WebSocket Integration', () => {
       fileMonitor.start(['/test/path']);
     });
 
-    it('should broadcast file change events when files are modified', () => {
+    it('should broadcast file change events when files are modified', async () => {
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       
       changeHandler('session-data.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       expect(wsManager.broadcastFileChanged).toHaveBeenCalledWith(
         expect.stringContaining('session-data.jsonl'),
@@ -80,7 +85,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       );
     });
 
-    it('should broadcast session created events when new sessions detected', () => {
+    it('should broadcast session created events when new sessions detected', async () => {
       const testJsonlContent = JSON.stringify({
         sessionId: 'new-session-abc',
         timestamp: '2024-01-01T00:00:00Z',
@@ -93,7 +98,9 @@ describe('FileMonitor + WebSocket Integration', () => {
       
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       changeHandler('new-session.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalledWith(
         'new-session-abc',
@@ -101,7 +108,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       );
     });
 
-    it('should broadcast session updated events for existing sessions', () => {
+    it('should broadcast session updated events for existing sessions', async () => {
       const testJsonlContent = [
         {
           sessionId: 'existing-session-def',
@@ -129,7 +136,9 @@ describe('FileMonitor + WebSocket Integration', () => {
       
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       changeHandler('updated-session.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       expect(wsManager.broadcastSessionUpdated).toHaveBeenCalledWith(
         'existing-session-def',
@@ -144,7 +153,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       fileMonitor.start(['/test/path']);
     });
 
-    it('should handle multiple files changing simultaneously', () => {
+    it('should handle multiple files changing simultaneously', async () => {
       const file1Content = JSON.stringify({
         sessionId: 'session-1',
         timestamp: '2024-01-01T00:00:00Z',
@@ -166,14 +175,15 @@ describe('FileMonitor + WebSocket Integration', () => {
       changeHandler('file1.jsonl');
       changeHandler('file2.jsonl');
       
-      jest.advanceTimersByTime(1500);
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalledTimes(2);
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalledWith('session-1', '/project1');
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalledWith('session-2', '/project2');
     });
 
-    it('should debounce rapid changes to the same file', () => {
+    it('should debounce rapid changes to the same file', async () => {
       const testContent = JSON.stringify({
         sessionId: 'rapid-session',
         timestamp: '2024-01-01T00:00:00Z',
@@ -189,7 +199,8 @@ describe('FileMonitor + WebSocket Integration', () => {
       changeHandler('rapid.jsonl');
       changeHandler('rapid.jsonl');
       
-      jest.advanceTimersByTime(1500);
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       // Should only process once due to debouncing
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalledTimes(1);
@@ -201,17 +212,19 @@ describe('FileMonitor + WebSocket Integration', () => {
       fileMonitor.start(['/test/path']);
     });
 
-    it('should continue operating when file read fails', () => {
+    it('should continue operating when file read fails', async () => {
       mockFs.readFileSync.mockImplementation(() => {
         throw new Error('File read error');
       });
 
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       
-      expect(() => {
+      expect(async () => {
         changeHandler('problematic.jsonl');
-        jest.advanceTimersByTime(1500);
+        await new Promise(resolve => setTimeout(resolve, 1100));
       }).not.toThrow();
+
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       // File change event should still be broadcast
       expect(wsManager.broadcastFileChanged).toHaveBeenCalledWith(
@@ -224,7 +237,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       expect(wsManager.broadcastSessionUpdated).not.toHaveBeenCalled();
     });
 
-    it('should handle corrupted JSONL gracefully', () => {
+    it('should handle corrupted JSONL gracefully', async () => {
       const mixedContent = [
         '{"valid": "json", "sessionId": "good-session", "cwd": "/test"}',
         'corrupted-line-not-json',
@@ -235,7 +248,9 @@ describe('FileMonitor + WebSocket Integration', () => {
 
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       changeHandler('mixed.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       // Should still broadcast file change
       expect(wsManager.broadcastFileChanged).toHaveBeenCalledWith(
@@ -253,7 +268,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       fileMonitor.start(['/test/path']);
     });
 
-    it('should handle large JSONL files efficiently', () => {
+    it('should handle large JSONL files efficiently', async () => {
       // Simulate a large file with many entries
       const largeFileEntries = Array.from({ length: 100 }, (_, i) => 
         JSON.stringify({
@@ -269,14 +284,16 @@ describe('FileMonitor + WebSocket Integration', () => {
 
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       changeHandler('large.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       // Should group by session and emit updates for sessions with multiple entries
       expect(wsManager.broadcastSessionUpdated).toHaveBeenCalled();
       
       // Should process all sessions efficiently
-      const totalCalls = (wsManager.broadcastSessionCreated as jest.Mock).mock.calls.length +
-                        (wsManager.broadcastSessionUpdated as jest.Mock).mock.calls.length;
+      const totalCalls = (wsManager.broadcastSessionCreated as any).mock.calls.length +
+                        (wsManager.broadcastSessionUpdated as any).mock.calls.length;
       expect(totalCalls).toBeGreaterThan(0);
     });
   });
@@ -286,7 +303,7 @@ describe('FileMonitor + WebSocket Integration', () => {
       fileMonitor.start(['/test/path']);
     });
 
-    it('should maintain correct event order for file and session events', () => {
+    it('should maintain correct event order for file and session events', async () => {
       const testContent = JSON.stringify({
         sessionId: 'ordered-session',
         timestamp: '2024-01-01T00:00:00Z',
@@ -297,15 +314,17 @@ describe('FileMonitor + WebSocket Integration', () => {
 
       const changeHandler = mockWatcher.on.mock.calls.find(call => call[0] === 'change')[1];
       changeHandler('ordered.jsonl');
-      jest.advanceTimersByTime(1500);
+      
+      // Wait for debounced processing (FileMonitor uses 1000ms debounce)
+      await new Promise(resolve => setTimeout(resolve, 1100));
 
       // File change should be broadcast first, then session events
       expect(wsManager.broadcastFileChanged).toHaveBeenCalled();
       expect(wsManager.broadcastSessionCreated).toHaveBeenCalled();
       
       // Verify call order using invocation order
-      const fileChangedOrder = (wsManager.broadcastFileChanged as jest.Mock).mock.invocationCallOrder[0];
-      const sessionCreatedOrder = (wsManager.broadcastSessionCreated as jest.Mock).mock.invocationCallOrder[0];
+      const fileChangedOrder = (wsManager.broadcastFileChanged as any).mock.invocationCallOrder[0];
+      const sessionCreatedOrder = (wsManager.broadcastSessionCreated as any).mock.invocationCallOrder[0];
       expect(fileChangedOrder).toBeLessThan(sessionCreatedOrder);
     });
   });

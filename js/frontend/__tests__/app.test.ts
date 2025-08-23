@@ -3,34 +3,34 @@
  * Tests integration with new connection management features
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Lit dependencies
-const mockHtml = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
+const mockHtml = vi.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
   `HTML_TEMPLATE: ${strings.join('')} VALUES: ${JSON.stringify(values)}`
 );
-const mockCss = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
+const mockCss = vi.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
   `CSS_TEMPLATE: ${strings.join('')} VALUES: ${JSON.stringify(values)}`
 );
 
-jest.mock('lit', () => ({
+vi.mock('lit', () => ({
   html: mockHtml,
   css: mockCss
 }));
 
-jest.mock('lit/decorators.js', () => ({
-  property: jest.fn(() => jest.fn()),
-  state: jest.fn(() => jest.fn())
+vi.mock('lit/decorators.js', () => ({
+  property: vi.fn(() => vi.fn()),
+  state: vi.fn(() => vi.fn())
 }));
 
 // Mock shared types
-jest.mock('@shared/types', () => ({
+vi.mock('@shared/types', () => ({
   User: {},
   LogEntry: {}
 }));
 
 // Mock base component
-jest.mock('../src/components/base/base-component.ts', () => ({
+vi.mock('../src/components/base/base-component.ts', () => ({
   BaseComponent: class MockBaseComponent {
     static styles = ['base-styles'];
     
@@ -56,18 +56,18 @@ jest.mock('../src/components/base/base-component.ts', () => ({
 }));
 
 // Mock connection management imports
-jest.mock('../src/components/connection-status/connection-status.ts', () => ({}));
-jest.mock('../src/components/toast-notifications/toast-notifications.ts', () => ({}));
+vi.mock('../src/components/connection-status/connection-status.ts', () => ({}));
+vi.mock('../src/components/toast-notifications/toast-notifications.ts', () => ({}));
 
 // Mock services
 const mockConnectionManager: any = {
-  initialize: jest.fn().mockImplementation(() => Promise.resolve()),
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  forceReconnect: jest.fn(),
-  on: jest.fn(),
-  getConnectionState: jest.fn(() => 'DISCONNECTED'),
-  getStatistics: jest.fn(() => ({
+  initialize: vi.fn().mockImplementation(() => Promise.resolve()),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  forceReconnect: vi.fn(),
+  on: vi.fn(),
+  getConnectionState: vi.fn(() => 'DISCONNECTED'),
+  getStatistics: vi.fn(() => ({
     uptime: 0,
     reconnectionCount: 0,
     lastConnectTime: null,
@@ -79,24 +79,24 @@ const mockConnectionManager: any = {
     totalDataReceived: 0,
     connectionQuality: 'unknown'
   })),
-  getDebugInfo: jest.fn(() => null),
-  destroy: jest.fn()
+  getDebugInfo: vi.fn(() => null),
+  destroy: vi.fn()
 };
 
 const mockAccessibilityService = {
-  announceConnectionState: jest.fn()
+  announceConnectionState: vi.fn()
 };
 
-jest.mock('../src/services/connection-manager.ts', () => ({
-  getConnectionManager: jest.fn(() => mockConnectionManager)
+vi.mock('../src/services/connection-manager.ts', () => ({
+  getConnectionManager: vi.fn(() => mockConnectionManager)
 }));
 
-jest.mock('../src/services/accessibility-service.ts', () => ({
-  getAccessibilityService: jest.fn(() => mockAccessibilityService)
+vi.mock('../src/services/accessibility-service.ts', () => ({
+  getAccessibilityService: vi.fn(() => mockAccessibilityService)
 }));
 
 // Mock connection state utilities
-jest.mock('../src/utils/websocket/connection-state.ts', () => ({
+vi.mock('../src/utils/websocket/connection-state.ts', () => ({
   ConnectionState: {
     CONNECTING: 'CONNECTING',
     CONNECTED: 'CONNECTED',
@@ -141,10 +141,10 @@ class MockAppMain {
   
   // Mock shadow root for querySelector
   shadowRoot = {
-    querySelector: jest.fn((selector: string) => {
+    querySelector: vi.fn((selector: string) => {
       if (selector === 'toast-notifications') {
         return this.toastNotifications || {
-          showConnectionStateToast: jest.fn()
+          showConnectionStateToast: vi.fn()
         };
       }
       return null;
@@ -362,21 +362,21 @@ describe('AppMain Integration Tests', () => {
 
   beforeEach(() => {
     app = new MockAppMain();
-    jest.useFakeTimers();
+    // Skip timer mocking to avoid conflicts with read-only performance property
     // Don't clear mocks here since some tests need to check previous calls
   });
 
   afterEach(() => {
     app.disconnectedCallback();
-    jest.clearAllTimers();
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   describe('Component Initialization', () => {
     it('should initialize connection management on connected callback', async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       expect(mockConnectionManager.initialize).toHaveBeenCalledWith({
@@ -390,7 +390,7 @@ describe('AppMain Integration Tests', () => {
 
     it('should setup connection event handlers', async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       expect(mockConnectionManager.on).toHaveBeenCalledWith('state-changed', expect.any(Function));
@@ -400,11 +400,11 @@ describe('AppMain Integration Tests', () => {
 
     it('should auto-connect after initialization', async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       // The auto-connect timeout is separate, advance timers again
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       
       expect(mockConnectionManager.connect).toHaveBeenCalled();
     });
@@ -413,7 +413,7 @@ describe('AppMain Integration Tests', () => {
       mockConnectionManager.initialize.mockRejectedValue(new Error('Init failed'));
       
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       expect(app.error).toBe('Failed to initialize connection management');
@@ -422,7 +422,7 @@ describe('AppMain Integration Tests', () => {
     it('should clean up connection manager on disconnection', async () => {
       // First initialize the connection manager
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       // Then disconnect
@@ -435,7 +435,7 @@ describe('AppMain Integration Tests', () => {
   describe('Connection State Management', () => {
     beforeEach(async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
     });
 
@@ -455,7 +455,7 @@ describe('AppMain Integration Tests', () => {
     });
 
     it('should show toast notifications for state changes', () => {
-      const mockToastComponent = { showConnectionStateToast: jest.fn() };
+      const mockToastComponent = { showConnectionStateToast: vi.fn() };
       app.toastNotifications = mockToastComponent;
       
       const event = {
@@ -529,7 +529,7 @@ describe('AppMain Integration Tests', () => {
   describe('User Interactions', () => {
     beforeEach(async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
     });
 
@@ -563,7 +563,7 @@ describe('AppMain Integration Tests', () => {
     });
 
     it('should handle debug panel toggle events', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       app.simulateDebugPanelToggle(true);
       
@@ -589,7 +589,7 @@ describe('AppMain Integration Tests', () => {
       const callbackPromise = app.connectedCallback();
       
       // Advance timers for the demo data loading delay
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       
       // Wait for the callback to complete
       await callbackPromise;
@@ -603,7 +603,7 @@ describe('AppMain Integration Tests', () => {
     it('should handle demo data loading errors', async () => {
       // Mock handleAsyncOperation to simulate error
       const originalHandleAsync = app.handleAsyncOperation;
-      app.handleAsyncOperation = jest.fn().mockImplementation(async (operation: () => Promise<any>, errorMessage?: string) => {
+      app.handleAsyncOperation = vi.fn().mockImplementation(async (operation: () => Promise<any>, errorMessage?: string) => {
         try {
           await operation();
         } catch (error) {
@@ -620,7 +620,7 @@ describe('AppMain Integration Tests', () => {
       };
       
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       expect(app.error).toBe('Failed to load demo data');
@@ -654,13 +654,13 @@ describe('AppMain Integration Tests', () => {
   describe('Toast Notification Integration', () => {
     beforeEach(async () => {
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
     });
 
     it('should find toast notifications component in shadow root', () => {
-      const mockToastComponent = { showConnectionStateToast: jest.fn() };
-      app.shadowRoot.querySelector = jest.fn().mockReturnValue(mockToastComponent);
+      const mockToastComponent = { showConnectionStateToast: vi.fn() };
+      app.shadowRoot.querySelector = vi.fn().mockReturnValue(mockToastComponent);
       
       app.simulateStateChange(ConnectionState.CONNECTED);
       
@@ -669,7 +669,7 @@ describe('AppMain Integration Tests', () => {
     });
 
     it('should handle missing toast notifications component gracefully', () => {
-      app.shadowRoot.querySelector = jest.fn().mockReturnValue(null);
+      app.shadowRoot.querySelector = vi.fn().mockReturnValue(null);
       
       // Should not throw error
       app.simulateStateChange(ConnectionState.CONNECTED);
@@ -678,8 +678,8 @@ describe('AppMain Integration Tests', () => {
     });
 
     it('should cache toast notifications component reference', () => {
-      const mockToastComponent = { showConnectionStateToast: jest.fn() };
-      app.shadowRoot.querySelector = jest.fn().mockReturnValue(mockToastComponent);
+      const mockToastComponent = { showConnectionStateToast: vi.fn() };
+      app.shadowRoot.querySelector = vi.fn().mockReturnValue(mockToastComponent);
       
       // First call should query and cache
       app.simulateStateChange(ConnectionState.CONNECTED);
@@ -697,7 +697,7 @@ describe('AppMain Integration Tests', () => {
       mockConnectionManager.initialize.mockRejectedValue(new Error('Network error'));
       
       const callbackPromise = app.connectedCallback();
-      jest.advanceTimersByTime(1000);
+      await new Promise(resolve => setTimeout(resolve, 10)); // Short real wait
       await callbackPromise;
       
       expect(app.error).toBe('Failed to initialize connection management');

@@ -3,16 +3,16 @@
  * Tests module export structure and accessibility
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('Services Module Exports', () => {
   beforeEach(() => {
-    // Reset singleton state
-    jest.resetModules();
+    // Module resetting and mock clearing is handled automatically by Vitest config
+    // (resetModules: true, clearMocks: true in vitest.config.ts)
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Mocks are cleared automatically by Vitest config
   });
 
   it('should export WebSocketService class', async () => {
@@ -68,10 +68,10 @@ describe('Services Module Exports', () => {
         this.url = url;
       }
       
-      send = jest.fn();
-      close = jest.fn();
-      addEventListener = jest.fn();
-      removeEventListener = jest.fn();
+      send = vi.fn();
+      close = vi.fn();
+      addEventListener = vi.fn();
+      removeEventListener = vi.fn();
     };
     
     const config = { url: 'ws://test:8080/ws' };
@@ -115,7 +115,7 @@ describe('Services Module Exports', () => {
     expect(exportedKeys).toContain('AccessibilityService');
     expect(exportedKeys).toContain('getAccessibilityService');
     
-    // Verify expected number of exports (6 total)
+    // Verify expected number of exports (6 classes/functions - type exports don't appear in Object.keys)
     expect(exportedKeys).toHaveLength(6);
   });
 });

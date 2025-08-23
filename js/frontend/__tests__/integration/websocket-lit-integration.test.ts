@@ -3,18 +3,18 @@
  * Tests the complete integration between WebSocket service, controller, and Lit components
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { html, fixture, expect as litExpect } from '@open-wc/testing';
 import type { WebSocketService } from '../../src/services/websocket-service';
 
 // Mock the getWebSocketService function but use real WebSocketController
-jest.mock('../../src/services/websocket-service', () => ({
-  getWebSocketService: jest.fn(),
-  WebSocketService: jest.fn()
+vi.mock('../../src/services/websocket-service', () => ({
+  getWebSocketService: vi.fn(),
+  WebSocketService: vi.fn()
 }));
 
 // Unmock WebSocketController for this integration test - we want the real implementation
-jest.unmock('../../src/utils/websocket/websocket-controller');
+vi.doUnmock('../../src/utils/websocket/websocket-controller');
 
 import { WebSocketController } from '../../src/utils/websocket/websocket-controller';
 import { MessageHandlerRegistry } from '../../src/utils/websocket/message-handlers';
@@ -238,15 +238,14 @@ describe('WebSocket + Lit Components Integration', () => {
   let mockService: MockWebSocketServiceIntegration;
 
   beforeEach(async () => {
-    jest.useFakeTimers();
     
     // Set up the mock WebSocket service before creating component
     const mockServiceInstance = new MockWebSocketServiceIntegration();
     (window as any).__mockWebSocketService = mockServiceInstance;
     
     // Mock the getWebSocketService to return our mock
-    const { getWebSocketService } = require('../../src/services/websocket-service');
-    getWebSocketService.mockReturnValue(mockServiceInstance);
+    const { getWebSocketService } = await import('../../src/services/websocket-service');
+    vi.mocked(getWebSocketService).mockReturnValue(mockServiceInstance);
     
     component = await fixture(html`
       <integration-test-component></integration-test-component>
@@ -290,8 +289,7 @@ describe('WebSocket + Lit Components Integration', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Basic Integration', () => {
@@ -540,7 +538,7 @@ describe('WebSocket + Lit Components Integration', () => {
       expect((component as any).connectionState).toBe(ConnectionState.RECONNECTING);
 
       // Complete reconnection
-      jest.advanceTimersByTime(150);
+      await new Promise(resolve => setTimeout(resolve, 150));
       component.connectionState = ConnectionState.CONNECTED;
       await component.updateComplete;
 
@@ -551,7 +549,7 @@ describe('WebSocket + Lit Components Integration', () => {
       mockService.connect();
       await component.updateComplete;
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Simulate connection error
       mockService.simulateError({ message: 'Connection lost' });
@@ -592,8 +590,8 @@ describe('WebSocket + Lit Components Integration', () => {
       // Updates should be debounced
       await component.updateComplete;
       
-      // Fast forward through debounce period
-      jest.advanceTimersByTime(100);
+      // Wait through debounce period
+      await new Promise(resolve => setTimeout(resolve, 100));
       await component.updateComplete;
 
       expect(component.sessions).toHaveLength(10);
@@ -624,7 +622,7 @@ describe('WebSocket + Lit Components Integration', () => {
       }
 
       await component.updateComplete;
-      jest.advanceTimersByTime(100);
+      await new Promise(resolve => setTimeout(resolve, 100));
       await component.updateComplete;
 
       const endTime = performance.now();
@@ -639,7 +637,7 @@ describe('WebSocket + Lit Components Integration', () => {
   describe('Error Handling and Resilience', () => {
     it('should handle malformed WebSocket messages gracefully', async () => {
       mockService.connect();
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Send malformed messages
       (component.webSocketController as any)._simulateMessage(null);
@@ -687,7 +685,7 @@ describe('WebSocket + Lit Components Integration', () => {
     });
 
     it('should handle component lifecycle errors gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Test that disconnecting component doesn't cause errors
       expect(() => {
@@ -814,7 +812,7 @@ describe('WebSocket + Lit Components Integration', () => {
       }
 
       await component.updateComplete;
-      jest.advanceTimersByTime(100);
+      await new Promise(resolve => setTimeout(resolve, 100));
       await component.updateComplete;
 
       // Should end up with no sessions
@@ -825,7 +823,7 @@ describe('WebSocket + Lit Components Integration', () => {
 
     it('should clean up WebSocket subscriptions on component removal', () => {
       const mockController = (component as any).webSocketController;
-      const hostDisconnectedSpy = jest.spyOn(mockController, 'hostDisconnected');
+      const hostDisconnectedSpy = vi.spyOn(mockController, 'hostDisconnected');
 
       // Simulate component removal lifecycle
       if ((component as any).disconnectedCallback) {

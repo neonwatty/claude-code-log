@@ -278,7 +278,8 @@ const fixture = async (template) => {
       element.updateComplete = Promise.resolve();
       
       // Create shadowRoot for all template literal elements
-      element.shadowRoot = {
+      Object.defineProperty(element, 'shadowRoot', {
+        value: {
         querySelector: (selector) => {
           if (selector.includes('[data-session-id=')) {
             const sessionId = selector.match(/data-session-id="([^"]+)"/)?.[1];
@@ -299,7 +300,10 @@ const fixture = async (template) => {
           return null;
         },
         querySelectorAll: () => []
-      };
+        },
+        writable: false,
+        configurable: true
+      });
       element.isVisible = false;
       element.sticky = true;
       element.messageCounts = {};

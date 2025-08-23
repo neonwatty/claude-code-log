@@ -3,7 +3,7 @@
  * Ensures robust handling of malformed data and edge cases
  */
 
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect } from 'vitest';
 import { parseJsonlLine, parseTranscriptEntry } from '../parsers/jsonl-parser';
 
 describe('JSONL Parser Validation and Error Handling', () => {

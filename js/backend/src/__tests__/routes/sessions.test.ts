@@ -3,25 +3,42 @@ import app from '../../app';
 import fs from 'fs';
 import path from 'path';
 import { IApiResponse } from '../../../../shared/src';
+import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest';
 
 // Mock fs module
-jest.mock('fs');
-const mockFs = fs as jest.Mocked<typeof fs>;
+vi.mock('fs');
+const mockFs = fs as Mocked<typeof fs>;
+
+// Mock Claude integration service
+vi.mock('../../services/claude-integration.service.js', () => ({
+  ClaudeIntegrationService: vi.fn().mockImplementation(() => ({
+    continueSession: vi.fn().mockResolvedValue({
+      success: true,
+      sessionId: '550e8400-e29b-41d4-a716-446655440000',
+      status: 'pending'
+    }),
+    getAllProcessStatus: vi.fn().mockReturnValue([]),
+    getProcessStatus: vi.fn().mockReturnValue(null),
+    sendInput: vi.fn().mockReturnValue(false),
+    killProcess: vi.fn().mockResolvedValue(false)
+  }))
+}));
 
 describe('Sessions API Routes', () => {
+  const validSessionId = '550e8400-e29b-41d4-a716-446655440000';
   const testSessionsData = {
-    'session-1': {
-      id: 'session-1',
+    [validSessionId]: {
+      id: validSessionId,
       entries: [
         {
-          sessionId: 'session-1',
+          sessionId: validSessionId,
           timestamp: '2024-01-01T00:00:00Z',
           cwd: '/test/project',
           type: 'user',
           message: { role: 'user', content: 'Hello' }
         },
         {
-          sessionId: 'session-1',
+          sessionId: validSessionId,
           timestamp: '2024-01-01T00:01:00Z',
           cwd: '/test/project',
           type: 'assistant',
@@ -48,7 +65,7 @@ describe('Sessions API Routes', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock fs.existsSync to return true for test paths
     mockFs.existsSync.mockReturnValue(true);
@@ -133,17 +150,16 @@ describe('Sessions API Routes', () => {
   });
 
   describe('GET /api/sessions/:id', () => {
-    const validSessionId = '550e8400-e29b-41d4-a716-446655440000';
     const invalidSessionId = 'invalid-uuid';
 
     it('should return session details for valid UUID', async () => {
       const response = await request(app)
         .get(`/api/sessions/${validSessionId}`)
-        .expect(404); // Will be 404 since mock data doesn't match UUID
+        .expect(200); // Now expects 200 since mock data matches UUID
 
       const body: IApiResponse = response.body;
-      expect(body.success).toBe(false);
-      expect(body.error).toBe('Session not found');
+      expect(body.success).toBe(true);
+      expect(body.data).toHaveProperty('id', validSessionId);
     });
 
     it('should return 400 for invalid UUID format', async () => {
@@ -168,12 +184,11 @@ describe('Sessions API Routes', () => {
   });
 
   describe('POST /api/sessions/continue', () => {
-    const validSessionId = '550e8400-e29b-41d4-a716-446655440000';
 
     it('should accept valid session continuation request', async () => {
       const requestBody = {
         sessionId: validSessionId,
-        message: 'Continue this session'
+        command: 'Continue this session'
       };
 
       const response = await request(app)
@@ -189,7 +204,7 @@ describe('Sessions API Routes', () => {
 
     it('should validate required sessionId field', async () => {
       const requestBody = {
-        message: 'Continue this session'
+        command: 'Continue this session'
       };
 
       const response = await request(app)
@@ -199,22 +214,23 @@ describe('Sessions API Routes', () => {
 
       const body: IApiResponse = response.body;
       expect(body.success).toBe(false);
-      expect(body.error).toBe('Validation failed');
+      expect(body.error).toBe('Invalid session continuation request');
     });
 
-    it('should validate sessionId format', async () => {
+    it('should return 404 for non-existent session', async () => {
       const requestBody = {
-        sessionId: 'invalid-uuid',
-        message: 'Continue this session'
+        sessionId: 'non-existent-session-id',
+        command: 'Continue this session'
       };
 
       const response = await request(app)
         .post('/api/sessions/continue')
         .send(requestBody)
-        .expect(400);
+        .expect(404);
 
       const body: IApiResponse = response.body;
       expect(body.success).toBe(false);
+      expect(body.error).toBe('Session file not found');
     });
 
     it('should handle missing request body', async () => {
@@ -226,10 +242,10 @@ describe('Sessions API Routes', () => {
       expect(body.success).toBe(false);
     });
 
-    it('should validate message length if provided', async () => {
+    it('should handle invalid field types', async () => {
       const requestBody = {
-        sessionId: validSessionId,
-        message: 'x'.repeat(10001) // Exceeds max length
+        sessionId: 123, // Should be string
+        command: 'Continue this session'
       };
 
       const response = await request(app)
@@ -239,6 +255,7 @@ describe('Sessions API Routes', () => {
 
       const body: IApiResponse = response.body;
       expect(body.success).toBe(false);
+      expect(body.error).toBe('Invalid session continuation request');
     });
   });
 

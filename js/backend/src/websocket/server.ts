@@ -166,16 +166,18 @@ export class WebSocketManager {
 
   public async stop(): Promise<void> {
     return new Promise((resolve) => {
+      // Destroy connection manager first to clean up clients
+      this.connectionManager.destroy();
+      
       if (this.wss) {
         this.wss.close(() => {
           console.log('WebSocket server stopped');
+          this.wss = null;
           resolve();
         });
       } else {
         resolve();
       }
-      
-      this.connectionManager.destroy();
     });
   }
 }

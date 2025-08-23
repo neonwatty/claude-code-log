@@ -3,7 +3,7 @@
  * Tests TypeScript interfaces, enums, and schema validation
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import {
   MessageType,
   MESSAGE_SCHEMAS,

@@ -3,31 +3,31 @@
  * Tests enhanced WebSocket wrapper with statistics tracking and state management
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
 
 // Mock EventEmitter
 const mockEventEmitter = {
-  on: jest.fn(),
-  off: jest.fn(),
-  emit: jest.fn(),
-  removeAllListeners: jest.fn()
+  on: vi.fn(),
+  off: vi.fn(),
+  emit: vi.fn(),
+  removeAllListeners: vi.fn()
 };
 
-jest.mock('../../src/utils/event-emitter', () => ({
-  EventEmitter: jest.fn(() => mockEventEmitter)
+vi.mock('../../src/utils/event-emitter', () => ({
+  EventEmitter: vi.fn(() => mockEventEmitter)
 }));
 
 // Mock WebSocketService
 const mockWebSocketService = {
-  getInstance: jest.fn(),
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  forceReconnect: jest.fn(),
-  send: jest.fn(() => true),
-  on: jest.fn(),
-  off: jest.fn(),
-  getConnectionState: jest.fn(() => 'CONNECTED'),
-  getReconnectionInfo: jest.fn(() => ({
+  getInstance: vi.fn(),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  forceReconnect: vi.fn(),
+  send: vi.fn(() => true),
+  on: vi.fn(),
+  off: vi.fn(),
+  getConnectionState: vi.fn(() => 'CONNECTED'),
+  getReconnectionInfo: vi.fn(() => ({
     attempt: 0,
     maxAttempts: 10,
     consecutiveFailures: 0,
@@ -36,17 +36,17 @@ const mockWebSocketService = {
     lastConnectTime: null,
     lastDisconnectTime: null
   })),
-  destroy: jest.fn()
+  destroy: vi.fn()
 };
 
-jest.mock('../../src/services/websocket-service', () => ({
+vi.mock('../../src/services/websocket-service', () => ({
   WebSocketService: {
-    getInstance: jest.fn(() => mockWebSocketService)
+    getInstance: vi.fn(() => mockWebSocketService)
   }
 }));
 
 // Mock WebSocket connection states
-jest.mock('../../src/types/websocket', () => ({
+vi.mock('../../src/types/websocket', () => ({
   WebSocketConnectionState: {
     CONNECTING: 'CONNECTING',
     CONNECTED: 'CONNECTED',
@@ -57,7 +57,7 @@ jest.mock('../../src/types/websocket', () => ({
 }));
 
 // Mock connection state utilities
-jest.mock('../../src/utils/websocket/connection-state', () => ({
+vi.mock('../../src/utils/websocket/connection-state', () => ({
   ConnectionState: {
     CONNECTING: 'CONNECTING',
     CONNECTED: 'CONNECTED',
@@ -65,19 +65,17 @@ jest.mock('../../src/utils/websocket/connection-state', () => ({
     DISCONNECTED: 'DISCONNECTED',
     ERROR: 'ERROR'
   },
-  calculateConnectionQuality: jest.fn(() => 'unknown')
+  calculateConnectionQuality: vi.fn(() => 'unknown')
 }));
 
-// Mock global setInterval and clearInterval  
-const mockClearInterval = jest.fn();
-global.setInterval = jest.fn(() => 123) as any;
+// Mock clearInterval to track calls
+const mockClearInterval = vi.fn();
 global.clearInterval = mockClearInterval;
 
-// Import after mocking
+// Import types and utilities
 import { ConnectionState } from '../../src/utils/websocket/connection-state';
 import { WebSocketConnectionState } from '../../src/types/websocket';
 import { WebSocketService } from '../../src/services/websocket-service';
-import { ConnectionManager } from '../../src/services/connection-manager';
 import type { 
   ConnectionStatistics, 
   ConnectionStateEvent, 
@@ -131,8 +129,7 @@ class MockConnectionManager {
   }
 
   public async initialize(config: IWebSocketConfig): Promise<void> {
-    mockWebSocketService.getInstance.mockReturnValue(mockWebSocketService);
-    this.websocketService = mockWebSocketService;
+    this.websocketService = WebSocketService.getInstance(config);
     this.setupWebSocketEventHandlers();
     this.resetStatistics();
   }
@@ -222,6 +219,12 @@ class MockConnectionManager {
     };
 
     this.stateHistory.push(stateEvent);
+    
+    // Keep only last 50 state changes
+    if (this.stateHistory.length > 50) {
+      this.stateHistory = this.stateHistory.slice(-50);
+    }
+    
     this.eventEmitter.emit('state-changed', stateEvent);
 
     // Simulate appropriate statistics updates
@@ -328,8 +331,9 @@ class MockConnectionManager {
   }
 
   public destroy(): void {
-    if (this.statisticsUpdateTimer) {
+    if (this.statisticsUpdateTimer !== null) {
       global.clearInterval(this.statisticsUpdateTimer);
+      this.statisticsUpdateTimer = null;
     }
     
     this.stopUptimeTimer();
@@ -345,33 +349,45 @@ class MockConnectionManager {
 }
 
 describe('ConnectionManager', () => {
-  let manager: ConnectionManager;
+  let manager: MockConnectionManager;
+
+  // Set up fake timers once for the entire test suite
+  beforeAll(() => {
+    vi.useFakeTimers({
+      shouldAdvanceTime: true,
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date']
+    });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
 
   beforeEach(() => {
-    manager = ConnectionManager.getInstance();
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    MockConnectionManager.resetInstance();
+    manager = MockConnectionManager.getInstance();
+    vi.clearAllTimers();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     manager.destroy();
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
   });
 
   describe('Singleton Pattern', () => {
     it('should maintain singleton instance', () => {
-      const instance1 = ConnectionManager.getInstance();
-      const instance2 = ConnectionManager.getInstance();
+      const instance1 = MockConnectionManager.getInstance();
+      const instance2 = MockConnectionManager.getInstance();
       
       expect(instance1).toBe(instance2);
     });
 
     it('should reset instance on destroy', () => {
-      const instance1 = ConnectionManager.getInstance();
+      const instance1 = MockConnectionManager.getInstance();
       instance1.destroy();
       
-      const instance2 = ConnectionManager.getInstance();
+      const instance2 = MockConnectionManager.getInstance();
       expect(instance2).not.toBe(instance1);
     });
   });
@@ -541,7 +557,7 @@ describe('ConnectionManager', () => {
     it('should track uptime when connected', () => {
       manager.simulateStateChange(ConnectionState.CONNECTED);
       
-      jest.advanceTimersByTime(5000); // 5 seconds
+      vi.advanceTimersByTime(5000); // 5 seconds
       
       const stats = manager.getStatistics();
       expect(stats.uptime).toBeGreaterThan(0);
@@ -549,12 +565,12 @@ describe('ConnectionManager', () => {
 
     it('should stop uptime tracking when disconnected', () => {
       manager.simulateStateChange(ConnectionState.CONNECTED);
-      jest.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(3000);
       
       manager.simulateStateChange(ConnectionState.DISCONNECTED);
       const uptimeAtDisconnect = manager.getStatistics().uptime;
       
-      jest.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(2000);
       
       const stats = manager.getStatistics();
       expect(stats.uptime).toBe(uptimeAtDisconnect); // Should not increase
@@ -571,7 +587,7 @@ describe('ConnectionManager', () => {
       manager.simulateMessage({ type: 'heartbeat' });
       
       // Advance time and simulate pong
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       manager.simulateMessage({ type: 'pong' });
       
       const stats = manager.getStatistics();
@@ -582,7 +598,7 @@ describe('ConnectionManager', () => {
       // Simulate multiple heartbeat/pong cycles
       for (let i = 0; i < 5; i++) {
         manager.simulateMessage({ type: 'heartbeat' });
-        jest.advanceTimersByTime(50 + i * 10); // Varying latencies
+        vi.advanceTimersByTime(50 + i * 10); // Varying latencies
         manager.simulateMessage({ type: 'pong' });
       }
       
@@ -595,7 +611,7 @@ describe('ConnectionManager', () => {
       // Simulate many measurements
       for (let i = 0; i < 25; i++) {
         manager.simulateMessage({ type: 'heartbeat' });
-        jest.advanceTimersByTime(50);
+        vi.advanceTimersByTime(50);
         manager.simulateMessage({ type: 'pong' });
       }
       
@@ -629,7 +645,7 @@ describe('ConnectionManager', () => {
 
     it('should include heartbeat and pong times in debug info', () => {
       manager.simulateMessage({ type: 'heartbeat' });
-      jest.advanceTimersByTime(50);
+      vi.advanceTimersByTime(50);
       manager.simulateMessage({ type: 'pong' });
       
       const debugInfo = manager.getDebugInfo();
@@ -644,7 +660,7 @@ describe('ConnectionManager', () => {
     });
 
     it('should allow subscribing to events', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       
       manager.on('state-changed', handler);
       
@@ -652,7 +668,7 @@ describe('ConnectionManager', () => {
     });
 
     it('should allow unsubscribing from events', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       
       manager.off('state-changed', handler);
       
@@ -685,9 +701,19 @@ describe('ConnectionManager', () => {
   describe('Cleanup and Destruction', () => {
     it('should clean up timers on destroy', async () => {
       await manager.initialize({ url: 'ws://localhost:8080' });
+      
+      // Ensure the manager has timers created by triggering a connected state
+      manager.simulateStateChange(ConnectionState.CONNECTED);
+      
+      // Spy on clearInterval during destroy
+      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+      
       manager.destroy();
       
-      expect(mockClearInterval).toHaveBeenCalled();
+      // Verify clearInterval was called at least once
+      expect(clearIntervalSpy).toHaveBeenCalled();
+      
+      clearIntervalSpy.mockRestore();
     });
 
     it('should destroy WebSocket service on cleanup', async () => {

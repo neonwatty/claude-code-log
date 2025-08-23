@@ -10,20 +10,36 @@ import { promises as fs } from 'fs';
 import { performance } from 'perf_hooks';
 
 // Mock filesystem for performance testing
-jest.mock('fs', () => ({
-  promises: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    access: jest.fn(),
-    stat: jest.fn(),
-    rename: jest.fn(),
-    mkdir: jest.fn(),
-    readdir: jest.fn(),
-    rm: jest.fn()
-  }
-}));
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    default: {
+      readFileSync: vi.fn(),
+      readdirSync: vi.fn(),
+      statSync: vi.fn(),
+      createReadStream: vi.fn(),
+      watch: vi.fn(),
+    },
+    promises: {
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      access: vi.fn(),
+      stat: vi.fn(),
+      rename: vi.fn(),
+      mkdir: vi.fn(),
+      readdir: vi.fn(),
+      rm: vi.fn()
+    },
+    readFileSync: vi.fn(),
+    readdirSync: vi.fn(),
+    statSync: vi.fn(),
+    createReadStream: vi.fn(),
+    watch: vi.fn(),
+  };
+});
 
-const mockFs = jest.mocked(fs);
+const mockFs = vi.mocked(fs);
 
 describe('Cache System Performance Tests', () => {
   let services: {
@@ -36,7 +52,7 @@ describe('Cache System Performance Tests', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     services = {
       directory: CacheDirectoryService.getInstance(),
       validation: CacheValidationService.getInstance(),
@@ -101,7 +117,7 @@ describe('Cache System Performance Tests', () => {
         mtime: { getTime: () => 1672574400000 }
       };
 
-      require('fs').statSync = jest.fn().mockReturnValue(mockStats);
+      require('fs').statSync = vi.fn().mockReturnValue(mockStats);
 
       const syncStart = performance.now();
       const result = services.fileModification.batchCheckFilesSync(filePaths);

@@ -259,10 +259,10 @@ describe('Security Middleware', () => {
   });
 
   describe('Development vs Production Configuration', () => {
-    it('should have different behavior in development', () => {
+    it('should have different behavior in development', async () => {
       process.env.NODE_ENV = 'development';
       
-      const { getSecurityConfig } = require('../../middleware/security');
+      const { getSecurityConfig } = await import('../../middleware/security.js');
       const config = getSecurityConfig();
       
       expect(config.rateLimit?.skip()).toBe(true);
@@ -270,10 +270,10 @@ describe('Security Middleware', () => {
       process.env.NODE_ENV = 'test';
     });
 
-    it('should have stricter configuration in production', () => {
+    it('should have stricter configuration in production', async () => {
       process.env.NODE_ENV = 'production';
       
-      const { getSecurityConfig } = require('../../middleware/security');
+      const { getSecurityConfig } = await import('../../middleware/security.js');
       const config = getSecurityConfig();
       
       expect(config.rateLimit).toBeUndefined(); // Uses default production settings

@@ -1,11 +1,24 @@
+import { describe, it, expect, beforeEach, vi, type Mocked } from 'vitest';
 const request = require('supertest');
 import app from '../../app';
-const fs = require('fs');
+import fs from 'fs';
 import { IApiResponse } from '../../../../shared/src';
 
 // Mock fs module
-jest.mock('fs');
-const mockFs = fs as jest.Mocked<typeof fs>;
+vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn(),
+    realpathSync: vi.fn(),
+    readdirSync: vi.fn(),
+    readFileSync: vi.fn()
+  },
+  existsSync: vi.fn(),
+  realpathSync: vi.fn(),
+  readdirSync: vi.fn(),
+  readFileSync: vi.fn()
+}));
+
+const mockFs = vi.mocked(fs);
 
 describe('Projects API Routes', () => {
   const testProjectData = [
@@ -40,7 +53,7 @@ describe('Projects API Routes', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock fs.existsSync to return true for test paths
     mockFs.existsSync.mockReturnValue(true);

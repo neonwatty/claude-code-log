@@ -7,19 +7,35 @@ import * as path from 'path';
 import { CACHE_FORMAT_VERSION } from '../../utils/cache';
 
 // Mock filesystem for testing
-jest.mock('fs', () => ({
-  promises: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    access: jest.fn(),
-    stat: jest.fn(),
-    rename: jest.fn(),
-    mkdir: jest.fn(),
-    readdir: jest.fn()
-  }
-}));
+vi.mock('fs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    default: {
+      readFileSync: vi.fn(),
+      readdirSync: vi.fn(),
+      statSync: vi.fn(),
+      createReadStream: vi.fn(),
+      watch: vi.fn(),
+    },
+    promises: {
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      access: vi.fn(),
+      stat: vi.fn(),
+      rename: vi.fn(),
+      mkdir: vi.fn(),
+      readdir: vi.fn()
+    },
+    readFileSync: vi.fn(),
+    readdirSync: vi.fn(),
+    statSync: vi.fn(),
+    createReadStream: vi.fn(),
+    watch: vi.fn(),
+  };
+});
 
-const mockFs = jest.mocked(fs);
+const mockFs = vi.mocked(fs);
 
 describe('Python Cache Compatibility Integration', () => {
   let cacheDirectoryService: CacheDirectoryService;
@@ -30,7 +46,7 @@ describe('Python Cache Compatibility Integration', () => {
   const testProjectPath = '/test/python-compat-project';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     cacheDirectoryService = CacheDirectoryService.getInstance();
     cacheValidationService = CacheValidationService.getInstance();
     cacheBuilderService = JsonlCacheBuilderService.getInstance();

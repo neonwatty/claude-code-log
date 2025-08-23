@@ -3,7 +3,7 @@
  * Tests basic WebSocket controller integration, state management, and user interactions
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { html, fixture, expect as litExpected } from '@open-wc/testing';
 import type { SessionData } from '../../src/utils/websocket/message-types';
 import { ConnectionState } from '../../src/utils/websocket/connection-state';
@@ -103,8 +103,8 @@ class MockWebSocketController {
 }
 
 // Mock the WebSocketController module
-jest.mock('../../src/utils/websocket/websocket-controller', () => ({
-  WebSocketController: jest.fn().mockImplementation((host, service, config) => {
+vi.mock('../../src/utils/websocket/websocket-controller', () => ({
+  WebSocketController: vi.fn().mockImplementation((host, service, config) => {
     const instance = new MockWebSocketController(host, service, config);
     // Store reference on host for test access
     (host as any).__mockController = instance;
@@ -120,11 +120,9 @@ describe('SimpleWebSocketExample', () => {
   let mockHost: any;
 
   beforeEach(async () => {
-    jest.useFakeTimers();
-    
     // Create a simple mock host object to test the controller
     mockHost = {
-      requestUpdate: jest.fn(),
+      requestUpdate: vi.fn(),
       sessions: []
     };
     
@@ -140,8 +138,7 @@ describe('SimpleWebSocketExample', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Mock WebSocket Controller', () => {
@@ -158,10 +155,10 @@ describe('SimpleWebSocketExample', () => {
 
     it('should setup WebSocket message handlers', () => {
       // Add some handlers to test
-      const sessionCreatedHandler = jest.fn();
-      const sessionUpdatedHandler = jest.fn();
-      const sessionDeletedHandler = jest.fn();
-      const cacheInvalidatedHandler = jest.fn();
+      const sessionCreatedHandler = vi.fn();
+      const sessionUpdatedHandler = vi.fn();
+      const sessionDeletedHandler = vi.fn();
+      const cacheInvalidatedHandler = vi.fn();
       
       mockController.onSessionCreated(sessionCreatedHandler);
       mockController.onSessionUpdated(sessionUpdatedHandler);
@@ -228,7 +225,7 @@ describe('SimpleWebSocketExample', () => {
       };
 
       // Add a handler to track calls
-      const sessionCreatedHandler = jest.fn();
+      const sessionCreatedHandler = vi.fn();
       mockController.onSessionCreated(sessionCreatedHandler);
 
       mockController.simulateSessionCreated(sessionData);
@@ -250,7 +247,7 @@ describe('SimpleWebSocketExample', () => {
       };
 
       // Add a handler to track calls
-      const sessionUpdatedHandler = jest.fn();
+      const sessionUpdatedHandler = vi.fn();
       mockController.onSessionUpdated(sessionUpdatedHandler);
 
       mockController.simulateSessionUpdated(updatedSession, changes);
@@ -263,7 +260,7 @@ describe('SimpleWebSocketExample', () => {
       const sessionId = 'session-1';
 
       // Add a handler to track calls
-      const sessionDeletedHandler = jest.fn();
+      const sessionDeletedHandler = vi.fn();
       mockController.onSessionDeleted(sessionDeletedHandler);
       
       mockController.simulateSessionDeleted(sessionId);
@@ -279,7 +276,7 @@ describe('SimpleWebSocketExample', () => {
       };
 
       // Add a handler to track calls
-      const cacheInvalidatedHandler = jest.fn();
+      const cacheInvalidatedHandler = vi.fn();
       mockController.onCacheInvalidated(cacheInvalidatedHandler);
 
       mockController.simulateCacheInvalidated(cachePayload);
@@ -325,7 +322,7 @@ describe('SimpleWebSocketExample', () => {
   });
 
   describe('Reconnection Logic', () => {
-    it('should handle reconnection correctly', () => {
+    it('should handle reconnection correctly', async () => {
       // Start connected
       expect(mockController.isConnected()).toBe(true);
       expect(mockController.getConnectionState()).toBe(ConnectionState.CONNECTED);
@@ -337,8 +334,8 @@ describe('SimpleWebSocketExample', () => {
       expect(mockController.isConnected()).toBe(false);
       expect(mockController.getConnectionState()).toBe(ConnectionState.RECONNECTING);
 
-      // Fast forward to simulate reconnection
-      jest.advanceTimersByTime(150);
+      // Wait for reconnection to complete (using real timers with await)
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       // Should be connected again
       expect(mockController.isConnected()).toBe(true);

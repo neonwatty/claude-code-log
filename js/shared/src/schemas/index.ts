@@ -88,3 +88,25 @@ export {
   type ValidationResult,
   type ValidationOptions,
 } from './validators';
+
+// Claude Code integration schemas
+export {
+  ClaudeProcessStateSchema,
+  ClaudeCommandSchema,
+  ClaudeProcessStatusSchema,
+  SessionContinuationRequestSchema,
+  SessionContinuationResponseSchema,
+  ClaudeOutputSchema,
+  ClaudeProcessEventSchema,
+  ClaudeIntegrationConfigSchema,
+  ClaudeIntegrationErrorSchema,
+  type ClaudeProcessState,
+  type ClaudeCommand,
+  type ClaudeProcessStatus,
+  type SessionContinuationRequest,
+  type SessionContinuationResponse,
+  type ClaudeOutput,
+  type ClaudeProcessEvent,
+  type ClaudeIntegrationConfig,
+  type ClaudeIntegrationError,
+} from './claude-integration';

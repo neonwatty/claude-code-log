@@ -5,18 +5,18 @@ import * as path from 'path';
 import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from '../../utils/cache';
 
 // Mock dependencies
-jest.mock('fs/promises');
-jest.mock('fs');
+vi.mock('fs/promises');
+vi.mock('fs');
 
-const mockFs = jest.mocked(fs);
-const mockFsSync = jest.mocked(fsSync);
+const mockFs = vi.mocked(fs);
+const mockFsSync = vi.mocked(fsSync);
 
 describe('CacheDirectoryService', () => {
   let service: CacheDirectoryService;
   let mockProjectPath: string;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = CacheDirectoryService.getInstance();
     mockProjectPath = '/test/project';
   });
@@ -74,7 +74,7 @@ describe('CacheDirectoryService', () => {
     });
 
     it('should emit creation event', async () => {
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       service.on('directoryEvent', eventSpy);
 
       mockFs.mkdir.mockResolvedValue(undefined);
@@ -344,7 +344,7 @@ describe('CacheDirectoryService', () => {
     });
 
     it('should emit deletion event', async () => {
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       service.on('directoryEvent', eventSpy);
 
       service['cacheDirectories'].set(mockProjectPath, {

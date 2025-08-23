@@ -232,10 +232,10 @@ describe('Error Handler Middleware', () => {
   });
 
   describe('requestLogger', () => {
-    let consoleLogSpy: jest.SpyInstance;
+    let consoleLogSpy: any;
 
     beforeEach(() => {
-      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -326,10 +326,10 @@ describe('Error Handler Middleware', () => {
     it('should handle health check errors gracefully', async () => {
       // Mock process.memoryUsage to throw error
       const originalMemoryUsage = process.memoryUsage;
-      const mockMemoryUsage = jest.fn().mockImplementation(() => {
+      const mockMemoryUsage = vi.fn().mockImplementation(() => {
         throw new Error('Memory usage error');
       });
-      Object.assign(mockMemoryUsage, { rss: jest.fn() });
+      Object.assign(mockMemoryUsage, { rss: vi.fn() });
       process.memoryUsage = mockMemoryUsage as any;
 
       app.get('/health', healthCheckHandler);

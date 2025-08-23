@@ -3,12 +3,12 @@
  * Tests screen reader announcements and accessibility utilities
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
 
 // Mock DOM elements
 const mockAnnouncer = {
-  setAttribute: jest.fn(),
-  getAttribute: jest.fn(),
+  setAttribute: vi.fn(),
+  getAttribute: vi.fn(),
   style: { cssText: '' },
   textContent: '',
   className: '',
@@ -17,11 +17,11 @@ const mockAnnouncer = {
 } as unknown as HTMLElement & { attributes: Map<string, string> };
 
 // Set up proper attribute tracking
-mockAnnouncer.setAttribute = jest.fn((name: string, value: string) => {
+mockAnnouncer.setAttribute = vi.fn((name: string, value: string) => {
   (mockAnnouncer as any).attributes.set(name, value);
 });
 
-mockAnnouncer.getAttribute = jest.fn((name: string) => {
+mockAnnouncer.getAttribute = vi.fn((name: string) => {
   return (mockAnnouncer as any).attributes.get(name) || null;
 });
 
@@ -29,10 +29,10 @@ mockAnnouncer.getAttribute = jest.fn((name: string) => {
 (mockAnnouncer as any).attributes.set('aria-live', 'polite');
 
 const mockDocument = {
-  createElement: jest.fn((_tagName: string) => mockAnnouncer),
+  createElement: vi.fn((_tagName: string) => mockAnnouncer),
   body: {
-    appendChild: jest.fn(),
-    removeChild: jest.fn()
+    appendChild: vi.fn(),
+    removeChild: vi.fn()
   }
 };
 
@@ -235,6 +235,18 @@ function createAccessibilityId(prefix = 'a11y'): string {
 describe('AccessibilityService', () => {
   let service: MockAccessibilityService;
 
+  // Set up fake timers once for the entire test suite
+  beforeAll(() => {
+    vi.useFakeTimers({
+      shouldAdvanceTime: true,
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval']
+    });
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     MockAccessibilityService.resetInstance();
     
@@ -246,22 +258,23 @@ describe('AccessibilityService', () => {
     (mockAnnouncer as any).parentNode = null;
     
     // Clear mock call history but preserve functionality
-    (mockDocument.createElement as jest.Mock).mockClear();
-    (mockAnnouncer.setAttribute as jest.Mock).mockClear();
-    (mockDocument.body.appendChild as jest.Mock).mockClear();
-    (mockDocument.body.removeChild as jest.Mock).mockClear();
+    (mockDocument.createElement as any).mockClear();
+    (mockAnnouncer.setAttribute as any).mockClear();
+    (mockDocument.body.appendChild as any).mockClear();
+    (mockDocument.body.removeChild as any).mockClear();
     
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    // Clear any pending timers but keep fake timers active
+    vi.clearAllTimers();
     
-    // Create service instance AFTER clearing mocks
+    // Create service instance
     service = MockAccessibilityService.getInstance();
   });
 
   afterEach(() => {
-    service.destroy();
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    if (service) {
+      service.destroy();
+    }
+    vi.clearAllTimers();
   });
 
   describe('Singleton Pattern', () => {
@@ -306,7 +319,7 @@ describe('AccessibilityService', () => {
     it('should announce simple message with default priority', async () => {
       service.announce('Test announcement');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Test announcement');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -315,7 +328,7 @@ describe('AccessibilityService', () => {
     it('should announce message with assertive priority', async () => {
       service.announce('Urgent message', 'assertive');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Urgent message');
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
@@ -331,7 +344,7 @@ describe('AccessibilityService', () => {
     it('should trim whitespace from messages', async () => {
       service.announce('  Test message  ');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Test message');
     });
@@ -340,11 +353,11 @@ describe('AccessibilityService', () => {
       service.announce('Delayed message', 'polite', 500);
       
       // Should not be announced immediately
-      await jest.advanceTimersByTimeAsync(200);
+      await vi.advanceTimersByTimeAsync(200);
       expect(service.getAnnouncerText()).toBe('');
       
       // Should be announced after delay
-      await jest.advanceTimersByTimeAsync(400);
+      await vi.advanceTimersByTimeAsync(400);
       expect(service.getAnnouncerText()).toBe('Delayed message');
     });
   });
@@ -353,7 +366,7 @@ describe('AccessibilityService', () => {
     it('should announce connected state with polite priority', async () => {
       service.announceConnectionState('connected', 'Successfully established');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Connection status: connected. Successfully established');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -362,7 +375,7 @@ describe('AccessibilityService', () => {
     it('should announce error state with assertive priority', async () => {
       service.announceConnectionState('error', 'Connection failed');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Connection status: error. Connection failed');
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
@@ -371,7 +384,7 @@ describe('AccessibilityService', () => {
     it('should announce disconnected state with assertive priority', async () => {
       service.announceConnectionState('disconnected');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Connection status: disconnected');
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
@@ -380,7 +393,7 @@ describe('AccessibilityService', () => {
     it('should announce other states with polite priority', async () => {
       service.announceConnectionState('connecting');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Connection status: connecting');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -391,7 +404,7 @@ describe('AccessibilityService', () => {
     it('should announce toast with polite priority for non-error types', async () => {
       service.announceToast('Success', 'Operation completed', 'success');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Success. Operation completed');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -400,7 +413,7 @@ describe('AccessibilityService', () => {
     it('should announce toast with assertive priority for error type', async () => {
       service.announceToast('Error', 'Something went wrong', 'error');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Error. Something went wrong');
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
@@ -411,7 +424,7 @@ describe('AccessibilityService', () => {
     it('should announce loading start', async () => {
       service.announceLoading(true, 'data');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Loading data, please wait');
     });
@@ -419,7 +432,7 @@ describe('AccessibilityService', () => {
     it('should announce loading completion', async () => {
       service.announceLoading(false, 'data');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('data loaded successfully');
     });
@@ -427,7 +440,7 @@ describe('AccessibilityService', () => {
     it('should use default context when not provided', async () => {
       service.announceLoading(true);
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Loading content, please wait');
     });
@@ -437,7 +450,7 @@ describe('AccessibilityService', () => {
     it('should announce navigation changes', async () => {
       service.announceNavigation('Settings page');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Navigated to Settings page');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -448,7 +461,7 @@ describe('AccessibilityService', () => {
     it('should announce validation errors with assertive priority', async () => {
       service.announceValidationError('email', 'Invalid email format');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Error in email: Invalid email format');
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
@@ -459,7 +472,7 @@ describe('AccessibilityService', () => {
     it('should announce successful actions', async () => {
       service.announceSuccess('Data saved');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerText()).toBe('Data saved completed successfully');
       expect(service.getAnnouncerAriaLive()).toBe('polite');
@@ -480,7 +493,7 @@ describe('AccessibilityService', () => {
       service.announce('Second message');
       
       // Run all timers to completion  
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       // After processing all, should have the last message
       expect(service.getAnnouncerText()).toBe('Second message');
@@ -503,13 +516,13 @@ describe('AccessibilityService', () => {
       service.announce('Second message');
       
       // Start processing
-      const promise1 = jest.advanceTimersByTimeAsync(300);
+      const promise1 = vi.advanceTimersByTimeAsync(300);
       service.announce('Third message'); // Add during processing
       
       await promise1;
       
       // Should still process all messages in order
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       expect(service.getQueueLength()).toBe(0);
     });
   });
@@ -517,11 +530,11 @@ describe('AccessibilityService', () => {
   describe('Priority Handling', () => {
     it('should update aria-live attribute when priority changes', async () => {
       service.announce('Polite message', 'polite');
-      await jest.advanceTimersByTimeAsync(600);
+      await vi.advanceTimersByTimeAsync(600);
       expect(service.getAnnouncerAriaLive()).toBe('polite');
       
       service.announce('Assertive message', 'assertive');
-      await jest.advanceTimersByTimeAsync(600);
+      await vi.advanceTimersByTimeAsync(600);
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
     });
 
@@ -529,7 +542,7 @@ describe('AccessibilityService', () => {
       service.announce('First assertive', 'assertive');
       service.announce('Second assertive', 'assertive');
       
-      await jest.runAllTimersAsync();
+      await vi.runAllTimersAsync();
       
       expect(service.getAnnouncerAriaLive()).toBe('assertive');
     });
@@ -567,9 +580,9 @@ describe('Accessibility Utility Functions', () => {
 
   beforeEach(() => {
     mockElement = {
-      getAttribute: jest.fn(),
-      setAttribute: jest.fn(),
-      removeAttribute: jest.fn()
+      getAttribute: vi.fn(),
+      setAttribute: vi.fn(),
+      removeAttribute: vi.fn()
     };
   });
 

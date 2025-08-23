@@ -3,7 +3,7 @@
  * Tests event handling, memory management, and type safety
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { EventEmitter, createEventEmitter, type EventHandler } from '../../src/utils/event-emitter';
 
 // Test event map interface
@@ -20,21 +20,20 @@ interface TestEventMap {
 
 describe('EventEmitter', () => {
   let emitter: EventEmitter<TestEventMap>;
-  let consoleSpy: jest.SpyInstance;
+  let consoleSpy: any;
 
   beforeEach(() => {
     emitter = new EventEmitter<TestEventMap>();
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     consoleSpy.mockRestore();
-    jest.restoreAllMocks();
   });
 
   describe('on()', () => {
     it('should register event handler and return unsubscribe function', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const unsubscribe = emitter.on('user:login', handler);
 
       expect(typeof unsubscribe).toBe('function');
@@ -42,8 +41,8 @@ describe('EventEmitter', () => {
     });
 
     it('should register multiple handlers for same event', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
 
       emitter.on('user:login', handler1);
       emitter.on('user:login', handler2);
@@ -52,8 +51,8 @@ describe('EventEmitter', () => {
     });
 
     it('should register handlers for different events', () => {
-      const loginHandler = jest.fn();
-      const logoutHandler = jest.fn();
+      const loginHandler = vi.fn();
+      const logoutHandler = vi.fn();
 
       emitter.on('user:login', loginHandler);
       emitter.on('user:logout', logoutHandler);
@@ -63,15 +62,15 @@ describe('EventEmitter', () => {
     });
 
     it('should warn when approaching max listeners', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       emitter.setMaxListeners(2);
 
       // Add 2 handlers, then a 3rd should trigger warning
-      emitter.on('user:login', jest.fn());
-      emitter.on('user:login', jest.fn());
+      emitter.on('user:login', vi.fn());
+      emitter.on('user:login', vi.fn());
       expect(warnSpy).not.toHaveBeenCalled();
 
-      emitter.on('user:login', jest.fn()); // Should trigger warning
+      emitter.on('user:login', vi.fn()); // Should trigger warning
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('Possible event emitter memory leak detected')
       );
@@ -82,7 +81,7 @@ describe('EventEmitter', () => {
 
   describe('once()', () => {
     it('should register handler that auto-unsubscribes after first call', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       emitter.once('user:login', handler);
 
       expect(emitter.listenerCount('user:login')).toBe(1);
@@ -97,7 +96,7 @@ describe('EventEmitter', () => {
     });
 
     it('should return unsubscribe function that works before first emit', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const unsubscribe = emitter.once('user:login', handler);
 
       expect(emitter.listenerCount('user:login')).toBe(1);
@@ -112,8 +111,8 @@ describe('EventEmitter', () => {
 
   describe('off()', () => {
     it('should remove specific handler', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
 
       emitter.on('user:login', handler1);
       emitter.on('user:login', handler2);
@@ -128,8 +127,8 @@ describe('EventEmitter', () => {
     });
 
     it('should remove all handlers when no specific handler provided', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
 
       emitter.on('user:login', handler1);
       emitter.on('user:login', handler2);
@@ -140,14 +139,14 @@ describe('EventEmitter', () => {
     });
 
     it('should handle removing non-existent handler gracefully', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       expect(() => {
         emitter.off('user:login', handler);
       }).not.toThrow();
     });
 
     it('should work with unsubscribe function returned from on()', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const unsubscribe = emitter.on('user:login', handler);
 
       expect(emitter.listenerCount('user:login')).toBe(1);
@@ -159,8 +158,8 @@ describe('EventEmitter', () => {
 
   describe('emit()', () => {
     it('should call all registered handlers with correct data', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
       const loginData = { userId: '123', username: 'testuser' };
 
       emitter.on('user:login', handler1);
@@ -173,8 +172,8 @@ describe('EventEmitter', () => {
     });
 
     it('should not call handlers for different events', () => {
-      const loginHandler = jest.fn();
-      const logoutHandler = jest.fn();
+      const loginHandler = vi.fn();
+      const logoutHandler = vi.fn();
 
       emitter.on('user:login', loginHandler);
       emitter.on('user:logout', logoutHandler);
@@ -192,10 +191,10 @@ describe('EventEmitter', () => {
     });
 
     it('should catch and log handler errors without affecting other handlers', () => {
-      const errorHandler = jest.fn().mockImplementation(() => {
+      const errorHandler = vi.fn().mockImplementation(() => {
         throw new Error('Handler error');
       });
-      const successHandler = jest.fn();
+      const successHandler = vi.fn();
 
       emitter.on('user:login', errorHandler);
       emitter.on('user:login', successHandler);
@@ -211,9 +210,9 @@ describe('EventEmitter', () => {
     });
 
     it('should handle different data types correctly', () => {
-      const stringHandler = jest.fn();
-      const numberHandler = jest.fn();
-      const voidHandler = jest.fn();
+      const stringHandler = vi.fn();
+      const numberHandler = vi.fn();
+      const voidHandler = vi.fn();
 
       emitter.on('data', stringHandler);
       emitter.on('number', numberHandler);
@@ -231,8 +230,8 @@ describe('EventEmitter', () => {
 
   describe('removeAllListeners()', () => {
     it('should remove all listeners for specific event', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
 
       emitter.on('user:login', handler1);
       emitter.on('user:logout', handler2);
@@ -244,8 +243,8 @@ describe('EventEmitter', () => {
     });
 
     it('should remove all listeners for all events when no event specified', () => {
-      const handler1 = jest.fn();
-      const handler2 = jest.fn();
+      const handler1 = vi.fn();
+      const handler2 = vi.fn();
 
       emitter.on('user:login', handler1);
       emitter.on('user:logout', handler2);
@@ -261,13 +260,13 @@ describe('EventEmitter', () => {
     it('should return correct count of listeners', () => {
       expect(emitter.listenerCount('user:login')).toBe(0);
 
-      emitter.on('user:login', jest.fn());
+      emitter.on('user:login', vi.fn());
       expect(emitter.listenerCount('user:login')).toBe(1);
 
-      emitter.on('user:login', jest.fn());
+      emitter.on('user:login', vi.fn());
       expect(emitter.listenerCount('user:login')).toBe(2);
 
-      emitter.on('user:logout', jest.fn());
+      emitter.on('user:logout', vi.fn());
       expect(emitter.listenerCount('user:login')).toBe(2);
       expect(emitter.listenerCount('user:logout')).toBe(1);
     });
@@ -279,13 +278,13 @@ describe('EventEmitter', () => {
 
   describe('setMaxListeners()', () => {
     it('should set maximum listener threshold', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       emitter.setMaxListeners(1);
 
-      emitter.on('user:login', jest.fn());
+      emitter.on('user:login', vi.fn());
       expect(warnSpy).not.toHaveBeenCalled();
 
-      emitter.on('user:login', jest.fn()); // Should trigger warning
+      emitter.on('user:login', vi.fn()); // Should trigger warning
       expect(warnSpy).toHaveBeenCalled();
 
       warnSpy.mockRestore();
@@ -296,8 +295,8 @@ describe('EventEmitter', () => {
     it('should return array of event names with listeners', () => {
       expect(emitter.eventNames()).toEqual([]);
 
-      emitter.on('user:login', jest.fn());
-      emitter.on('user:logout', jest.fn());
+      emitter.on('user:login', vi.fn());
+      emitter.on('user:logout', vi.fn());
 
       const eventNames = emitter.eventNames();
       expect(eventNames).toContain('user:login');
@@ -306,8 +305,8 @@ describe('EventEmitter', () => {
     });
 
     it('should not include events with no listeners', () => {
-      emitter.on('user:login', jest.fn());
-      emitter.on('user:logout', jest.fn());
+      emitter.on('user:login', vi.fn());
+      emitter.on('user:logout', vi.fn());
       emitter.off('user:logout'); // Remove all handlers
 
       const eventNames = emitter.eventNames();
@@ -319,7 +318,7 @@ describe('EventEmitter', () => {
 
   describe('Memory Management', () => {
     it('should properly clean up handlers to prevent memory leaks', () => {
-      const handlers = Array.from({ length: 10 }, () => jest.fn());
+      const handlers = Array.from({ length: 10 }, () => vi.fn());
 
       // Add handlers
       const unsubscribeFns = handlers.map(handler => 
@@ -336,7 +335,7 @@ describe('EventEmitter', () => {
     });
 
     it('should clean up event entirely when no handlers remain', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       emitter.on('user:login', handler);
 
       expect(emitter.eventNames()).toContain('user:login');
@@ -358,8 +357,8 @@ describe('createEventEmitter factory', () => {
     const emitter1 = createEventEmitter<TestEventMap>();
     const emitter2 = createEventEmitter<TestEventMap>();
 
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
 
     emitter1.on('user:login', handler1);
     emitter2.on('user:login', handler2);

@@ -4,17 +4,17 @@ import * as fsSync from 'fs';
 import * as path from 'path';
 
 // Mock dependencies
-jest.mock('fs/promises');
-jest.mock('fs');
+vi.mock('fs/promises');
+vi.mock('fs');
 
-const mockFs = jest.mocked(fs);
-const mockFsSync = jest.mocked(fsSync);
+const mockFs = vi.mocked(fs);
+const mockFsSync = vi.mocked(fsSync);
 
 describe('FileModificationService', () => {
   let service: FileModificationService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = FileModificationService.getInstance();
   });
 
@@ -62,7 +62,7 @@ describe('FileModificationService', () => {
 
     it('should emit file_deleted event for missing files', async () => {
       const filePath = '/test/missing.jsonl';
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
 
       service.on('fileModificationEvent', eventSpy);
       mockFs.stat.mockRejectedValue(new Error('File not found'));
@@ -234,7 +234,7 @@ describe('FileModificationService', () => {
 
     it('should emit file modification events', async () => {
       const filePath = '/test/file.jsonl';
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       const oldStats = {
         size: 1024,
         mtime: new Date('2023-01-01T10:00:00Z')
@@ -317,7 +317,7 @@ describe('FileModificationService', () => {
 
     it('should emit batch_complete event', async () => {
       const filePaths = ['/test/file1.jsonl'];
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       const stats = { size: 1024, mtime: new Date('2023-01-01T10:00:00Z') };
 
       service.on('fileModificationEvent', eventSpy);

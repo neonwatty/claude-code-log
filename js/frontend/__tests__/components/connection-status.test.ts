@@ -3,30 +3,30 @@
  * Tests Lit component rendering, properties, events, and lifecycle
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Lit dependencies
-const mockHtml = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
+const mockHtml = vi.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
   `HTML_TEMPLATE: ${strings.join('')} VALUES: ${JSON.stringify(values)}`
 );
-const mockCss = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
+const mockCss = vi.fn((strings: TemplateStringsArray, ...values: unknown[]) => 
   `CSS_TEMPLATE: ${strings.join('')} VALUES: ${JSON.stringify(values)}`
 );
 
 // Mock lit imports
-jest.mock('lit', () => ({
+vi.mock('lit', () => ({
   html: mockHtml,
   css: mockCss,
-  CSSResult: jest.fn()
+  CSSResult: vi.fn()
 }));
 
-jest.mock('lit/decorators.js', () => ({
-  property: jest.fn(() => jest.fn()),
-  state: jest.fn(() => jest.fn())
+vi.mock('lit/decorators.js', () => ({
+  property: vi.fn(() => vi.fn()),
+  state: vi.fn(() => vi.fn())
 }));
 
 // Mock base component
-jest.mock('../../src/components/base/base-component', () => ({
+vi.mock('../../src/components/base/base-component', () => ({
   BaseComponent: class MockBaseComponent {
     static styles = ['base-styles'];
     
@@ -42,7 +42,7 @@ jest.mock('../../src/components/base/base-component', () => ({
 }));
 
 // Mock connection state utilities
-jest.mock('../../src/utils/websocket/connection-state', () => ({
+vi.mock('../../src/utils/websocket/connection-state', () => ({
   ConnectionState: {
     CONNECTING: 'CONNECTING',
     CONNECTED: 'CONNECTED',
@@ -50,7 +50,7 @@ jest.mock('../../src/utils/websocket/connection-state', () => ({
     DISCONNECTED: 'DISCONNECTED',
     ERROR: 'ERROR'
   },
-  getConnectionStateDisplay: jest.fn((state: string) => {
+  getConnectionStateDisplay: vi.fn((state: string) => {
     const displays = {
       CONNECTED: { label: 'Connected', icon: '🟢', color: 'green', severity: 'success' },
       CONNECTING: { label: 'Connecting', icon: '🟡', color: 'yellow', severity: 'info' },
@@ -60,9 +60,9 @@ jest.mock('../../src/utils/websocket/connection-state', () => ({
     };
     return displays[state as keyof typeof displays] || { label: 'Unknown', icon: '❓', color: 'gray', severity: 'info' };
   }),
-  formatUptime: jest.fn((ms: number) => `${Math.floor(ms / 1000)}s`),
-  formatDataSize: jest.fn((bytes: number) => `${bytes}B`),
-  calculateConnectionQuality: jest.fn(() => 'good')
+  formatUptime: vi.fn((ms: number) => `${Math.floor(ms / 1000)}s`),
+  formatDataSize: vi.fn((bytes: number) => `${bytes}B`),
+  calculateConnectionQuality: vi.fn(() => 'good')
 }));
 
 // Import the component after mocking dependencies
@@ -154,19 +154,16 @@ describe('ConnectionStatusComponent', () => {
 
   beforeEach(() => {
     component = new MockConnectionStatusComponent();
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     component.disconnectedCallback();
-    jest.clearAllTimers();
-    jest.useRealTimers();
   });
 
   describe('Component Lifecycle', () => {
     it('should start animation loop on connection', () => {
-      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+      const setIntervalSpy = vi.spyOn(global, 'setInterval');
       
       component.connectedCallback();
       
@@ -174,7 +171,7 @@ describe('ConnectionStatusComponent', () => {
     });
 
     it('should stop animation loop on disconnection', () => {
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
       
       component.connectedCallback();
       const intervalId = (component as any).animationInterval;
@@ -197,7 +194,9 @@ describe('ConnectionStatusComponent', () => {
       component.connectionState = ConnectionState.CONNECTING;
       component.connectedCallback();
       
-      jest.advanceTimersByTime(100);
+      // Manually trigger the interval callback
+      const intervalCallback = vi.mocked(global.setInterval).mock.calls[0][0] as Function;
+      intervalCallback();
       
       expect((component as any).animateIcon).toBe(true);
     });
@@ -206,7 +205,9 @@ describe('ConnectionStatusComponent', () => {
       component.connectionState = ConnectionState.RECONNECTING;
       component.connectedCallback();
       
-      jest.advanceTimersByTime(100);
+      // Manually trigger the interval callback
+      const intervalCallback = vi.mocked(global.setInterval).mock.calls[0][0] as Function;
+      intervalCallback();
       
       expect((component as any).animateIcon).toBe(true);
     });
@@ -215,7 +216,9 @@ describe('ConnectionStatusComponent', () => {
       component.connectionState = ConnectionState.CONNECTED;
       component.connectedCallback();
       
-      jest.advanceTimersByTime(100);
+      // Manually trigger the interval callback
+      const intervalCallback = vi.mocked(global.setInterval).mock.calls[0][0] as Function;
+      intervalCallback();
       
       expect((component as any).animateIcon).toBe(false);
     });
@@ -224,7 +227,9 @@ describe('ConnectionStatusComponent', () => {
       component.connectionState = ConnectionState.DISCONNECTED;
       component.connectedCallback();
       
-      jest.advanceTimersByTime(100);
+      // Manually trigger the interval callback
+      const intervalCallback = vi.mocked(global.setInterval).mock.calls[0][0] as Function;
+      intervalCallback();
       
       expect((component as any).animateIcon).toBe(false);
     });
@@ -272,7 +277,7 @@ describe('ConnectionStatusComponent', () => {
     it('should handle Enter key', () => {
       const mockEvent = {
         key: 'Enter',
-        preventDefault: jest.fn()
+        preventDefault: vi.fn()
       } as unknown as KeyboardEvent;
       
       component.compact = false;
@@ -289,7 +294,7 @@ describe('ConnectionStatusComponent', () => {
     it('should handle Space key', () => {
       const mockEvent = {
         key: ' ',
-        preventDefault: jest.fn()
+        preventDefault: vi.fn()
       } as unknown as KeyboardEvent;
       
       component.compact = false;
@@ -302,7 +307,7 @@ describe('ConnectionStatusComponent', () => {
     it('should ignore other keys', () => {
       const mockEvent = {
         key: 'Tab',
-        preventDefault: jest.fn()
+        preventDefault: vi.fn()
       } as unknown as KeyboardEvent;
       
       const result = component.handleKeyDown(mockEvent);
@@ -433,13 +438,14 @@ describe('ConnectionStatusComponent', () => {
       component.connectedCallback();
       
       component.connectionState = ConnectionState.CONNECTING;
-      jest.advanceTimersByTime(50);
+      const intervalCallback = vi.mocked(global.setInterval).mock.calls[0][0] as Function;
+      intervalCallback();
       
       component.connectionState = ConnectionState.CONNECTED;
-      jest.advanceTimersByTime(50);
+      intervalCallback();
       
       component.connectionState = ConnectionState.RECONNECTING;
-      jest.advanceTimersByTime(50);
+      intervalCallback();
       
       // Should not throw errors
       expect(true).toBe(true);

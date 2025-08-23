@@ -3,7 +3,7 @@
  * Tests complete message lifecycle and protocol compatibility
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   serializeMessage,
   deserializeMessage,
@@ -34,11 +34,11 @@ describe('WebSocket Message Protocol Integration', () => {
 
     // Mock WebSocket
     mockWebSocket = {
-      send: jest.fn(),
-      close: jest.fn(),
+      send: vi.fn(),
+      close: vi.fn(),
       readyState: 1, // OPEN
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn()
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
     };
 
     // Setup message collectors for testing
@@ -49,7 +49,7 @@ describe('WebSocket Message Protocol Integration', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('End-to-End Message Flow', () => {
@@ -171,10 +171,10 @@ describe('WebSocket Message Protocol Integration', () => {
 
   describe('Message Type Detection and Routing', () => {
     it('should correctly route different message types to specific handlers', async () => {
-      const sessionCreatedHandler = jest.fn();
-      const sessionUpdatedHandler = jest.fn();
-      const sessionDeletedHandler = jest.fn();
-      const cacheInvalidatedHandler = jest.fn();
+      const sessionCreatedHandler = vi.fn();
+      const sessionUpdatedHandler = vi.fn();
+      const sessionDeletedHandler = vi.fn();
+      const cacheInvalidatedHandler = vi.fn();
 
       // Register specific handlers
       const newRegistry = new MessageHandlerRegistry();
@@ -304,9 +304,9 @@ describe('WebSocket Message Protocol Integration', () => {
     });
 
     it('should continue processing other messages when one handler fails', async () => {
-      const errorHandler = jest.fn().mockRejectedValue(new Error('Handler error'));
-      const successHandler = jest.fn();
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const errorHandler = vi.fn().mockRejectedValue(new Error('Handler error'));
+      const successHandler = vi.fn();
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const newRegistry = new MessageHandlerRegistry();
       newRegistry.register(MessageType.SESSION_CREATED, errorHandler);
@@ -360,7 +360,7 @@ describe('WebSocket Message Protocol Integration', () => {
 
     it('should handle many concurrent message handlers', async () => {
       const handlerCount = 100;
-      const handlers = Array.from({ length: handlerCount }, () => jest.fn());
+      const handlers = Array.from({ length: handlerCount }, () => vi.fn());
 
       const newRegistry = new MessageHandlerRegistry();
       handlers.forEach(handler => {
@@ -386,8 +386,8 @@ describe('WebSocket Message Protocol Integration', () => {
   describe('Protocol Backward Compatibility', () => {
     it('should handle legacy message format alongside new protocol', async () => {
       const legacyHandlers = {
-        session_created: jest.fn(),
-        session_updated: jest.fn()
+        session_created: vi.fn(),
+        session_updated: vi.fn()
       };
 
       // Simulate a system that handles both legacy and new formats

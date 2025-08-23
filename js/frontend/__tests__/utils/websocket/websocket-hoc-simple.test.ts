@@ -3,7 +3,7 @@
  * Tests the withWebSocket HOC factory without Lit dependencies
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConnectionState } from '../../../src/utils/websocket/connection-state';
 
 // Simple mock interfaces without Lit dependencies
@@ -18,106 +18,106 @@ interface MockSessionData {
   createdAt?: string;
 }
 
-// Mock WebSocket Controller without external dependencies
-class MockWebSocketController {
-  private messageHandlers: Map<string, Function[]> = new Map();
-  private _isConnected = true;
-  private _connectionState = ConnectionState.CONNECTED;
-  public optimisticUpdateCalls: Array<{ property: string; value: any }> = [];
-  public confirmUpdateCalls: string[] = [];
-  public config: any;
-
-  constructor(public host: MockReactiveControllerHost, service?: any, config?: any) {
-    this.config = config || {};
-    host.addController(this);
-  }
-
-  hostConnected(): void {
-    // Mock implementation
-  }
-
-  hostDisconnected(): void {
-    // Mock implementation
-  }
-
-  onSessionCreated(handler: Function): void {
-    this.addHandler('session-created', handler);
-  }
-
-  onSessionUpdated(handler: Function): void {
-    this.addHandler('session-updated', handler);
-  }
-
-  onSessionDeleted(handler: Function): void {
-    this.addHandler('session-deleted', handler);
-  }
-
-  onCacheInvalidated(handler: Function): void {
-    this.addHandler('cache-invalidated', handler);
-  }
-
-  private addHandler(type: string, handler: Function): void {
-    if (!this.messageHandlers.has(type)) {
-      this.messageHandlers.set(type, []);
-    }
-    this.messageHandlers.get(type)!.push(handler);
-  }
-
-  updateProperty(propertyName: string, value: any, source?: string): void {
-    (this.host as any)[propertyName] = value;
-    this.host.requestUpdate();
-  }
-
-  optimisticUpdate(propertyName: string, value: any, timeoutMs?: number): void {
-    this.optimisticUpdateCalls.push({ property: propertyName, value });
-    this.updateProperty(propertyName, value);
-  }
-
-  confirmOptimisticUpdate(propertyName: string): void {
-    this.confirmUpdateCalls.push(propertyName);
-  }
-
-  getConnectionState(): ConnectionState {
-    return this._connectionState;
-  }
-
-  isConnected(): boolean {
-    return this._isConnected;
-  }
-
-  reconnect(): void {
-    this._isConnected = false;
-    this._connectionState = ConnectionState.RECONNECTING;
-    setTimeout(() => {
-      this._isConnected = true;
-      this._connectionState = ConnectionState.CONNECTED;
-    }, 100);
-  }
-
-  // Test helpers
-  setConnectionState(state: ConnectionState, connected: boolean): void {
-    this._connectionState = state;
-    this._isConnected = connected;
-  }
-
-  simulateSessionCreated(sessionData: MockSessionData): void {
-    const handlers = this.messageHandlers.get('session-created') || [];
-    handlers.forEach(handler => handler(sessionData));
-  }
-
-  clearCallHistory(): void {
-    this.optimisticUpdateCalls = [];
-    this.confirmUpdateCalls = [];
-  }
-}
-
 // Mock the WebSocketController import
-jest.mock('../../../src/utils/websocket/websocket-controller', () => {
+vi.mock('../../../src/utils/websocket/websocket-controller', () => {
+  // Mock WebSocket Controller without external dependencies
+  class MockWebSocketController {
+    private messageHandlers: Map<string, Function[]> = new Map();
+    private _isConnected = true;
+    private _connectionState = 'CONNECTED'; // Use string instead of enum to avoid hoisting issues
+    public optimisticUpdateCalls: Array<{ property: string; value: any }> = [];
+    public confirmUpdateCalls: string[] = [];
+    public config: any;
+
+    constructor(public host: any, service?: any, config?: any) {
+      this.config = config || {};
+      host.addController(this);
+    }
+
+    hostConnected(): void {
+      // Mock implementation
+    }
+
+    hostDisconnected(): void {
+      // Mock implementation
+    }
+
+    onSessionCreated(handler: Function): void {
+      this.addHandler('session-created', handler);
+    }
+
+    onSessionUpdated(handler: Function): void {
+      this.addHandler('session-updated', handler);
+    }
+
+    onSessionDeleted(handler: Function): void {
+      this.addHandler('session-deleted', handler);
+    }
+
+    onCacheInvalidated(handler: Function): void {
+      this.addHandler('cache-invalidated', handler);
+    }
+
+    private addHandler(type: string, handler: Function): void {
+      if (!this.messageHandlers.has(type)) {
+        this.messageHandlers.set(type, []);
+      }
+      this.messageHandlers.get(type)!.push(handler);
+    }
+
+    updateProperty(propertyName: string, value: any, source?: string): void {
+      (this.host as any)[propertyName] = value;
+      this.host.requestUpdate();
+    }
+
+    optimisticUpdate(propertyName: string, value: any, timeoutMs?: number): void {
+      this.optimisticUpdateCalls.push({ property: propertyName, value });
+      this.updateProperty(propertyName, value);
+    }
+
+    confirmOptimisticUpdate(propertyName: string): void {
+      this.confirmUpdateCalls.push(propertyName);
+    }
+
+    getConnectionState(): any {
+      return this._connectionState;
+    }
+
+    isConnected(): boolean {
+      return this._isConnected;
+    }
+
+    reconnect(): void {
+      this._isConnected = false;
+      this._connectionState = 'RECONNECTING';
+      setTimeout(() => {
+        this._isConnected = true;
+        this._connectionState = 'CONNECTED';
+      }, 100);
+    }
+
+    // Test helpers
+    setConnectionState(state: any, connected: boolean): void {
+      this._connectionState = state;
+      this._isConnected = connected;
+    }
+
+    simulateSessionCreated(sessionData: any): void {
+      const handlers = this.messageHandlers.get('session-created') || [];
+      handlers.forEach(handler => handler(sessionData));
+    }
+
+    clearCallHistory(): void {
+      this.optimisticUpdateCalls = [];
+      this.confirmUpdateCalls = [];
+    }
+  }
+
   return {
     WebSocketController: MockWebSocketController,
     withWebSocket: (Base: any, config?: any) => {
       return class extends Base {
-        protected webSocketController: MockWebSocketController;
+        protected webSocketController: any;
 
         constructor(...args: any[]) {
           super(...args);
@@ -136,7 +136,7 @@ jest.mock('../../../src/utils/websocket/websocket-controller', () => {
           this.webSocketController.confirmOptimisticUpdate(propertyName);
         }
 
-        protected getWebSocketState(): ConnectionState {
+        protected getWebSocketState(): any {
           return this.webSocketController.getConnectionState();
         }
 
@@ -149,7 +149,7 @@ jest.mock('../../../src/utils/websocket/websocket-controller', () => {
 });
 
 // Import after mocking
-const { withWebSocket } = require('../../../src/utils/websocket/websocket-controller');
+import { withWebSocket } from '../../../src/utils/websocket/websocket-controller';
 
 // Base test component without Lit dependencies
 class TestBaseComponent implements MockReactiveControllerHost {
@@ -175,7 +175,7 @@ describe('withWebSocket HOC (Simplified)', () => {
   let TestComponent: any;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     
     // Create WebSocket-enabled component using HOC
     WebSocketEnabledComponent = withWebSocket(TestBaseComponent, {
@@ -202,8 +202,8 @@ describe('withWebSocket HOC (Simplified)', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   describe('HOC Factory', () => {
@@ -220,7 +220,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     it('should add WebSocket controller to the component', () => {
       const instance = new WebSocketEnabledComponent();
       expect(instance.webSocketController).toBeDefined();
-      expect(instance.webSocketController).toBeInstanceOf(MockWebSocketController);
+      expect(instance.webSocketController.constructor.name).toBe('MockWebSocketController');
     });
 
     it('should pass configuration to WebSocket controller', () => {
@@ -253,7 +253,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     it('should provide optimisticUpdate convenience method', () => {
       expect(typeof instance.optimisticUpdate).toBe('function');
       
-      const mockController = instance.webSocketController as MockWebSocketController;
+      const mockController = instance.webSocketController as any;
       mockController.clearCallHistory();
       
       const testSessions = [{ sessionId: 'opt-test', title: 'Optimistic Test' }];
@@ -267,7 +267,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     it('should provide confirmOptimisticUpdate convenience method', () => {
       expect(typeof instance.confirmOptimisticUpdate).toBe('function');
       
-      const mockController = instance.webSocketController as MockWebSocketController;
+      const mockController = instance.webSocketController as any;
       mockController.clearCallHistory();
       
       instance.confirmOptimisticUpdate('sessions');
@@ -278,7 +278,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     it('should provide getWebSocketState convenience method', () => {
       expect(typeof instance.getWebSocketState).toBe('function');
       
-      const mockController = instance.webSocketController as MockWebSocketController;
+      const mockController = instance.webSocketController as any;
       mockController.setConnectionState(ConnectionState.CONNECTED, true);
       
       expect(instance.getWebSocketState()).toBe(ConnectionState.CONNECTED);
@@ -287,7 +287,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     it('should provide isWebSocketConnected convenience method', () => {
       expect(typeof instance.isWebSocketConnected).toBe('function');
       
-      const mockController = instance.webSocketController as MockWebSocketController;
+      const mockController = instance.webSocketController as any;
       mockController.setConnectionState(ConnectionState.CONNECTED, true);
       
       expect(instance.isWebSocketConnected()).toBe(true);
@@ -299,7 +299,7 @@ describe('withWebSocket HOC (Simplified)', () => {
 
   describe('WebSocket Integration', () => {
     let instance: any;
-    let mockController: MockWebSocketController;
+    let mockController: any;
 
     beforeEach(() => {
       instance = new TestComponent();
@@ -320,7 +320,7 @@ describe('withWebSocket HOC (Simplified)', () => {
     });
 
     it('should use updateFromWebSocket in message handlers', () => {
-      const updateSpy = jest.spyOn(instance, 'updateFromWebSocket');
+      const updateSpy = vi.spyOn(instance, 'updateFromWebSocket');
       
       const sessionData: MockSessionData = {
         sessionId: 'update-method-test',

@@ -1,6 +1,6 @@
 # Functional User Flows - Claude Code Log Web App
 
-Based on completed tasks 1-4 in `.taskmaster/tasks/tasks.json`, the following user flows should function correctly with the current implementation.
+The following user flows should function correctly with the current implementation.
 
 ## ✅ Working User Flows
 

@@ -3,7 +3,7 @@
  * Verifies that TypeScript models produce identical JSON output to Python models
  */
 
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadTranscript } from '../../../backend/src/parsers/jsonl-parser';

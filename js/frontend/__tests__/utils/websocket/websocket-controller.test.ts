@@ -3,15 +3,16 @@
  * Tests reactive property updates, optimistic UI updates, debouncing, and connection management
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { ReactiveControllerHost } from 'lit';
 import { WebSocketController, type WebSocketControllerConfig } from '../../../src/utils/websocket/websocket-controller';
 import type { WebSocketService } from '../../../src/services/websocket-service';
+import { getWebSocketService } from '../../../src/services/websocket-service';
 
 // Mock the getWebSocketService function
-jest.mock('../../../src/services/websocket-service', () => ({
-  getWebSocketService: jest.fn(),
-  WebSocketService: jest.fn()
+vi.mock('../../../src/services/websocket-service', () => ({
+  getWebSocketService: vi.fn(),
+  WebSocketService: vi.fn()
 }));
 import type { SessionData, SessionCreatedMessage, SessionUpdatedMessage, SessionDeletedMessage, CacheInvalidatedMessage } from '../../../src/utils/websocket/message-types';
 import { MessageType } from '../../../src/utils/websocket/message-types';
@@ -124,13 +125,23 @@ describe('WebSocketController', () => {
   let config: WebSocketControllerConfig;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    // Try to clear any existing timer configuration first
+    try {
+      vi.useRealTimers();
+    } catch (e) {
+      // Ignore if timers weren't fake
+    }
+    
+    // Configure fake timers with limited scope to avoid performance conflicts
+    vi.useFakeTimers({ 
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] 
+    });
+    
     host = new MockReactiveControllerHost();
     mockWebSocketService = new MockWebSocketService();
     
-    // Mock the getWebSocketService to return our mock
-    const { getWebSocketService } = require('../../../src/services/websocket-service');
-    getWebSocketService.mockReturnValue(mockWebSocketService);
+    // Configure the mock to return our mockWebSocketService
+    vi.mocked(getWebSocketService).mockReturnValue(mockWebSocketService as any);
     
     config = {
       debug: false,
@@ -142,8 +153,9 @@ describe('WebSocketController', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.runAllTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   describe('Constructor and Initialization', () => {
@@ -173,7 +185,7 @@ describe('WebSocketController', () => {
     });
 
     it('should setup subscriptions on hostConnected', () => {
-      const setupSpy = jest.spyOn(controller as any, 'setupSubscriptions');
+      const setupSpy = vi.spyOn(controller as any, 'setupSubscriptions');
       
       controller.hostConnected();
       
@@ -185,14 +197,14 @@ describe('WebSocketController', () => {
       controller = new WebSocketController(host, mockWebSocketService as any, config);
       mockWebSocketService.setConnectionState('DISCONNECTED', false);
       
-      const connectSpy = jest.spyOn(mockWebSocketService, 'connect');
+      const connectSpy = vi.spyOn(mockWebSocketService, 'connect');
       controller.hostConnected();
       
       expect(connectSpy).toHaveBeenCalled();
     });
 
     it('should cleanup on hostDisconnected', () => {
-      const cleanupSpy = jest.spyOn(controller as any, 'cleanup');
+      const cleanupSpy = vi.spyOn(controller as any, 'cleanup');
       
       controller.hostConnected();
       controller.hostDisconnected();
@@ -344,7 +356,7 @@ describe('WebSocketController', () => {
       expect(host.requestUpdateCallCount).toBe(initialRequestCount);
       
       // Fast forward through debounce period
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       
       // Should now have triggered exactly one update
       expect(host.requestUpdateCallCount).toBe(initialRequestCount + 1);
@@ -356,7 +368,7 @@ describe('WebSocketController', () => {
       controller.updateProperty('prop1', 'value1');
       controller.updateProperty('prop2', 'value2');
       
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       
       // Should trigger 2 updates (one for each property)
       expect(host.requestUpdateCallCount).toBe(initialRequestCount + 2);
@@ -376,7 +388,7 @@ describe('WebSocketController', () => {
       controller.optimisticUpdate('sessions', newValue, 1000);
       
       // Advance timers to trigger debounced update
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       
       // Should immediately update the property
       expect(host.requestUpdateCallCount).toBeGreaterThan(0);
@@ -385,11 +397,11 @@ describe('WebSocketController', () => {
       controller.confirmOptimisticUpdate('sessions');
       
       // Fast forward past rollback time - should not rollback
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
       
       // No additional updates should occur
       const updateCountAfterConfirm = host.requestUpdateCallCount;
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       expect(host.requestUpdateCallCount).toBe(updateCountAfterConfirm);
     });
 
@@ -405,13 +417,13 @@ describe('WebSocketController', () => {
       controller.optimisticUpdate('sessions', newValue, 500);
       
       // Advance timers to trigger debounced update
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       
       // Should trigger initial update
       expect(host.requestUpdateCallCount).toBe(initialRequestCount + 1);
       
       // Fast forward past rollback time
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
       
       // Should trigger rollback update
       expect(host.requestUpdateCallCount).toBe(initialRequestCount + 2);
@@ -425,11 +437,11 @@ describe('WebSocketController', () => {
       controller.confirmOptimisticUpdate('sessions');
       
       // Fast forward - should not rollback since confirmed
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
       
       // Should not trigger additional updates
       const finalCount = host.requestUpdateCallCount;
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       expect(host.requestUpdateCallCount).toBe(finalCount);
     });
 
@@ -476,7 +488,7 @@ describe('WebSocketController', () => {
     });
 
     it('should trigger reconnection', () => {
-      const reconnectSpy = jest.spyOn(mockWebSocketService, 'forceReconnect');
+      const reconnectSpy = vi.spyOn(mockWebSocketService, 'forceReconnect');
       
       controller.reconnect();
       
@@ -514,7 +526,7 @@ describe('WebSocketController', () => {
       controller.onSessionUpdated(() => {});
       controller.onSessionDeleted(() => {});
       
-      const cleanupSpy = jest.spyOn(controller as any, 'cleanup');
+      const cleanupSpy = vi.spyOn(controller as any, 'cleanup');
       
       controller.hostDisconnected();
       
@@ -529,7 +541,7 @@ describe('WebSocketController', () => {
       // Create optimistic updates
       controller.optimisticUpdate('sessions', ['test'], 1000);
       
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+      const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
       
       controller.hostDisconnected();
       
@@ -538,7 +550,7 @@ describe('WebSocketController', () => {
     });
 
     it('should properly destroy controller', () => {
-      const cleanupSpy = jest.spyOn(controller as any, 'cleanup');
+      const cleanupSpy = vi.spyOn(controller as any, 'cleanup');
       
       controller.destroy();
       
@@ -553,7 +565,7 @@ describe('WebSocketController', () => {
     });
 
     it('should handle malformed messages gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       // Simulate malformed message
       mockWebSocketService.simulateMessage({ invalid: 'message' });
@@ -569,7 +581,7 @@ describe('WebSocketController', () => {
     });
 
     it('should handle subscription errors gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       // Add handler that throws
       controller.onSessionCreated(() => {
@@ -605,7 +617,7 @@ describe('WebSocketController', () => {
     });
 
     it('should log debug information when debug mode is enabled', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       controller.updateProperty('testProp', 'testValue');
       
@@ -619,7 +631,7 @@ describe('WebSocketController', () => {
       controller = new WebSocketController(host, mockWebSocketService as any, config);
       controller.hostConnected();
       
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       controller.updateProperty('testProp', 'testValue');
       

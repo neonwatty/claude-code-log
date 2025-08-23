@@ -3,7 +3,7 @@
  * Uses actual test files from python/test/test_data/ to verify cross-language compatibility
  */
 
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseJsonlLine, parseTranscriptEntry, loadTranscript } from '../../../backend/src/parsers/jsonl-parser';

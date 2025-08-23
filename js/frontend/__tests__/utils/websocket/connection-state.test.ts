@@ -3,7 +3,7 @@
  * Tests enums, interfaces, and utility functions for connection state tracking
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import {
   ConnectionState,
   ConnectionStatistics,

@@ -3,8 +3,9 @@
  * Tests the complete integration with mocked dependencies
  */
 
-// Jest globals: describe, it, expect, beforeEach, afterEach
+// Vitest globals: describe, it, expect, beforeEach, afterEach
 import { html, fixture, expect as litExpected } from '@open-wc/testing';
+import { vi } from 'vitest';
 
 // Mock WebSocket Service for integration testing
 class MockWebSocketServiceIntegration {
@@ -308,7 +309,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
   let mockService: MockWebSocketServiceIntegration;
 
   beforeEach(async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
     
     component = new IntegrationTestComponent();
     mockService = component.getWebSocketService();
@@ -316,8 +317,8 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   describe('Basic Integration', () => {
@@ -485,7 +486,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
       expect(component.connectionState).toBe('RECONNECTING');
 
       // Complete reconnection
-      jest.advanceTimersByTime(150);
+      vi.advanceTimersByTime(150);
       await component.updateComplete;
 
       expect(component.connectionState).toBe('CONNECTED');
@@ -495,7 +496,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
       mockService.connect();
       await component.updateComplete;
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Simulate connection error
       mockService.simulateError({ message: 'Connection lost' });
@@ -511,7 +512,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
   describe('Error Handling and Resilience', () => {
     it('should handle malformed WebSocket messages gracefully', async () => {
       mockService.connect();
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Send malformed messages
       mockService.simulateMessage(null);
@@ -529,7 +530,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
     });
 
     it('should handle component lifecycle errors gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Test that disconnecting component doesn't cause errors
       expect(() => {
@@ -590,7 +591,7 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
 
   describe('Memory Management', () => {
     it('should clean up WebSocket subscriptions on component removal', () => {
-      const hostDisconnectedSpy = jest.spyOn(component.webSocketController, 'hostDisconnected');
+      const hostDisconnectedSpy = vi.spyOn(component.webSocketController, 'hostDisconnected');
 
       // Remove component from DOM
       component.remove();

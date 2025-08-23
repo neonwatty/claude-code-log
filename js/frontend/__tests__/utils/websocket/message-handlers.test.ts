@@ -3,7 +3,7 @@
  * Tests serialization, validation, type guards, and handler registry
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   serializeMessage,
   deserializeMessage,
@@ -33,14 +33,14 @@ describe('WebSocket Message Handlers', () => {
   beforeEach(() => {
     Object.defineProperty(global, 'crypto', {
       value: {
-        randomUUID: jest.fn(() => mockUUID)
+        randomUUID: vi.fn(() => mockUUID)
       },
       writable: true
     });
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('serializeMessage', () => {
@@ -397,7 +397,7 @@ describe('WebSocket Message Handlers', () => {
     });
 
     it('should generate unique IDs for different calls', () => {
-      (global.crypto.randomUUID as jest.Mock)
+      (global.crypto.randomUUID as any)
         .mockReturnValueOnce('uuid-1')
         .mockReturnValueOnce('uuid-2');
 
@@ -418,15 +418,15 @@ describe('WebSocket Message Handlers', () => {
 
     describe('register', () => {
       it('should register handler for message type', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         registry.register(MessageType.SESSION_CREATED, handler);
 
         expect(registry.getRegisteredTypes()).toContain(MessageType.SESSION_CREATED);
       });
 
       it('should register multiple handlers for same type', () => {
-        const handler1 = jest.fn();
-        const handler2 = jest.fn();
+        const handler1 = vi.fn();
+        const handler2 = vi.fn();
 
         registry.register(MessageType.SESSION_CREATED, handler1);
         registry.register(MessageType.SESSION_CREATED, handler2);
@@ -437,8 +437,8 @@ describe('WebSocket Message Handlers', () => {
 
     describe('unregister', () => {
       it('should unregister specific handler', () => {
-        const handler1 = jest.fn();
-        const handler2 = jest.fn();
+        const handler1 = vi.fn();
+        const handler2 = vi.fn();
 
         registry.register(MessageType.SESSION_CREATED, handler1);
         registry.register(MessageType.SESSION_CREATED, handler2);
@@ -449,7 +449,7 @@ describe('WebSocket Message Handlers', () => {
       });
 
       it('should handle unregistering non-existent handler', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         expect(() => {
           registry.unregister(MessageType.SESSION_CREATED, handler);
         }).not.toThrow();
@@ -458,8 +458,8 @@ describe('WebSocket Message Handlers', () => {
 
     describe('processMessage', () => {
       it('should call registered handlers for message type', async () => {
-        const handler1 = jest.fn();
-        const handler2 = jest.fn();
+        const handler1 = vi.fn();
+        const handler2 = vi.fn();
         const message: SessionCreatedMessage = {
           type: MessageType.SESSION_CREATED,
           timestamp: '2024-01-01T00:00:00Z',
@@ -477,8 +477,8 @@ describe('WebSocket Message Handlers', () => {
       });
 
       it('should not call handlers for other message types', async () => {
-        const sessionCreatedHandler = jest.fn();
-        const sessionUpdatedHandler = jest.fn();
+        const sessionCreatedHandler = vi.fn();
+        const sessionUpdatedHandler = vi.fn();
 
         registry.register(MessageType.SESSION_CREATED, sessionCreatedHandler);
         registry.register(MessageType.SESSION_UPDATED, sessionUpdatedHandler);
@@ -497,7 +497,7 @@ describe('WebSocket Message Handlers', () => {
       });
 
       it('should handle async handlers', async () => {
-        const asyncHandler = jest.fn().mockResolvedValue(undefined);
+        const asyncHandler = vi.fn().mockResolvedValue(undefined);
         const message: SessionCreatedMessage = {
           type: MessageType.SESSION_CREATED,
           timestamp: '2024-01-01T00:00:00Z',
@@ -513,9 +513,9 @@ describe('WebSocket Message Handlers', () => {
       });
 
       it('should handle handler errors without stopping other handlers', async () => {
-        const errorHandler = jest.fn().mockRejectedValue(new Error('Handler error'));
-        const successHandler = jest.fn();
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const errorHandler = vi.fn().mockRejectedValue(new Error('Handler error'));
+        const successHandler = vi.fn();
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         const message: SessionCreatedMessage = {
           type: MessageType.SESSION_CREATED,
@@ -542,7 +542,7 @@ describe('WebSocket Message Handlers', () => {
 
     describe('clearHandlers', () => {
       it('should clear all handlers for specific type', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         registry.register(MessageType.SESSION_CREATED, handler);
         registry.register(MessageType.SESSION_UPDATED, handler);
 
@@ -555,7 +555,7 @@ describe('WebSocket Message Handlers', () => {
 
     describe('clearAllHandlers', () => {
       it('should clear all handlers', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         registry.register(MessageType.SESSION_CREATED, handler);
         registry.register(MessageType.SESSION_UPDATED, handler);
 

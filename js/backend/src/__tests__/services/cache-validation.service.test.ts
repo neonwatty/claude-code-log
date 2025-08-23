@@ -1,19 +1,20 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CacheValidationService } from '../../services/cache-validation.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from '../../utils/cache';
 
 // Mock dependencies
-jest.mock('fs/promises');
+vi.mock('fs/promises');
 
-const mockFs = jest.mocked(fs);
+const mockFs = vi.mocked(fs);
 
 describe('CacheValidationService', () => {
   let service: CacheValidationService;
   let mockProjectPath: string;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = CacheValidationService.getInstance();
     mockProjectPath = '/test/project';
   });
@@ -154,7 +155,7 @@ describe('CacheValidationService', () => {
 
     it('should emit validation events', async () => {
       const cache = createValidCache();
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
 
       service.on('validationEvent', eventSpy);
 
@@ -368,7 +369,7 @@ describe('CacheValidationService', () => {
         total_message_count: 0
       };
 
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       service.on('validationEvent', eventSpy);
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
@@ -430,7 +431,7 @@ describe('CacheValidationService', () => {
 
   describe('Cache Repair', () => {
     it('should repair corrupted cache', async () => {
-      const eventSpy = jest.fn();
+      const eventSpy = vi.fn();
       service.on('validationEvent', eventSpy);
 
       mockFs.rm.mockResolvedValue(undefined);
@@ -450,7 +451,7 @@ describe('CacheValidationService', () => {
     });
 
     it('should handle repair failure', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation();
       mockFs.rm.mockRejectedValue(new Error('Permission denied'));
 
       const result = await service.repairCache(mockProjectPath);
@@ -540,7 +541,7 @@ describe('CacheValidationService', () => {
 
       // Mock checksum validation to fail
       const originalValidateChecksums = (service as any).validateChecksums;
-      (service as any).validateChecksums = jest.fn().mockResolvedValue({
+      (service as any).validateChecksums = vi.fn().mockResolvedValue({
         isValid: false,
         corruptedFields: ['sessions']
       });
