@@ -1,4 +1,4 @@
 /**
  * Base component exports
  */
-export { BaseComponent } from './base-component.js';
+export { BaseComponent } from "./base-component.js";

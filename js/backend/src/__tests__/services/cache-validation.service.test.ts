@@ -1,50 +1,50 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CacheValidationService } from '../../services/cache-validation.service';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from '../../utils/cache';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { CacheValidationService } from "../../services/cache-validation.service";
+import * as fs from "fs/promises";
+import * as path from "path";
+import { CACHE_FORMAT_VERSION, CACHE_INDEX_FILENAME } from "../../utils/cache";
 
 // Mock dependencies
-vi.mock('fs/promises');
+vi.mock("fs/promises");
 
 const mockFs = vi.mocked(fs);
 
-describe('CacheValidationService', () => {
+describe("CacheValidationService", () => {
   let service: CacheValidationService;
   let mockProjectPath: string;
 
   beforeEach(() => {
     vi.clearAllMocks();
     service = CacheValidationService.getInstance();
-    mockProjectPath = '/test/project';
+    mockProjectPath = "/test/project";
   });
 
   afterEach(async () => {
     await service.shutdown();
   });
 
-  describe('Singleton Pattern', () => {
-    it('should return the same instance', () => {
+  describe("Singleton Pattern", () => {
+    it("should return the same instance", () => {
       const instance1 = CacheValidationService.getInstance();
       const instance2 = CacheValidationService.getInstance();
       expect(instance1).toBe(instance2);
     });
   });
 
-  describe('Cache Validation', () => {
+  describe("Cache Validation", () => {
     const createValidCache = () => ({
       version: CACHE_FORMAT_VERSION,
-      cache_created: '2023-01-01T00:00:00.000Z',
-      last_updated: '2023-01-02T00:00:00.000Z',
+      cache_created: "2023-01-01T00:00:00.000Z",
+      last_updated: "2023-01-02T00:00:00.000Z",
       project_path: mockProjectPath,
       cached_files: {
-        'file1.jsonl': {
-          file_path: 'file1.jsonl',
+        "file1.jsonl": {
+          file_path: "file1.jsonl",
           source_mtime: 1640995200000,
           cached_mtime: 1640995300000,
           message_count: 10,
-          session_ids: ['session1']
-        }
+          session_ids: ["session1"],
+        },
       },
       total_message_count: 10,
       total_input_tokens: 100,
@@ -53,29 +53,33 @@ describe('CacheValidationService', () => {
       total_cache_read_tokens: 25,
       sessions: {
         session1: {
-          session_id: 'session1',
-          first_timestamp: '2023-01-01T00:00:00.000Z',
-          last_timestamp: '2023-01-01T01:00:00.000Z',
+          session_id: "session1",
+          first_timestamp: "2023-01-01T00:00:00.000Z",
+          last_timestamp: "2023-01-01T01:00:00.000Z",
           message_count: 10,
-          first_user_message: 'Hello',
+          first_user_message: "Hello",
           total_input_tokens: 100,
           total_output_tokens: 200,
           total_cache_creation_tokens: 50,
-          total_cache_read_tokens: 25
-        }
+          total_cache_read_tokens: 25,
+        },
       },
       working_directories: [mockProjectPath],
-      earliest_timestamp: '2023-01-01T00:00:00.000Z',
-      latest_timestamp: '2023-01-01T01:00:00.000Z'
+      earliest_timestamp: "2023-01-01T00:00:00.000Z",
+      latest_timestamp: "2023-01-01T01:00:00.000Z",
     });
 
-    it('should validate a valid cache', async () => {
+    it("should validate a valid cache", async () => {
       const validCache = createValidCache();
-      const indexPath = path.join(mockProjectPath, '.cache', CACHE_INDEX_FILENAME);
+      // const indexPath = path.join(
+      //   mockProjectPath,
+      //   ".cache",
+      //   CACHE_INDEX_FILENAME,
+      // );
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(validCache));
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000) // Same as cached
+        mtime: new Date(1640995200000), // Same as cached
       } as any);
 
       const result = await service.validateCache(mockProjectPath);
@@ -85,27 +89,27 @@ describe('CacheValidationService', () => {
       expect(result.files_to_recache).toEqual([]);
     });
 
-    it('should detect missing cache index', async () => {
-      mockFs.access.mockRejectedValue(new Error('File not found'));
+    it("should detect missing cache index", async () => {
+      mockFs.access.mockRejectedValue(new Error("File not found"));
 
       const result = await service.validateCache(mockProjectPath);
 
       expect(result.is_valid).toBe(false);
-      expect(result.reason).toBe('Cache index file not found');
+      expect(result.reason).toBe("Cache index file not found");
       expect(result.version_compatible).toBe(false);
     });
 
-    it('should detect invalid JSON', async () => {
+    it("should detect invalid JSON", async () => {
       mockFs.access.mockResolvedValue(undefined); // File exists
-      mockFs.readFile.mockResolvedValue('invalid json');
+      mockFs.readFile.mockResolvedValue("invalid json");
 
       const result = await service.validateCache(mockProjectPath);
 
       expect(result.is_valid).toBe(false);
-      expect(result.reason).toBe('Failed to parse index file');
+      expect(result.reason).toBe("Failed to parse index file");
     });
 
-    it('should detect missing required fields', async () => {
+    it("should detect missing required fields", async () => {
       const invalidCache = {
         version: CACHE_FORMAT_VERSION,
         // Missing required fields
@@ -117,79 +121,79 @@ describe('CacheValidationService', () => {
       const result = await service.validateCache(mockProjectPath);
 
       expect(result.is_valid).toBe(false);
-      expect(result.reason).toContain('Missing required field');
+      expect(result.reason).toContain("Missing required field");
     });
 
-    it('should detect version incompatibility', async () => {
+    it("should detect version incompatibility", async () => {
       const oldCache = {
         ...createValidCache(),
-        version: '0.5.0'
+        version: "0.5.0",
       };
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
 
       const result = await service.validateCache(mockProjectPath, {
-        enableVersionMigration: false
+        enableVersionMigration: false,
       });
 
       expect(result.is_valid).toBe(false);
       expect(result.version_compatible).toBe(false);
-      expect(result.reason).toContain('Version 0.5.0 incompatible');
+      expect(result.reason).toContain("Version 0.5.0 incompatible");
     });
 
-    it('should detect file modifications', async () => {
+    it("should detect file modifications", async () => {
       const cache = createValidCache();
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995300000) // Different from cached
+        mtime: new Date(1640995300000), // Different from cached
       } as any);
 
       const result = await service.validateCache(mockProjectPath);
 
       expect(result.is_valid).toBe(false);
-      expect(result.files_to_recache).toContain('file1.jsonl');
+      expect(result.files_to_recache).toContain("file1.jsonl");
     });
 
-    it('should emit validation events', async () => {
+    it("should emit validation events", async () => {
       const cache = createValidCache();
       const eventSpy = vi.fn();
 
-      service.on('validationEvent', eventSpy);
+      service.on("validationEvent", eventSpy);
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       await service.validateCache(mockProjectPath);
 
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'validation_started'
-        })
+          type: "validation_started",
+        }),
       );
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'validation_completed'
-        })
+          type: "validation_completed",
+        }),
       );
     });
   });
 
-  describe('Structure Validation', () => {
-    it('should validate correct structure', () => {
+  describe("Structure Validation", () => {
+    it("should validate correct structure", () => {
       const validData = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       const result = (service as any).validateStructure(validData);
@@ -197,7 +201,7 @@ describe('CacheValidationService', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject null or undefined data', () => {
+    it("should reject null or undefined data", () => {
       const result1 = (service as any).validateStructure(null);
       const result2 = (service as any).validateStructure(undefined);
 
@@ -205,7 +209,7 @@ describe('CacheValidationService', () => {
       expect(result2.isValid).toBe(false);
     });
 
-    it('should reject missing required fields', () => {
+    it("should reject missing required fields", () => {
       const invalidData = {
         version: CACHE_FORMAT_VERSION,
         // Missing other required fields
@@ -214,95 +218,98 @@ describe('CacheValidationService', () => {
       const result = (service as any).validateStructure(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toContain('Missing required field');
+      expect(result.reason).toContain("Missing required field");
     });
 
-    it('should reject invalid field types', () => {
+    it("should reject invalid field types", () => {
       const invalidData = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: 123, // Should be string
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       const result = (service as any).validateStructure(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Invalid project_path field type');
+      expect(result.reason).toBe("Invalid project_path field type");
     });
 
-    it('should reject array instead of object for cached_files', () => {
+    it("should reject array instead of object for cached_files", () => {
       const invalidData = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: [], // Should be object
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       const result = (service as any).validateStructure(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.reason).toBe('Invalid cached_files field type');
+      expect(result.reason).toBe("Invalid cached_files field type");
     });
   });
 
-  describe('Version Compatibility', () => {
-    it('should accept current version', () => {
+  describe("Version Compatibility", () => {
+    it("should accept current version", () => {
       const result = (service as any).validateVersion(CACHE_FORMAT_VERSION);
 
       expect(result.isCompatible).toBe(true);
       expect(result.needsMigration).toBe(false);
     });
 
-    it('should detect supported older versions', () => {
-      const result = (service as any).validateVersion('0.9.0');
+    it("should detect supported older versions", () => {
+      const result = (service as any).validateVersion("0.9.0");
 
       expect(result.isCompatible).toBe(false);
       expect(result.needsMigration).toBe(true);
     });
 
-    it('should reject unsupported versions', () => {
-      const result = (service as any).validateVersion('0.1.0');
+    it("should reject unsupported versions", () => {
+      const result = (service as any).validateVersion("0.1.0");
 
       expect(result.isCompatible).toBe(false);
       expect(result.needsMigration).toBe(false);
     });
   });
 
-  describe('Cache Migration', () => {
-    it('should migrate from version 0.9.0', async () => {
+  describe("Cache Migration", () => {
+    it("should migrate from version 0.9.0", async () => {
       const oldCache = {
-        version: '0.9.0',
-        cache_created: '2023-01-01T00:00:00.000Z',
+        version: "0.9.0",
+        cache_created: "2023-01-01T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
         total_message_count: 10,
         total_input_tokens: 100,
-        total_output_tokens: 200
+        total_output_tokens: 200,
         // Missing some fields that should be added
       };
 
-      const indexPath = path.join(mockProjectPath, '.cache', CACHE_INDEX_FILENAME);
+      // const indexPath = path.join(
+      //   mockProjectPath,
+      //   ".cache",
+      //   CACHE_INDEX_FILENAME,
+      // );
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
       mockFs.writeFile.mockResolvedValue(undefined);
       mockFs.rename.mockResolvedValue(undefined);
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       const result = await service.validateCache(mockProjectPath, {
-        enableVersionMigration: true
+        enableVersionMigration: true,
       });
-
 
       expect(result.is_valid).toBe(true);
       expect(result.version_compatible).toBe(true);
@@ -310,20 +317,20 @@ describe('CacheValidationService', () => {
       expect(mockFs.rename).toHaveBeenCalled();
     });
 
-    it('should migrate from version 0.8.0', async () => {
+    it("should migrate from version 0.8.0", async () => {
       const oldCache = {
-        version: '0.8.0',
-        created: '2023-01-01T00:00:00.000Z',
+        version: "0.8.0",
+        created: "2023-01-01T00:00:00.000Z",
         project_path: mockProjectPath,
         files: {},
         session_data: {
           session1: {
             message_count: 5,
-            first_timestamp: '2023-01-01T00:00:00.000Z',
-            last_timestamp: '2023-01-01T01:00:00.000Z'
-          }
+            first_timestamp: "2023-01-01T00:00:00.000Z",
+            last_timestamp: "2023-01-01T01:00:00.000Z",
+          },
         },
-        message_count: 5
+        message_count: 5,
       };
 
       mockFs.access.mockResolvedValue(undefined); // File exists
@@ -331,76 +338,76 @@ describe('CacheValidationService', () => {
       mockFs.writeFile.mockResolvedValue(undefined);
       mockFs.rename.mockResolvedValue(undefined);
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       const result = await service.validateCache(mockProjectPath, {
-        enableVersionMigration: true
+        enableVersionMigration: true,
       });
 
       expect(result.is_valid).toBe(true);
       expect(result.version_compatible).toBe(true);
     });
 
-    it('should handle migration failure', async () => {
+    it("should handle migration failure", async () => {
       const oldCache = {
-        version: '0.9.0',
-        project_path: mockProjectPath
+        version: "0.9.0",
+        project_path: mockProjectPath,
       };
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
-      mockFs.writeFile.mockRejectedValue(new Error('Write failed'));
+      mockFs.writeFile.mockRejectedValue(new Error("Write failed"));
 
       const result = await service.validateCache(mockProjectPath, {
-        enableVersionMigration: true
+        enableVersionMigration: true,
       });
 
       expect(result.is_valid).toBe(false);
-      expect(result.reason).toContain('migration failed');
+      expect(result.reason).toContain("migration failed");
     });
 
-    it('should emit migration event', async () => {
+    it("should emit migration event", async () => {
       const oldCache = {
-        version: '0.9.0',
-        cache_created: '2023-01-01T00:00:00.000Z',
+        version: "0.9.0",
+        cache_created: "2023-01-01T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       const eventSpy = vi.fn();
-      service.on('validationEvent', eventSpy);
+      service.on("validationEvent", eventSpy);
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(oldCache));
       mockFs.writeFile.mockResolvedValue(undefined);
       mockFs.rename.mockResolvedValue(undefined);
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       await service.validateCache(mockProjectPath, {
-        enableVersionMigration: true
+        enableVersionMigration: true,
       });
 
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'migration_performed'
-        })
+          type: "migration_performed",
+        }),
       );
     });
   });
 
-  describe('Quick Validation', () => {
-    it('should perform quick validation', async () => {
+  describe("Quick Validation", () => {
+    it("should perform quick validation", async () => {
       const validCache = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(validCache));
@@ -410,16 +417,16 @@ describe('CacheValidationService', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for missing cache', async () => {
-      mockFs.readFile.mockRejectedValue(new Error('File not found'));
+    it("should return false for missing cache", async () => {
+      mockFs.readFile.mockRejectedValue(new Error("File not found"));
 
       const result = await service.quickValidate(mockProjectPath);
 
       expect(result).toBe(false);
     });
 
-    it('should return false for invalid structure', async () => {
-      const invalidCache = { invalid: 'data' };
+    it("should return false for invalid structure", async () => {
+      const invalidCache = { invalid: "data" };
 
       mockFs.readFile.mockResolvedValue(JSON.stringify(invalidCache));
 
@@ -429,10 +436,10 @@ describe('CacheValidationService', () => {
     });
   });
 
-  describe('Cache Repair', () => {
-    it('should repair corrupted cache', async () => {
+  describe("Cache Repair", () => {
+    it("should repair corrupted cache", async () => {
       const eventSpy = vi.fn();
-      service.on('validationEvent', eventSpy);
+      service.on("validationEvent", eventSpy);
 
       mockFs.rm.mockResolvedValue(undefined);
 
@@ -440,39 +447,39 @@ describe('CacheValidationService', () => {
 
       expect(result).toBe(true);
       expect(mockFs.rm).toHaveBeenCalledWith(
-        path.join(mockProjectPath, '.cache'),
-        { recursive: true, force: true }
+        path.join(mockProjectPath, ".cache"),
+        { recursive: true, force: true },
       );
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'fallback_triggered'
-        })
+          type: "fallback_triggered",
+        }),
       );
     });
 
-    it('should handle repair failure', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation();
-      mockFs.rm.mockRejectedValue(new Error('Permission denied'));
+    it("should handle repair failure", async () => {
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation();
+      mockFs.rm.mockRejectedValue(new Error("Permission denied"));
 
       const result = await service.repairCache(mockProjectPath);
 
       expect(result).toBe(false);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         `Failed to repair cache for ${mockProjectPath}:`,
-        expect.any(Error)
+        expect.any(Error),
       );
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
 
-  describe('Validation Details', () => {
-    it('should provide detailed validation information', async () => {
+  describe("Validation Details", () => {
+    it("should provide detailed validation information", async () => {
       const cache = {
         version: CACHE_FORMAT_VERSION,
-        last_updated: '2023-01-02T00:00:00.000Z',
-        cached_files: { 'file1.jsonl': {}, 'file2.jsonl': {} },
-        sessions: { session1: {}, session2: {}, session3: {} }
+        last_updated: "2023-01-02T00:00:00.000Z",
+        cached_files: { "file1.jsonl": {}, "file2.jsonl": {} },
+        sessions: { session1: {}, session2: {}, session3: {} },
       };
 
       // Mock file existence checks
@@ -486,12 +493,12 @@ describe('CacheValidationService', () => {
       expect(details.structureValid).toBe(false); // Missing required fields
       expect(details.fileCount).toBe(2);
       expect(details.sessionCount).toBe(3);
-      expect(details.lastUpdated).toBe('2023-01-02T00:00:00.000Z');
+      expect(details.lastUpdated).toBe("2023-01-02T00:00:00.000Z");
     });
 
-    it('should handle non-existent cache gracefully', async () => {
-      mockFs.access.mockRejectedValue(new Error('File not found'));
-      mockFs.readFile.mockRejectedValue(new Error('File not found'));
+    it("should handle non-existent cache gracefully", async () => {
+      mockFs.access.mockRejectedValue(new Error("File not found"));
+      mockFs.readFile.mockRejectedValue(new Error("File not found"));
 
       const details = await service.getValidationDetails(mockProjectPath);
 
@@ -503,62 +510,62 @@ describe('CacheValidationService', () => {
     });
   });
 
-  describe('Checksum Validation', () => {
-    it('should validate checksums when enabled', async () => {
+  describe("Checksum Validation", () => {
+    it("should validate checksums when enabled", async () => {
       const cache = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       const result = await service.validateCache(mockProjectPath, {
-        enableChecksumValidation: true
+        enableChecksumValidation: true,
       });
 
       expect(result.is_valid).toBe(true);
     });
 
-    it('should detect corruption in strict mode', async () => {
+    it("should detect corruption in strict mode", async () => {
       const cache = {
         version: CACHE_FORMAT_VERSION,
-        cache_created: '2023-01-01T00:00:00.000Z',
-        last_updated: '2023-01-02T00:00:00.000Z',
+        cache_created: "2023-01-01T00:00:00.000Z",
+        last_updated: "2023-01-02T00:00:00.000Z",
         project_path: mockProjectPath,
         cached_files: {},
         sessions: {},
-        total_message_count: 0
+        total_message_count: 0,
       };
 
       // Mock checksum validation to fail
       const originalValidateChecksums = (service as any).validateChecksums;
       (service as any).validateChecksums = vi.fn().mockResolvedValue({
         isValid: false,
-        corruptedFields: ['sessions']
+        corruptedFields: ["sessions"],
       });
 
       mockFs.access.mockResolvedValue(undefined); // File exists
       mockFs.readFile.mockResolvedValue(JSON.stringify(cache));
       mockFs.stat.mockResolvedValue({
-        mtime: new Date(1640995200000)
+        mtime: new Date(1640995200000),
       } as any);
 
       const result = await service.validateCache(mockProjectPath, {
         enableChecksumValidation: true,
-        strictValidation: true
+        strictValidation: true,
       });
 
       expect(result.is_valid).toBe(false);
-      expect(result.reason).toBe('Cache corruption detected');
+      expect(result.reason).toBe("Cache corruption detected");
 
       // Restore original method
       (service as any).validateChecksums = originalValidateChecksums;

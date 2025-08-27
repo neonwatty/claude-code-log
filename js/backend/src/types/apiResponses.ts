@@ -1,6 +1,11 @@
 // API Response types matching Python renderer data structures
 
-import { ISession, IProject, ITranscriptEntry, IUsageInfo } from '../../../shared/src';
+import {
+  ISession,
+  IProject,
+  ITranscriptEntry,
+  IUsageInfo,
+} from "../../../shared/src";
 
 // Base API response (already exists in shared, but extended here)
 export interface IApiResponse<T = any> {
@@ -39,7 +44,7 @@ export interface ISessionDetailResponse extends ISession {
 export interface ISessionContinueResponse {
   message: string;
   sessionId: string;
-  status: 'pending' | 'started' | 'failed';
+  status: "pending" | "started" | "failed";
   requestId?: string;
 }
 
@@ -54,7 +59,7 @@ export interface IProjectDetailResponse extends IProject {
   recentActivity: {
     lastSession: string;
     lastMessage: string;
-    frequency: 'daily' | 'weekly' | 'monthly' | 'occasional';
+    frequency: "daily" | "weekly" | "monthly" | "occasional";
   };
   statistics: {
     averageSessionLength: number;
@@ -81,16 +86,16 @@ export interface IFileMonitorStatusResponse {
 
 // Health check response
 export interface IHealthCheckResponse {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   environment: string;
   uptime: number;
   memory: NodeJS.MemoryUsage;
   version: string;
   services: {
-    database: 'healthy' | 'unhealthy';
-    fileSystem: 'healthy' | 'unhealthy';
-    webSocket: 'healthy' | 'unhealthy';
+    database: "healthy" | "unhealthy";
+    fileSystem: "healthy" | "unhealthy";
+    webSocket: "healthy" | "unhealthy";
   };
 }
 
@@ -149,7 +154,7 @@ export interface ISearchResponse<T> {
 
 // Export endpoints response
 export interface IExportResponse {
-  format: 'json' | 'csv' | 'jsonl';
+  format: "json" | "csv" | "jsonl";
   downloadUrl: string;
   expiresAt: string;
   size: number;
@@ -159,7 +164,7 @@ export interface IExportResponse {
 // Batch operation responses
 export interface IBatchOperationResponse {
   operationId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
+  status: "queued" | "processing" | "completed" | "failed";
   progress: {
     current: number;
     total: number;
@@ -178,30 +183,33 @@ export interface IBatchOperationResponse {
 export type ApiResponse<T = any> = IApiResponse<T>;
 
 // Response factory functions
-export const createSuccessResponse = <T>(data: T, message?: string): ApiResponse<T> => ({
+export const createSuccessResponse = <T>(
+  data: T,
+  message?: string,
+): ApiResponse<T> => ({
   success: true,
   data,
   timestamp: new Date().toISOString(),
-  ...(message && { message })
+  ...(message && { message }),
 });
 
 export const createErrorResponse = (
-  error: string, 
-  errorCode?: string, 
-  details?: any
+  error: string,
+  errorCode?: string,
+  details?: any,
 ): ApiResponse => ({
   success: false,
   error,
   errorCode,
   timestamp: new Date().toISOString(),
-  ...(details && { details })
+  ...(details && { details }),
 });
 
 export const createPaginatedResponse = <T>(
   items: T[],
-  pagination: IPaginationMeta
+  pagination: IPaginationMeta,
 ): ApiResponse<{ items: T[]; pagination: IPaginationMeta }> => ({
   success: true,
   data: { items, pagination },
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });

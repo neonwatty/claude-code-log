@@ -4,19 +4,27 @@
  */
 
 // Base components
-export * from './base/index.js';
+export * from "./base/index.js";
 
 // UI Components will be exported here as they are created
-export * from './session-list/index.js';
-export * from './session-detail/index.js';
-export * from './session-continuation/index.js';
-export * from './message-card/index.js';
-export * from './filter-bar/index.js';
-export * from './timeline/index.js';
+export * from "./session-list/index.js";
+export * from "./session-detail/index.js";
+export * from "./session-continuation/index.js";
+export * from "./message-card/index.js";
+export * from "./filter-bar/index.js";
+export * from "./timeline/index.js";
+export * from "./project-dashboard/index.js";
+export * from "./export-dialog/index.js";
 
 // Connection and notification components
-export * from './connection-status/index.js';
-export * from './toast-notifications/index.js';
+export * from "./connection-status/index.js";
+export * from "./toast-notifications/index.js";
+
+// Analytics components
+export * from "./analytics/index.js";
+
+// Onboarding components
+export * from "./onboarding/index.js";
 
 /**
  * Component registration function
@@ -24,5 +32,5 @@ export * from './toast-notifications/index.js';
  */
 export function registerComponents(): void {
   // Components will be registered here as they are created
-  console.log('Components registration system ready');
+  console.log("Components registration system ready");
 }

@@ -2,14 +2,14 @@
  * WebSocket message serialization, deserialization, and handling utilities
  */
 
-import { 
-  WebSocketMessage, 
-  MessageType, 
-  MESSAGE_SCHEMAS, 
-  MessageError, 
+import {
+  WebSocketMessage,
+  MessageType,
+  MESSAGE_SCHEMAS,
+  MessageError,
   MessageErrorCode,
-  BaseMessage
-} from './message-types';
+  BaseMessage,
+} from "./message-types";
 
 /**
  * Serializes a WebSocket message to JSON string
@@ -18,7 +18,9 @@ export function serializeMessage(message: WebSocketMessage): string {
   try {
     return JSON.stringify(message);
   } catch (error) {
-    throw new Error(`Failed to serialize message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to serialize message: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -28,14 +30,16 @@ export function serializeMessage(message: WebSocketMessage): string {
 export function deserializeMessage(data: string): WebSocketMessage {
   try {
     const parsed = JSON.parse(data);
-    
+
     if (!isValidMessage(parsed)) {
-      throw new Error('Invalid message format');
+      throw new Error("Invalid message format");
     }
-    
+
     return parsed as WebSocketMessage;
   } catch (error) {
-    throw new Error(`Failed to deserialize message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to deserialize message: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -43,7 +47,7 @@ export function deserializeMessage(data: string): WebSocketMessage {
  * Type guard to check if an object is a valid WebSocket message
  */
 export function isValidMessage(obj: unknown): obj is WebSocketMessage {
-  if (!obj || typeof obj !== 'object') {
+  if (!obj || typeof obj !== "object") {
     return false;
   }
 
@@ -65,15 +69,19 @@ export function isValidMessage(obj: unknown): obj is WebSocketMessage {
   }
 
   // Basic type validation for payload
-  if (message.payload && typeof message.payload === 'object') {
+  if (message.payload && typeof message.payload === "object") {
     const payload = message.payload as Record<string, unknown>;
-    
+
     for (const [field, expectedType] of Object.entries(schema.payloadSchema)) {
       if (field in payload) {
         const actualType = typeof payload[field];
-        if (expectedType === 'object' && payload[field] !== null && actualType !== 'object') {
+        if (
+          expectedType === "object" &&
+          payload[field] !== null &&
+          actualType !== "object"
+        ) {
           return false;
-        } else if (expectedType !== 'object' && actualType !== expectedType) {
+        } else if (expectedType !== "object" && actualType !== expectedType) {
           return false;
         }
       }
@@ -86,19 +94,27 @@ export function isValidMessage(obj: unknown): obj is WebSocketMessage {
 /**
  * Type guards for specific message types
  */
-export function isSessionCreatedMessage(message: WebSocketMessage): message is import('./message-types').SessionCreatedMessage {
+export function isSessionCreatedMessage(
+  message: WebSocketMessage,
+): message is import("./message-types").SessionCreatedMessage {
   return message.type === MessageType.SESSION_CREATED;
 }
 
-export function isSessionUpdatedMessage(message: WebSocketMessage): message is import('./message-types').SessionUpdatedMessage {
+export function isSessionUpdatedMessage(
+  message: WebSocketMessage,
+): message is import("./message-types").SessionUpdatedMessage {
   return message.type === MessageType.SESSION_UPDATED;
 }
 
-export function isSessionDeletedMessage(message: WebSocketMessage): message is import('./message-types').SessionDeletedMessage {
+export function isSessionDeletedMessage(
+  message: WebSocketMessage,
+): message is import("./message-types").SessionDeletedMessage {
   return message.type === MessageType.SESSION_DELETED;
 }
 
-export function isCacheInvalidatedMessage(message: WebSocketMessage): message is import('./message-types').CacheInvalidatedMessage {
+export function isCacheInvalidatedMessage(
+  message: WebSocketMessage,
+): message is import("./message-types").CacheInvalidatedMessage {
   return message.type === MessageType.CACHE_INVALIDATED;
 }
 
@@ -108,12 +124,12 @@ export function isCacheInvalidatedMessage(message: WebSocketMessage): message is
 export function validateMessage(obj: unknown): MessageError | null {
   const timestamp = new Date().toISOString();
 
-  if (!obj || typeof obj !== 'object') {
+  if (!obj || typeof obj !== "object") {
     return {
       code: MessageErrorCode.INVALID_FORMAT,
-      message: 'Message must be an object',
+      message: "Message must be an object",
       originalMessage: obj,
-      timestamp
+      timestamp,
     };
   }
 
@@ -123,9 +139,9 @@ export function validateMessage(obj: unknown): MessageError | null {
   if (!message.type) {
     return {
       code: MessageErrorCode.MISSING_FIELDS,
-      message: 'Message type is required',
+      message: "Message type is required",
       originalMessage: obj,
-      timestamp
+      timestamp,
     };
   }
 
@@ -134,7 +150,7 @@ export function validateMessage(obj: unknown): MessageError | null {
       code: MessageErrorCode.UNKNOWN_TYPE,
       message: `Unknown message type: ${message.type}`,
       originalMessage: obj,
-      timestamp
+      timestamp,
     };
   }
 
@@ -142,33 +158,36 @@ export function validateMessage(obj: unknown): MessageError | null {
   const schema = MESSAGE_SCHEMAS[messageType];
 
   // Check required fields
-  const missingFields = schema.requiredFields.filter(field => !(field in message));
+  const missingFields = schema.requiredFields.filter(
+    (field) => !(field in message),
+  );
   if (missingFields.length > 0) {
     return {
       code: MessageErrorCode.MISSING_FIELDS,
-      message: `Missing required fields: ${missingFields.join(', ')}`,
+      message: `Missing required fields: ${missingFields.join(", ")}`,
       originalMessage: obj,
-      timestamp
+      timestamp,
     };
   }
 
   // Validate payload structure
-  if (message.payload && typeof message.payload === 'object') {
+  if (message.payload && typeof message.payload === "object") {
     const payload = message.payload as Record<string, unknown>;
-    
+
     for (const [field, expectedType] of Object.entries(schema.payloadSchema)) {
       if (field in payload) {
         const actualType = typeof payload[field];
-        const isValidType = expectedType === 'object' 
-          ? payload[field] !== null && actualType === 'object'
-          : actualType === expectedType;
-          
+        const isValidType =
+          expectedType === "object"
+            ? payload[field] !== null && actualType === "object"
+            : actualType === expectedType;
+
         if (!isValidType) {
           return {
             code: MessageErrorCode.INVALID_PAYLOAD,
             message: `Invalid type for payload.${field}: expected ${expectedType}, got ${actualType}`,
             originalMessage: obj,
-            timestamp
+            timestamp,
           };
         }
       }
@@ -184,13 +203,13 @@ export function validateMessage(obj: unknown): MessageError | null {
 export function createMessageError(
   code: MessageErrorCode,
   message: string,
-  originalMessage?: unknown
+  originalMessage?: unknown,
 ): MessageError {
   return {
     code,
     message,
     originalMessage,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 }
 
@@ -201,14 +220,16 @@ export function createBaseMessage(type: MessageType): BaseMessage {
   return {
     type,
     timestamp: new Date().toISOString(),
-    id: crypto.randomUUID()
+    id: crypto.randomUUID(),
   };
 }
 
 /**
  * Message handler registry type
  */
-export type MessageHandler<T extends WebSocketMessage = WebSocketMessage> = (message: T) => void | Promise<void>;
+export type MessageHandler<T extends WebSocketMessage = WebSocketMessage> = (
+  message: T,
+) => void | Promise<void>;
 
 /**
  * Message handler registry for organizing message processing
@@ -221,7 +242,7 @@ export class MessageHandlerRegistry {
    */
   register<T extends WebSocketMessage>(
     type: MessageType,
-    handler: MessageHandler<T>
+    handler: MessageHandler<T>,
   ): void {
     if (!this.handlers.has(type)) {
       this.handlers.set(type, []);
@@ -247,7 +268,7 @@ export class MessageHandlerRegistry {
    */
   async processMessage(message: WebSocketMessage): Promise<void> {
     const handlers = this.handlers.get(message.type) || [];
-    
+
     // Execute all handlers for this message type
     await Promise.all(
       handlers.map(async (handler) => {
@@ -257,7 +278,7 @@ export class MessageHandlerRegistry {
           console.error(`Error in message handler for ${message.type}:`, error);
           // Don't throw - we want other handlers to continue processing
         }
-      })
+      }),
     );
   }
 

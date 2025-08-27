@@ -4,8 +4,8 @@
  */
 
 // Re-export new standardized message types
-export * from '../utils/websocket/message-types';
-export * from '../utils/websocket/message-handlers';
+export * from "../utils/websocket/message-types";
+export * from "../utils/websocket/message-handlers";
 
 // Legacy base message interface (kept for backward compatibility)
 export interface IWebSocketMessage {
@@ -17,34 +17,34 @@ export interface IWebSocketMessage {
 // Extended message types enum including legacy and new types
 export enum WebSocketMessageType {
   // Connection management (legacy)
-  CONNECT = 'connect',
-  DISCONNECT = 'disconnect',
-  HEARTBEAT = 'heartbeat',
-  PONG = 'pong',
-  
+  CONNECT = "connect",
+  DISCONNECT = "disconnect",
+  HEARTBEAT = "heartbeat",
+  PONG = "pong",
+
   // Session events (standardized)
-  SESSION_CREATED = 'SESSION_CREATED',
-  SESSION_UPDATED = 'SESSION_UPDATED',
-  SESSION_DELETED = 'SESSION_DELETED',
-  CACHE_INVALIDATED = 'CACHE_INVALIDATED',
-  
+  SESSION_CREATED = "SESSION_CREATED",
+  SESSION_UPDATED = "SESSION_UPDATED",
+  SESSION_DELETED = "SESSION_DELETED",
+  CACHE_INVALIDATED = "CACHE_INVALIDATED",
+
   // Project events (legacy - to be migrated)
-  PROJECT_UPDATED = 'project_updated',
-  
+  PROJECT_UPDATED = "project_updated",
+
   // File system events (legacy - to be migrated)
-  FILE_CHANGED = 'file_changed',
-  
+  FILE_CHANGED = "file_changed",
+
   // Error events (legacy)
-  ERROR = 'error'
+  ERROR = "error",
 }
 
 // Connection states
 export enum WebSocketConnectionState {
-  CONNECTING = 'CONNECTING',
-  CONNECTED = 'CONNECTED',
-  RECONNECTING = 'RECONNECTING',
-  DISCONNECTED = 'DISCONNECTED',
-  ERROR = 'ERROR'
+  CONNECTING = "CONNECTING",
+  CONNECTED = "CONNECTED",
+  RECONNECTING = "RECONNECTING",
+  DISCONNECTED = "DISCONNECTED",
+  ERROR = "ERROR",
 }
 
 // Configuration interface
@@ -115,7 +115,7 @@ export interface IFileChangedMessage extends IWebSocketMessage {
   type: WebSocketMessageType.FILE_CHANGED;
   data: {
     filePath: string;
-    changeType: 'created' | 'modified' | 'deleted';
+    changeType: "created" | "modified" | "deleted";
   };
 }
 
@@ -128,7 +128,7 @@ export interface IErrorMessage extends IWebSocketMessage {
 }
 
 // Union type for all message types
-export type WebSocketEventMessage = 
+export type WebSocketEventMessage =
   | IHeartbeatMessage
   | IPongMessage
   | IConnectMessage
@@ -146,29 +146,29 @@ export type WebSocketMessageHandler = (message: WebSocketEventMessage) => void;
 // Event map for typed event emitter
 export interface IWebSocketEventMap {
   // Connection events
-  'connection:open': Event;
-  'connection:close': CloseEvent;
-  'connection:error': Event;
-  'connection:reconnecting': { 
-    attempt: number; 
-    maxAttempts: number; 
-    delay?: number; 
-    disconnectionType?: string; 
+  "connection:open": Event;
+  "connection:close": CloseEvent;
+  "connection:error": Event;
+  "connection:reconnecting": {
+    attempt: number;
+    maxAttempts: number;
+    delay?: number;
+    disconnectionType?: string;
   };
-  
+
   // Message events
-  'message': WebSocketEventMessage;
-  'session:created': ISessionCreatedMessage['data'];
-  'session:updated': ISessionUpdatedMessage['data'];
-  'session:deleted': ISessionDeletedMessage['data'];
-  'cache:invalidated': any;
-  'project:updated': IProjectUpdatedMessage['data'];
-  'file:changed': IFileChangedMessage['data'];
-  'error': IErrorMessage['data'];
-  
+  message: WebSocketEventMessage;
+  "session:created": ISessionCreatedMessage["data"];
+  "session:updated": ISessionUpdatedMessage["data"];
+  "session:deleted": ISessionDeletedMessage["data"];
+  "cache:invalidated": any;
+  "project:updated": IProjectUpdatedMessage["data"];
+  "file:changed": IFileChangedMessage["data"];
+  error: IErrorMessage["data"];
+
   // State events
-  'state:changed': { 
-    oldState: WebSocketConnectionState; 
+  "state:changed": {
+    oldState: WebSocketConnectionState;
     newState: WebSocketConnectionState;
   };
 }

@@ -17,7 +17,7 @@ export {
   type ZodThinkingContent,
   type ZodImageContent,
   type ZodContentItem,
-} from './content';
+} from "./content";
 
 // Message schemas
 export {
@@ -43,7 +43,7 @@ export {
   type ZodTodoResult,
   type ZodEditResult,
   type ZodToolUseResult,
-} from './messages';
+} from "./messages";
 
 // Transcript schemas
 export {
@@ -65,7 +65,7 @@ export {
   type ZodSession,
   type ZodProject,
   type ZodApiResponse,
-} from './transcript';
+} from "./transcript";
 
 // Validation utilities
 export {
@@ -87,7 +87,7 @@ export {
   isValid,
   type ValidationResult,
   type ValidationOptions,
-} from './validators';
+} from "./validators";
 
 // Claude Code integration schemas
 export {
@@ -109,4 +109,35 @@ export {
   type ClaudeProcessEvent,
   type ClaudeIntegrationConfig,
   type ClaudeIntegrationError,
-} from './claude-integration';
+} from "./claude-integration";
+
+// Export schemas
+export {
+  ExportFormatSchema,
+  ExportOptionsSchema,
+  ExportRequestSchema,
+  ExportProgressSchema,
+  ExportMetadataSchema,
+  ExportResultSchema,
+  ExportStatusSchema,
+  ExportMetricsSchema,
+  DownloadRequestSchema,
+  validateExportOptions,
+  validateExportRequest,
+  validateExportProgress,
+  validateExportResult,
+  validateExportStatus,
+  validateDownloadRequest,
+  safeValidateExportRequest,
+  safeValidateExportOptions,
+  safeValidateDownloadRequest,
+  type ZodExportFormat,
+  type ZodExportOptions,
+  type ZodExportRequest,
+  type ZodExportProgress,
+  type ZodExportMetadata,
+  type ZodExportResult,
+  type ZodExportStatus,
+  type ZodExportMetrics,
+  type ZodDownloadRequest,
+} from "./export";

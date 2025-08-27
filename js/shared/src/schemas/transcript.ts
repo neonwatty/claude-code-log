@@ -2,8 +2,13 @@
  * Zod schemas for transcript entries - provides runtime validation for JSONL transcript data.
  */
 
-import { z } from 'zod';
-import { UserMessageSchema, AssistantMessageSchema, ToolUseResultSchema, timestampSchema } from './messages';
+import { z } from "zod";
+import {
+  UserMessageSchema,
+  AssistantMessageSchema,
+  ToolUseResultSchema,
+  timestampSchema,
+} from "./messages";
 
 // Base transcript entry schema
 export const BaseTranscriptEntrySchema = z.object({
@@ -20,21 +25,21 @@ export const BaseTranscriptEntrySchema = z.object({
 
 // User transcript entry schema
 export const UserTranscriptEntrySchema = BaseTranscriptEntrySchema.extend({
-  type: z.literal('user'),
+  type: z.literal("user"),
   message: UserMessageSchema,
   toolUseResult: ToolUseResultSchema.optional(),
 });
 
 // Assistant transcript entry schema
 export const AssistantTranscriptEntrySchema = BaseTranscriptEntrySchema.extend({
-  type: z.literal('assistant'),
+  type: z.literal("assistant"),
   message: AssistantMessageSchema,
   requestId: z.string().optional(),
 });
 
 // Summary transcript entry schema
 export const SummaryTranscriptEntrySchema = z.object({
-  type: z.literal('summary'),
+  type: z.literal("summary"),
   summary: z.string(),
   leafUuid: z.string(),
   cwd: z.string().optional(),
@@ -42,13 +47,13 @@ export const SummaryTranscriptEntrySchema = z.object({
 
 // System transcript entry schema
 export const SystemTranscriptEntrySchema = BaseTranscriptEntrySchema.extend({
-  type: z.literal('system'),
+  type: z.literal("system"),
   content: z.string(),
   level: z.string().optional(), // 'warning', 'info', 'error'
 });
 
 // Discriminated union for all transcript entry types
-export const TranscriptEntrySchema = z.discriminatedUnion('type', [
+export const TranscriptEntrySchema = z.discriminatedUnion("type", [
   UserTranscriptEntrySchema,
   AssistantTranscriptEntrySchema,
   SummaryTranscriptEntrySchema,
@@ -92,9 +97,15 @@ export const ApiResponseSchema = z.object({
 // Type inference helpers
 export type ZodBaseTranscriptEntry = z.infer<typeof BaseTranscriptEntrySchema>;
 export type ZodUserTranscriptEntry = z.infer<typeof UserTranscriptEntrySchema>;
-export type ZodAssistantTranscriptEntry = z.infer<typeof AssistantTranscriptEntrySchema>;
-export type ZodSummaryTranscriptEntry = z.infer<typeof SummaryTranscriptEntrySchema>;
-export type ZodSystemTranscriptEntry = z.infer<typeof SystemTranscriptEntrySchema>;
+export type ZodAssistantTranscriptEntry = z.infer<
+  typeof AssistantTranscriptEntrySchema
+>;
+export type ZodSummaryTranscriptEntry = z.infer<
+  typeof SummaryTranscriptEntrySchema
+>;
+export type ZodSystemTranscriptEntry = z.infer<
+  typeof SystemTranscriptEntrySchema
+>;
 export type ZodTranscriptEntry = z.infer<typeof TranscriptEntrySchema>;
 export type ZodSession = z.infer<typeof SessionSchema>;
 export type ZodProject = z.infer<typeof ProjectSchema>;

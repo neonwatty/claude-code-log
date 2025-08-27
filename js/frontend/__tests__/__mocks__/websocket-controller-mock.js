@@ -6,7 +6,7 @@ class MockWebSocketController {
     this.webSocketService = webSocketService;
     this.config = config;
     this._handlers = new Map();
-    
+
     // Mock addController on host
     if (host && host.addController) {
       host.addController(this);
@@ -22,23 +22,23 @@ class MockWebSocketController {
   }
 
   onSessionCreated(handler) {
-    this._handlers.set('SESSION_CREATED', handler);
+    this._handlers.set("SESSION_CREATED", handler);
   }
 
   onSessionUpdated(handler) {
-    this._handlers.set('SESSION_UPDATED', handler);
+    this._handlers.set("SESSION_UPDATED", handler);
   }
 
   onSessionDeleted(handler) {
-    this._handlers.set('SESSION_DELETED', handler);
+    this._handlers.set("SESSION_DELETED", handler);
   }
 
   onCacheInvalidated(handler) {
-    this._handlers.set('CACHE_INVALIDATED', handler);
+    this._handlers.set("CACHE_INVALIDATED", handler);
   }
 
   getConnectionState() {
-    return this.webSocketService?.getConnectionState() || 'DISCONNECTED';
+    return this.webSocketService?.getConnectionState() || "DISCONNECTED";
   }
 
   isConnected() {

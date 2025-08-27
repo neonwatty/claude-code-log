@@ -3,7 +3,7 @@
  * Tests complete message lifecycle and protocol compatibility
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   serializeMessage,
   deserializeMessage,
@@ -12,18 +12,18 @@ import {
   isSessionCreatedMessage,
   isSessionUpdatedMessage,
   isSessionDeletedMessage,
-  isCacheInvalidatedMessage
-} from '../../../src/utils/websocket/message-handlers';
+  isCacheInvalidatedMessage,
+} from "../../../src/utils/websocket/message-handlers";
 import {
   MessageType,
   type WebSocketMessage,
   type SessionCreatedMessage,
   type SessionUpdatedMessage,
   type SessionDeletedMessage,
-  type CacheInvalidatedMessage
-} from '../../../src/utils/websocket/message-types';
+  type CacheInvalidatedMessage,
+} from "../../../src/utils/websocket/message-types";
 
-describe('WebSocket Message Protocol Integration', () => {
+describe("WebSocket Message Protocol Integration", () => {
   let registry: MessageHandlerRegistry;
   let mockWebSocket: any;
   let receivedMessages: WebSocketMessage[] = [];
@@ -38,89 +38,102 @@ describe('WebSocket Message Protocol Integration', () => {
       close: vi.fn(),
       readyState: 1, // OPEN
       addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
+      removeEventListener: vi.fn(),
     };
 
     // Setup message collectors for testing
-    registry.register(MessageType.SESSION_CREATED, (msg) => { receivedMessages.push(msg); });
-    registry.register(MessageType.SESSION_UPDATED, (msg) => { receivedMessages.push(msg); });
-    registry.register(MessageType.SESSION_DELETED, (msg) => { receivedMessages.push(msg); });
-    registry.register(MessageType.CACHE_INVALIDATED, (msg) => { receivedMessages.push(msg); });
+    registry.register(MessageType.SESSION_CREATED, (msg) => {
+      receivedMessages.push(msg);
+    });
+    registry.register(MessageType.SESSION_UPDATED, (msg) => {
+      receivedMessages.push(msg);
+    });
+    registry.register(MessageType.SESSION_DELETED, (msg) => {
+      receivedMessages.push(msg);
+    });
+    registry.register(MessageType.CACHE_INVALIDATED, (msg) => {
+      receivedMessages.push(msg);
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  describe('End-to-End Message Flow', () => {
-    it('should handle complete session lifecycle', async () => {
+  describe("End-to-End Message Flow", () => {
+    it("should handle complete session lifecycle", async () => {
       // 1. Session Created
       const sessionCreated: SessionCreatedMessage = {
         type: MessageType.SESSION_CREATED,
-        timestamp: '2024-01-01T00:00:00Z',
-        id: 'msg-1',
+        timestamp: "2024-01-01T00:00:00Z",
+        id: "msg-1",
         payload: {
           session: {
-            sessionId: 'session-123',
-            title: 'New Session',
-            createdAt: '2024-01-01T00:00:00Z',
-            status: 'active'
-          }
-        }
+            sessionId: "session-123",
+            title: "New Session",
+            createdAt: "2024-01-01T00:00:00Z",
+            status: "active",
+          },
+        },
       };
 
       // 2. Session Updated
       const sessionUpdated: SessionUpdatedMessage = {
         type: MessageType.SESSION_UPDATED,
-        timestamp: '2024-01-01T01:00:00Z',
-        id: 'msg-2',
+        timestamp: "2024-01-01T01:00:00Z",
+        id: "msg-2",
         payload: {
           session: {
-            sessionId: 'session-123',
-            title: 'Updated Session',
-            updatedAt: '2024-01-01T01:00:00Z',
-            status: 'active'
+            sessionId: "session-123",
+            title: "Updated Session",
+            updatedAt: "2024-01-01T01:00:00Z",
+            status: "active",
           },
           changes: {
-            fields: ['title', 'updatedAt'],
+            fields: ["title", "updatedAt"],
             previousValues: {
-              title: 'New Session',
-              updatedAt: '2024-01-01T00:00:00Z'
-            }
-          }
-        }
+              title: "New Session",
+              updatedAt: "2024-01-01T00:00:00Z",
+            },
+          },
+        },
       };
 
       // 3. Cache Invalidated
       const cacheInvalidated: CacheInvalidatedMessage = {
         type: MessageType.CACHE_INVALIDATED,
-        timestamp: '2024-01-01T01:30:00Z',
-        id: 'msg-3',
+        timestamp: "2024-01-01T01:30:00Z",
+        id: "msg-3",
         payload: {
-          scope: 'session',
-          sessionIds: ['session-123'],
-          reason: 'Session updated'
-        }
+          scope: "session",
+          sessionIds: ["session-123"],
+          reason: "Session updated",
+        },
       };
 
       // 4. Session Deleted
       const sessionDeleted: SessionDeletedMessage = {
         type: MessageType.SESSION_DELETED,
-        timestamp: '2024-01-01T02:00:00Z',
-        id: 'msg-4',
+        timestamp: "2024-01-01T02:00:00Z",
+        id: "msg-4",
         payload: {
-          sessionId: 'session-123',
-          deletedAt: '2024-01-01T02:00:00Z'
-        }
+          sessionId: "session-123",
+          deletedAt: "2024-01-01T02:00:00Z",
+        },
       };
 
-      const messages = [sessionCreated, sessionUpdated, cacheInvalidated, sessionDeleted];
+      const messages = [
+        sessionCreated,
+        sessionUpdated,
+        cacheInvalidated,
+        sessionDeleted,
+      ];
 
       // Simulate receiving messages via WebSocket
       for (const message of messages) {
         const serialized = serializeMessage(message);
         const deserialized = deserializeMessage(serialized);
-        
+
         expect(isValidMessage(deserialized)).toBe(true);
         await registry.processMessage(deserialized);
       }
@@ -133,26 +146,26 @@ describe('WebSocket Message Protocol Integration', () => {
       expect(receivedMessages[3].type).toBe(MessageType.SESSION_DELETED);
     });
 
-    it('should handle batch message processing', async () => {
+    it("should handle batch message processing", async () => {
       const messages: WebSocketMessage[] = [
         {
           type: MessageType.SESSION_CREATED,
-          timestamp: '2024-01-01T00:00:00Z',
-          id: 'msg-1',
-          payload: { session: { sessionId: 'session-1' } }
+          timestamp: "2024-01-01T00:00:00Z",
+          id: "msg-1",
+          payload: { session: { sessionId: "session-1" } },
         },
         {
           type: MessageType.SESSION_CREATED,
-          timestamp: '2024-01-01T00:01:00Z',
-          id: 'msg-2',
-          payload: { session: { sessionId: 'session-2' } }
+          timestamp: "2024-01-01T00:01:00Z",
+          id: "msg-2",
+          payload: { session: { sessionId: "session-2" } },
         },
         {
           type: MessageType.SESSION_CREATED,
-          timestamp: '2024-01-01T00:02:00Z',
-          id: 'msg-3',
-          payload: { session: { sessionId: 'session-3' } }
-        }
+          timestamp: "2024-01-01T00:02:00Z",
+          id: "msg-3",
+          payload: { session: { sessionId: "session-3" } },
+        },
       ];
 
       // Process all messages
@@ -165,12 +178,16 @@ describe('WebSocket Message Protocol Integration', () => {
       await Promise.all(processPromises);
 
       expect(receivedMessages).toHaveLength(3);
-      expect(receivedMessages.every(msg => msg.type === MessageType.SESSION_CREATED)).toBe(true);
+      expect(
+        receivedMessages.every(
+          (msg) => msg.type === MessageType.SESSION_CREATED,
+        ),
+      ).toBe(true);
     });
   });
 
-  describe('Message Type Detection and Routing', () => {
-    it('should correctly route different message types to specific handlers', async () => {
+  describe("Message Type Detection and Routing", () => {
+    it("should correctly route different message types to specific handlers", async () => {
       const sessionCreatedHandler = vi.fn();
       const sessionUpdatedHandler = vi.fn();
       const sessionDeletedHandler = vi.fn();
@@ -181,42 +198,45 @@ describe('WebSocket Message Protocol Integration', () => {
       newRegistry.register(MessageType.SESSION_CREATED, sessionCreatedHandler);
       newRegistry.register(MessageType.SESSION_UPDATED, sessionUpdatedHandler);
       newRegistry.register(MessageType.SESSION_DELETED, sessionDeletedHandler);
-      newRegistry.register(MessageType.CACHE_INVALIDATED, cacheInvalidatedHandler);
+      newRegistry.register(
+        MessageType.CACHE_INVALIDATED,
+        cacheInvalidatedHandler,
+      );
 
       const messages: WebSocketMessage[] = [
         {
           type: MessageType.SESSION_CREATED,
-          timestamp: '2024-01-01T00:00:00Z',
-          id: 'msg-1',
-          payload: { session: { sessionId: 'session-1' } }
+          timestamp: "2024-01-01T00:00:00Z",
+          id: "msg-1",
+          payload: { session: { sessionId: "session-1" } },
         },
         {
           type: MessageType.SESSION_UPDATED,
-          timestamp: '2024-01-01T00:01:00Z',
-          id: 'msg-2',
+          timestamp: "2024-01-01T00:01:00Z",
+          id: "msg-2",
           payload: {
-            session: { sessionId: 'session-1' },
-            changes: { fields: ['title'] }
-          }
+            session: { sessionId: "session-1" },
+            changes: { fields: ["title"] },
+          },
         },
         {
           type: MessageType.CACHE_INVALIDATED,
-          timestamp: '2024-01-01T00:02:00Z',
-          id: 'msg-3',
+          timestamp: "2024-01-01T00:02:00Z",
+          id: "msg-3",
           payload: {
-            scope: 'all',
-            reason: 'System restart'
-          }
+            scope: "all",
+            reason: "System restart",
+          },
         },
         {
           type: MessageType.SESSION_DELETED,
-          timestamp: '2024-01-01T00:03:00Z',
-          id: 'msg-4',
+          timestamp: "2024-01-01T00:03:00Z",
+          id: "msg-4",
           payload: {
-            sessionId: 'session-1',
-            deletedAt: '2024-01-01T00:03:00Z'
-          }
-        }
+            sessionId: "session-1",
+            deletedAt: "2024-01-01T00:03:00Z",
+          },
+        },
       ];
 
       // Process messages
@@ -231,8 +251,9 @@ describe('WebSocket Message Protocol Integration', () => {
       expect(cacheInvalidatedHandler).toHaveBeenCalledTimes(1);
     });
 
-    it('should use type guards correctly in message routing', async () => {
-      const handlerResults: { type: MessageType; isCorrectType: boolean }[] = [];
+    it("should use type guards correctly in message routing", async () => {
+      const handlerResults: { type: MessageType; isCorrectType: boolean }[] =
+        [];
 
       const universalHandler = (message: WebSocketMessage) => {
         if (isSessionCreatedMessage(message)) {
@@ -244,7 +265,10 @@ describe('WebSocket Message Protocol Integration', () => {
         } else if (isCacheInvalidatedMessage(message)) {
           handlerResults.push({ type: message.type, isCorrectType: true });
         } else {
-          handlerResults.push({ type: (message as any).type, isCorrectType: false });
+          handlerResults.push({
+            type: (message as any).type,
+            isCorrectType: false,
+          });
         }
       };
 
@@ -257,19 +281,19 @@ describe('WebSocket Message Protocol Integration', () => {
       const messages: WebSocketMessage[] = [
         {
           type: MessageType.SESSION_CREATED,
-          timestamp: '2024-01-01T00:00:00Z',
-          id: 'msg-1',
-          payload: { session: { sessionId: 'session-1' } }
+          timestamp: "2024-01-01T00:00:00Z",
+          id: "msg-1",
+          payload: { session: { sessionId: "session-1" } },
         },
         {
           type: MessageType.SESSION_UPDATED,
-          timestamp: '2024-01-01T00:01:00Z',
-          id: 'msg-2',
+          timestamp: "2024-01-01T00:01:00Z",
+          id: "msg-2",
           payload: {
-            session: { sessionId: 'session-1' },
-            changes: { fields: ['title'] }
-          }
-        }
+            session: { sessionId: "session-1" },
+            changes: { fields: ["title"] },
+          },
+        },
       ];
 
       for (const message of messages) {
@@ -277,36 +301,40 @@ describe('WebSocket Message Protocol Integration', () => {
       }
 
       expect(handlerResults).toHaveLength(2);
-      expect(handlerResults.every(result => result.isCorrectType)).toBe(true);
+      expect(handlerResults.every((result) => result.isCorrectType)).toBe(true);
     });
   });
 
-  describe('Error Handling in Message Flow', () => {
-    it('should handle malformed JSON gracefully', () => {
+  describe("Error Handling in Message Flow", () => {
+    it("should handle malformed JSON gracefully", () => {
       const malformedJson = '{ "type": "SESSION_CREATED", "invalid": }';
-      
+
       expect(() => {
         deserializeMessage(malformedJson);
-      }).toThrow('Failed to deserialize message');
+      }).toThrow("Failed to deserialize message");
     });
 
-    it('should handle invalid message structure gracefully', () => {
+    it("should handle invalid message structure gracefully", () => {
       const invalidMessage = {
-        wrongField: 'value',
-        anotherWrong: 123
+        wrongField: "value",
+        anotherWrong: 123,
       };
 
       const serialized = JSON.stringify(invalidMessage);
-      
+
       expect(() => {
         deserializeMessage(serialized);
-      }).toThrow('Invalid message format');
+      }).toThrow("Invalid message format");
     });
 
-    it('should continue processing other messages when one handler fails', async () => {
-      const errorHandler = vi.fn().mockRejectedValue(new Error('Handler error'));
+    it("should continue processing other messages when one handler fails", async () => {
+      const errorHandler = vi
+        .fn()
+        .mockRejectedValue(new Error("Handler error"));
       const successHandler = vi.fn();
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const newRegistry = new MessageHandlerRegistry();
       newRegistry.register(MessageType.SESSION_CREATED, errorHandler);
@@ -314,9 +342,9 @@ describe('WebSocket Message Protocol Integration', () => {
 
       const message: SessionCreatedMessage = {
         type: MessageType.SESSION_CREATED,
-        timestamp: '2024-01-01T00:00:00Z',
-        id: 'msg-1',
-        payload: { session: { sessionId: 'session-1' } }
+        timestamp: "2024-01-01T00:00:00Z",
+        id: "msg-1",
+        payload: { session: { sessionId: "session-1" } },
       };
 
       await newRegistry.processMessage(message);
@@ -329,8 +357,8 @@ describe('WebSocket Message Protocol Integration', () => {
     });
   });
 
-  describe('Performance and Scalability', () => {
-    it('should handle large message payloads', async () => {
+  describe("Performance and Scalability", () => {
+    it("should handle large message payloads", async () => {
       const largeMetadata = {};
       for (let i = 0; i < 1000; i++) {
         (largeMetadata as any)[`field_${i}`] = `value_${i}`.repeat(100);
@@ -338,14 +366,14 @@ describe('WebSocket Message Protocol Integration', () => {
 
       const message: SessionCreatedMessage = {
         type: MessageType.SESSION_CREATED,
-        timestamp: '2024-01-01T00:00:00Z',
-        id: 'msg-1',
+        timestamp: "2024-01-01T00:00:00Z",
+        id: "msg-1",
         payload: {
           session: {
-            sessionId: 'session-1',
-            metadata: largeMetadata
-          }
-        }
+            sessionId: "session-1",
+            metadata: largeMetadata,
+          },
+        },
       };
 
       const startTime = performance.now();
@@ -358,41 +386,43 @@ describe('WebSocket Message Protocol Integration', () => {
       expect(endTime - startTime).toBeLessThan(100); // Should process within 100ms
     });
 
-    it('should handle many concurrent message handlers', async () => {
+    it("should handle many concurrent message handlers", async () => {
       const handlerCount = 100;
       const handlers = Array.from({ length: handlerCount }, () => vi.fn());
 
       const newRegistry = new MessageHandlerRegistry();
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         newRegistry.register(MessageType.SESSION_CREATED, handler);
       });
 
       const message: SessionCreatedMessage = {
         type: MessageType.SESSION_CREATED,
-        timestamp: '2024-01-01T00:00:00Z',
-        id: 'msg-1',
-        payload: { session: { sessionId: 'session-1' } }
+        timestamp: "2024-01-01T00:00:00Z",
+        id: "msg-1",
+        payload: { session: { sessionId: "session-1" } },
       };
 
       const startTime = performance.now();
       await newRegistry.processMessage(message);
       const endTime = performance.now();
 
-      expect(handlers.every(handler => handler.mock.calls.length === 1)).toBe(true);
+      expect(handlers.every((handler) => handler.mock.calls.length === 1)).toBe(
+        true,
+      );
       expect(endTime - startTime).toBeLessThan(50); // Should handle 100 handlers quickly
     });
   });
 
-  describe('Protocol Backward Compatibility', () => {
-    it('should handle legacy message format alongside new protocol', async () => {
+  describe("Protocol Backward Compatibility", () => {
+    it("should handle legacy message format alongside new protocol", async () => {
       const legacyHandlers = {
         session_created: vi.fn(),
-        session_updated: vi.fn()
+        session_updated: vi.fn(),
       };
 
       // Simulate a system that handles both legacy and new formats
       const hybridRegistry = new MessageHandlerRegistry();
-      
+
       // Register handlers for new format
       hybridRegistry.register(MessageType.SESSION_CREATED, (message) => {
         legacyHandlers.session_created(message);
@@ -405,14 +435,14 @@ describe('WebSocket Message Protocol Integration', () => {
       // New format message
       const newMessage: SessionCreatedMessage = {
         type: MessageType.SESSION_CREATED,
-        timestamp: '2024-01-01T00:00:00Z',
-        id: 'msg-new',
+        timestamp: "2024-01-01T00:00:00Z",
+        id: "msg-new",
         payload: {
           session: {
-            sessionId: 'new-session-123',
-            title: 'New Format Session'
-          }
-        }
+            sessionId: "new-session-123",
+            title: "New Format Session",
+          },
+        },
       };
 
       // Process new format message

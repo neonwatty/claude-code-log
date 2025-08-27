@@ -31,19 +31,19 @@ shared/
 ### Import Specific Interfaces
 
 ```typescript
-import { ISession, ITranscriptEntry, ITodoItem } from '@shared';
+import { ISession, ITranscriptEntry, ITodoItem } from "@shared";
 ```
 
 ### Import Types and Constants
 
 ```typescript
-import { MessageRole, TODO_STATUSES, API_ENDPOINTS } from '@shared';
+import { MessageRole, TODO_STATUSES, API_ENDPOINTS } from "@shared";
 ```
 
 ### Import Everything
 
 ```typescript
-import * as Shared from '@shared';
+import * as Shared from "@shared";
 ```
 
 ## Key Interfaces

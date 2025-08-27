@@ -18,10 +18,7 @@
     "emitDeclarationOnly": false,
     "sourceMap": true
   },
-  "include": [
-    "src/**/*.ts",
-    "types.ts"
-  ],
+  "include": ["src/**/*.ts", "types.ts"],
   "exclude": [
     "node_modules",
     "dist",

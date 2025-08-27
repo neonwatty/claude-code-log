@@ -14,11 +14,11 @@ class MockMessageHandlerRegistry {
 
   processMessage(message) {
     const handlers = this.handlers.get(message.type) || [];
-    handlers.forEach(handler => {
+    handlers.forEach((handler) => {
       try {
         handler(message);
       } catch (error) {
-        console.error('Handler error:', error);
+        console.error("Handler error:", error);
       }
     });
   }
@@ -33,10 +33,14 @@ const serializeMessage = (message) => JSON.stringify(message);
 const deserializeMessage = (data) => JSON.parse(data);
 
 // Mock type guard functions
-const isSessionCreatedMessage = (message) => message?.type === 'SESSION_CREATED';
-const isSessionUpdatedMessage = (message) => message?.type === 'SESSION_UPDATED';
-const isSessionDeletedMessage = (message) => message?.type === 'SESSION_DELETED';
-const isCacheInvalidatedMessage = (message) => message?.type === 'CACHE_INVALIDATED';
+const isSessionCreatedMessage = (message) =>
+  message?.type === "SESSION_CREATED";
+const isSessionUpdatedMessage = (message) =>
+  message?.type === "SESSION_UPDATED";
+const isSessionDeletedMessage = (message) =>
+  message?.type === "SESSION_DELETED";
+const isCacheInvalidatedMessage = (message) =>
+  message?.type === "CACHE_INVALIDATED";
 
 module.exports = {
   MessageHandlerRegistry: MockMessageHandlerRegistry,
@@ -45,5 +49,5 @@ module.exports = {
   isSessionCreatedMessage,
   isSessionUpdatedMessage,
   isSessionDeletedMessage,
-  isCacheInvalidatedMessage
+  isCacheInvalidatedMessage,
 };

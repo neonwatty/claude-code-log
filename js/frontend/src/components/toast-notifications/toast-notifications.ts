@@ -3,21 +3,21 @@
  * Displays temporary notifications for connection state changes and other events
  */
 
-import { html, css, CSSResult } from 'lit';
-import { state } from 'lit/decorators.js';
-import { BaseComponent } from '../base/base-component.js';
-import { 
+import { html, css, CSSResult } from "lit";
+import { state } from "lit/decorators.js";
+import { BaseComponent } from "../base/base-component.js";
+import {
   ConnectionState,
   getConnectionStateDisplay,
-  getStateChangeAnnouncement
-} from '../../utils/websocket/connection-state.js';
-import type { ConnectionStateEvent } from '../../utils/websocket/connection-state.js';
+  getStateChangeAnnouncement,
+} from "../../utils/websocket/connection-state.js";
+import type { ConnectionStateEvent } from "../../utils/websocket/connection-state.js";
 
 export interface Toast {
   id: string;
   title: string;
   message: string;
-  type: 'success' | 'warning' | 'error' | 'info';
+  type: "success" | "warning" | "error" | "info";
   duration?: number;
   persistent?: boolean;
   actions?: ToastAction[];
@@ -179,10 +179,18 @@ export class ToastNotificationsComponent extends BaseComponent {
       }
 
       /* Icons for different toast types */
-      .toast.success .toast-icon { color: var(--color-success); }
-      .toast.warning .toast-icon { color: var(--color-warning); }
-      .toast.error .toast-icon { color: var(--color-error); }
-      .toast.info .toast-icon { color: var(--color-info, var(--color-primary)); }
+      .toast.success .toast-icon {
+        color: var(--color-success);
+      }
+      .toast.warning .toast-icon {
+        color: var(--color-warning);
+      }
+      .toast.error .toast-icon {
+        color: var(--color-error);
+      }
+      .toast.info .toast-icon {
+        color: var(--color-info, var(--color-primary));
+      }
 
       /* Animations */
       @keyframes slideIn {
@@ -243,7 +251,7 @@ export class ToastNotificationsComponent extends BaseComponent {
           font-size: 0.8em;
         }
       }
-    `
+    `,
   ];
 
   override connectedCallback() {
@@ -257,10 +265,10 @@ export class ToastNotificationsComponent extends BaseComponent {
   }
 
   private createAriaAnnouncer() {
-    this.ariaAnnouncer = document.createElement('div');
-    this.ariaAnnouncer.className = 'sr-announcer';
-    this.ariaAnnouncer.setAttribute('aria-live', 'polite');
-    this.ariaAnnouncer.setAttribute('aria-atomic', 'true');
+    this.ariaAnnouncer = document.createElement("div");
+    this.ariaAnnouncer.className = "sr-announcer";
+    this.ariaAnnouncer.setAttribute("aria-live", "polite");
+    this.ariaAnnouncer.setAttribute("aria-atomic", "true");
     document.body.appendChild(this.ariaAnnouncer);
   }
 
@@ -274,13 +282,13 @@ export class ToastNotificationsComponent extends BaseComponent {
   /**
    * Show a toast notification
    */
-  public showToast(toast: Omit<Toast, 'id'>): string {
+  public showToast(toast: Omit<Toast, "id">): string {
     const id = `toast-${++this.toastCounter}`;
     const newToast: Toast = {
       id,
       duration: 5000, // Default 5 seconds
       persistent: false,
-      ...toast
+      ...toast,
     };
 
     this.toasts = [...this.toasts, newToast];
@@ -300,11 +308,13 @@ export class ToastNotificationsComponent extends BaseComponent {
    * Remove a toast notification
    */
   public removeToast(id: string) {
-    const toastElement = this.shadowRoot?.querySelector(`[data-toast-id="${id}"]`) as HTMLElement;
+    const toastElement = this.shadowRoot?.querySelector(
+      `[data-toast-id="${id}"]`,
+    ) as HTMLElement;
     if (toastElement) {
-      toastElement.classList.add('removing');
+      toastElement.classList.add("removing");
       setTimeout(() => {
-        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.toasts = this.toasts.filter((t) => t.id !== id);
       }, 300); // Match animation duration
     }
   }
@@ -313,7 +323,7 @@ export class ToastNotificationsComponent extends BaseComponent {
    * Clear all toast notifications
    */
   public clearAllToasts() {
-    this.toasts.forEach(toast => this.removeToast(toast.id));
+    this.toasts.forEach((toast) => this.removeToast(toast.id));
   }
 
   /**
@@ -322,33 +332,36 @@ export class ToastNotificationsComponent extends BaseComponent {
   public showConnectionStateToast(event: ConnectionStateEvent) {
     const stateDisplay = getConnectionStateDisplay(event.currentState);
     const announcement = getStateChangeAnnouncement(event);
-    
-    let type: Toast['type'];
+
+    let type: Toast["type"];
     switch (event.currentState) {
       case ConnectionState.CONNECTED:
-        type = 'success';
+        type = "success";
         break;
       case ConnectionState.CONNECTING:
       case ConnectionState.RECONNECTING:
-        type = 'info';
+        type = "info";
         break;
       case ConnectionState.ERROR:
-        type = 'error';
+        type = "error";
         break;
       default:
-        type = 'warning';
+        type = "warning";
     }
 
     const actions: ToastAction[] = [];
-    
+
     // Add retry action for error states
-    if (event.currentState === ConnectionState.ERROR || event.currentState === ConnectionState.DISCONNECTED) {
+    if (
+      event.currentState === ConnectionState.ERROR ||
+      event.currentState === ConnectionState.DISCONNECTED
+    ) {
       actions.push({
-        label: 'Retry',
+        label: "Retry",
         action: () => {
-          this.emitEvent('connection-retry-requested');
+          this.emitEvent("connection-retry-requested");
         },
-        primary: true
+        primary: true,
       });
     }
 
@@ -356,9 +369,9 @@ export class ToastNotificationsComponent extends BaseComponent {
       title: `Connection ${stateDisplay.label}`,
       message: event.reason || announcement,
       type,
-      duration: type === 'error' ? 0 : 4000, // Error toasts persist
-      persistent: type === 'error',
-      actions: actions.length > 0 ? actions : undefined
+      duration: type === "error" ? 0 : 4000, // Error toasts persist
+      persistent: type === "error",
+      actions: actions.length > 0 ? actions : undefined,
     });
   }
 
@@ -368,13 +381,18 @@ export class ToastNotificationsComponent extends BaseComponent {
     }
   }
 
-  private getToastIcon(type: Toast['type']): string {
+  private getToastIcon(type: Toast["type"]): string {
     switch (type) {
-      case 'success': return '✅';
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      case 'info': return 'ℹ️';
-      default: return 'ℹ️';
+      case "success":
+        return "✅";
+      case "warning":
+        return "⚠️";
+      case "error":
+        return "❌";
+      case "info":
+        return "ℹ️";
+      default:
+        return "ℹ️";
     }
   }
 
@@ -385,60 +403,70 @@ export class ToastNotificationsComponent extends BaseComponent {
 
   override render() {
     return html`
-      ${this.toasts.map(toast => html`
-        <div 
-          class="toast ${toast.type}" 
-          data-toast-id="${toast.id}"
-          role="alert"
-          aria-labelledby="toast-title-${toast.id}"
-          aria-describedby="toast-message-${toast.id}"
-        >
-          <div class="toast-header">
-            <span class="toast-icon" role="img" aria-hidden="true">
-              ${this.getToastIcon(toast.type)}
-            </span>
-            <div class="toast-content">
-              <h3 class="toast-title" id="toast-title-${toast.id}">
-                ${toast.title}
-              </h3>
-              <p class="toast-message" id="toast-message-${toast.id}">
-                ${toast.message}
-              </p>
+      ${this.toasts.map(
+        (toast) => html`
+          <div
+            class="toast ${toast.type}"
+            data-toast-id="${toast.id}"
+            role="alert"
+            aria-labelledby="toast-title-${toast.id}"
+            aria-describedby="toast-message-${toast.id}"
+          >
+            <div class="toast-header">
+              <span class="toast-icon" role="img" aria-hidden="true">
+                ${this.getToastIcon(toast.type)}
+              </span>
+              <div class="toast-content">
+                <h3 class="toast-title" id="toast-title-${toast.id}">
+                  ${toast.title}
+                </h3>
+                <p class="toast-message" id="toast-message-${toast.id}">
+                  ${toast.message}
+                </p>
+              </div>
+              <button
+                class="toast-close"
+                @click=${() => this.removeToast(toast.id)}
+                aria-label="Close notification"
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
-            <button 
-              class="toast-close"
-              @click=${() => this.removeToast(toast.id)}
-              aria-label="Close notification"
-              title="Close"
-            >
-              ✕
-            </button>
+
+            ${toast.actions && toast.actions.length > 0
+              ? html`
+                  <div class="toast-actions">
+                    ${toast.actions.map(
+                      (action) => html`
+                        <button
+                          class="toast-action ${action.primary
+                            ? "primary"
+                            : ""}"
+                          @click=${() =>
+                            this.handleToastAction(action, toast.id)}
+                        >
+                          ${action.label}
+                        </button>
+                      `,
+                    )}
+                  </div>
+                `
+              : ""}
+            ${!toast.persistent && toast.duration
+              ? html`
+                  <div
+                    class="toast-progress"
+                    style="animation-duration: ${toast.duration}ms; width: 0%"
+                  ></div>
+                `
+              : ""}
           </div>
-          
-          ${toast.actions && toast.actions.length > 0 ? html`
-            <div class="toast-actions">
-              ${toast.actions.map(action => html`
-                <button 
-                  class="toast-action ${action.primary ? 'primary' : ''}"
-                  @click=${() => this.handleToastAction(action, toast.id)}
-                >
-                  ${action.label}
-                </button>
-              `)}
-            </div>
-          ` : ''}
-          
-          ${!toast.persistent && toast.duration ? html`
-            <div 
-              class="toast-progress"
-              style="animation-duration: ${toast.duration}ms; width: 0%"
-            ></div>
-          ` : ''}
-        </div>
-      `)}
+        `,
+      )}
     `;
   }
 }
 
 // Register the custom element
-customElements.define('toast-notifications', ToastNotificationsComponent);
+customElements.define("toast-notifications", ToastNotificationsComponent);

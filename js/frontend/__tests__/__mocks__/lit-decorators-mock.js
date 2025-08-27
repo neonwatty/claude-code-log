@@ -49,5 +49,5 @@ module.exports = {
   property,
   state,
   query,
-  queryAll
+  queryAll,
 };

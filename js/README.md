@@ -1,80 +1,160 @@
 # Claude Code Log - JavaScript/TypeScript Implementation
 
-TypeScript implementation of Claude Code Log with Express.js backend and Lit frontend.
+A comprehensive TypeScript implementation of Claude Code Log with Express.js backend and Lit frontend for analyzing Claude conversation transcripts.
 
-## Project Structure
-
-```
-js/
-├── backend/                # Express.js API server
-├── frontend/               # Lit web components frontend  
-├── shared/                 # Shared TypeScript interfaces
-├── node_modules/           # Dependencies
-├── package.json            # Workspace configuration
-├── tsconfig.base.json      # Base TypeScript config
-├── vite.config.ts          # Vite configuration
-└── index.html              # Development entry point
-```
-
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 # Install dependencies
 npm install
 
-# Start development servers
+# Start development servers (recommended)
 npm run dev                 # Both frontend and backend
-npm run dev:frontend        # Frontend only (Vite)
-npm run dev:backend         # Backend only (Express)
 
-# Build for production
-npm run build               # Build both
-npm run build:frontend      # Build frontend
-npm run build:backend       # Build backend
+# Or start individually
+npm run dev:frontend        # Frontend only (Vite at :5173)
+npm run dev:backend         # Backend only (Express at :3001)
 ```
 
-## Features
+**Access the application**: http://localhost:5173
 
-### Backend (Express.js)
-- TypeScript-first API server
-- Security middleware (Helmet, CORS, compression)
-- Environment-based configuration
-- Error handling and logging
-- Hot reload development
+## 📁 Project Structure
 
-### Frontend (Lit)
-- Modern web components with Lit
-- TypeScript for type safety
-- Vite for fast development
-- HMR for component updates
-- Shared type system
+```
+js/
+├── backend/                # Express.js API server
+│   ├── src/               # TypeScript source code
+│   │   ├── routes/        # API endpoints
+│   │   ├── services/      # Business logic
+│   │   ├── middleware/    # Express middleware
+│   │   └── websocket/     # WebSocket implementation
+│   └── dist/              # Built JavaScript
+├── frontend/               # Lit web components frontend
+│   ├── src/               # TypeScript source code
+│   │   ├── components/    # Lit web components
+│   │   ├── services/      # Frontend services
+│   │   ├── styles/        # CSS modules
+│   │   └── utils/         # Utility functions
+│   └── dist/              # Built static files
+├── shared/                 # Shared TypeScript interfaces
+│   └── src/               # Common types and schemas
+├── docs/                   # Documentation (see below)
+└── package.json            # Workspace configuration
+```
 
-### Shared Module
-- TypeScript interfaces matching Python models
-- Session and transcript data structures
-- Token usage tracking types
-- API response formats
-- Constants and enums
+## 📚 Documentation
 
-## Development Workflow
+Comprehensive documentation is available in the [`docs/`](./docs/) directory:
+
+- **[Getting Started Guide](./docs/getting-started/)** - Setup and basic usage
+- **[API Documentation](./docs/api/)** - Backend API reference
+- **[Component Library](./docs/components/)** - Frontend components
+- **[Deployment Guide](./docs/deployment/)** - Production deployment
+- **[Examples](./docs/examples/)** - Usage patterns and code samples
+
+## 🛠️ Development Commands
+
+### Server Management
+```bash
+npm run dev                 # Start both frontend and backend
+npm run dev:frontend        # Frontend only (Vite dev server)
+npm run dev:backend         # Backend only (Express server)
+```
+
+### Building
+```bash
+npm run build               # Build both frontend and backend
+npm run build:frontend      # Build frontend static files
+npm run build:backend       # Build backend JavaScript
+```
+
+### Testing & Quality
+```bash
+npm run test                # Run all tests with Vitest
+npm run test:watch          # Run tests in watch mode
+npm run test:coverage       # Generate coverage report
+npm run lint                # ESLint check
+npm run lint:fix            # Auto-fix ESLint issues
+npm run format              # Prettier format
+npm run typecheck           # TypeScript type checking
+```
+
+## ✨ Features
+
+### 🔧 Backend (Express.js)
+- **TypeScript-first** API server with strict type checking
+- **Security-hardened** with Helmet, CORS, compression, and rate limiting
+- **WebSocket integration** for real-time session updates
+- **Comprehensive caching** with intelligent invalidation
+- **Session management** and Claude transcript parsing
+- **Analytics & export** services for usage insights
+- **Hot reload** development with nodemon
+
+### 🎨 Frontend (Lit Web Components)
+- **Modern web components** built with Lit framework
+- **Reactive properties** and lifecycle management
+- **TypeScript integration** with shared type system
+- **Vite-powered** development with HMR
+- **Component library** with consistent design patterns
+- **WebSocket client** for real-time updates
+- **Accessibility-focused** with ARIA support
+
+### 🔄 Shared Module
+- **Unified type system** matching Python implementation
+- **Anthropic API adapters** for Claude integration
+- **Schema validation** with comprehensive error handling
+- **Export formats** (JSON, CSV, HTML) with type safety
+- **Session data structures** for transcript analysis
+- **Token usage tracking** and analytics types
+
+## 🎯 Getting Started - User Onboarding
+
+### Step 1: Installation & Setup
+```bash
+# Clone and setup
+git clone <repository-url>
+cd claude-code-log/js
+npm install
+```
+
+### Step 2: Environment Configuration
+```bash
+# Copy example environment file
+cp .env.example .env
+
+# Configure your settings
+# PORT=3001
+# NODE_ENV=development
+# FRONTEND_URL=http://localhost:5173
+```
+
+### Step 3: Start Your First Session
+```bash
+# Launch the application
+npm run dev
+
+# Open your browser to: http://localhost:5173
+```
+
+### Step 4: Import Your Data
+1. **Prepare JSONL files**: Export your Claude conversations as JSONL
+2. **Upload sessions**: Use the interface to import transcript files
+3. **Explore analytics**: View token usage, session timelines, and insights
+
+### 🎊 Welcome Tour
+- **Session List**: Browse all your imported Claude conversations
+- **Analytics Dashboard**: View token usage patterns and insights  
+- **Timeline View**: See conversation flow and message progression
+- **Export Tools**: Save analysis data in multiple formats
+- **Real-time Updates**: Watch sessions update live via WebSocket
+
+## 🛠️ Development Workflow
 
 1. **Backend Development**: Edit files in `backend/src/`
-2. **Frontend Development**: Edit files in `frontend/src/`
+2. **Frontend Development**: Edit files in `frontend/src/` 
 3. **Shared Types**: Edit interfaces in `shared/src/`
-4. **Testing**: Use browser dev tools and API testing tools
-
-## Environment Configuration
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-# Server
-PORT=3001
-NODE_ENV=development
-
-# Frontend
-FRONTEND_URL=http://localhost:5173
-```
+4. **Testing**: Run `npm test` for comprehensive test suite
+5. **Quality Checks**: Use `npm run lint` and `npm run typecheck`
 
 ## TypeScript Configuration
 
@@ -86,6 +166,7 @@ FRONTEND_URL=http://localhost:5173
 ## API Integration
 
 The frontend connects to the backend via:
+
 - Vite proxy configuration (`/api` → `http://localhost:3001`)
 - Shared TypeScript interfaces for type safety
 - RESTful API design patterns

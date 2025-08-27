@@ -1,17 +1,16 @@
-import * as fs from 'fs/promises';
-import * as fsSync from 'fs';
-import * as path from 'path';
-import { EventEmitter } from 'events';
-import { 
-  ProjectCache, 
-  CacheStats, 
+import * as fs from "fs/promises";
+import * as path from "path";
+import { EventEmitter } from "events";
+import {
+  ProjectCache,
+  CacheStats,
   CacheValidationResult,
   CACHE_FORMAT_VERSION,
-  CACHE_INDEX_FILENAME 
-} from '../utils/cache';
+  CACHE_INDEX_FILENAME,
+} from "../utils/cache";
 
 export interface CacheDirectoryEvent {
-  type: 'created' | 'updated' | 'deleted' | 'validated';
+  type: "created" | "updated" | "deleted" | "validated";
   projectPath: string;
   timestamp: string;
   metadata?: any;
@@ -29,7 +28,7 @@ export interface CacheDirectoryInfo {
 export class CacheDirectoryService extends EventEmitter {
   private static instance: CacheDirectoryService | null = null;
   private cacheDirectories: Map<string, CacheDirectoryInfo> = new Map();
-  private readonly CACHE_DIR_NAME = '.cache';
+  private readonly CACHE_DIR_NAME = ".cache";
 
   constructor() {
     super();
@@ -45,7 +44,9 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Creates a cache directory structure for a project
    */
-  public async createCacheDirectory(projectPath: string): Promise<CacheDirectoryInfo> {
+  public async createCacheDirectory(
+    projectPath: string,
+  ): Promise<CacheDirectoryInfo> {
     try {
       const absoluteProjectPath = path.resolve(projectPath);
       const cachePath = path.join(absoluteProjectPath, this.CACHE_DIR_NAME);
@@ -55,7 +56,10 @@ export class CacheDirectoryService extends EventEmitter {
       await fs.mkdir(cachePath, { recursive: true });
 
       // Initialize or update index.json
-      const indexData = await this.initializeIndex(absoluteProjectPath, indexPath);
+      const indexData = await this.initializeIndex(
+        absoluteProjectPath,
+        indexPath,
+      );
 
       const cacheInfo: CacheDirectoryInfo = {
         projectPath: absoluteProjectPath,
@@ -63,34 +67,39 @@ export class CacheDirectoryService extends EventEmitter {
         indexPath,
         exists: true,
         isValid: true,
-        lastUpdated: indexData.last_updated
+        lastUpdated: indexData.last_updated,
       };
 
       this.cacheDirectories.set(absoluteProjectPath, cacheInfo);
 
-      this.emit('directoryEvent', {
-        type: 'created',
+      this.emit("directoryEvent", {
+        type: "created",
         projectPath: absoluteProjectPath,
         timestamp: new Date().toISOString(),
-        metadata: { cachePath, indexPath }
+        metadata: { cachePath, indexPath },
       } as CacheDirectoryEvent);
 
       return cacheInfo;
     } catch (error) {
-      throw new Error(`Failed to create cache directory for ${projectPath}: ${error}`);
+      throw new Error(
+        `Failed to create cache directory for ${projectPath}: ${error}`,
+      );
     }
   }
 
   /**
    * Initializes or updates the index.json file for a cache directory
    */
-  private async initializeIndex(projectPath: string, indexPath: string): Promise<ProjectCache> {
+  private async initializeIndex(
+    projectPath: string,
+    indexPath: string,
+  ): Promise<ProjectCache> {
     const now = new Date().toISOString();
 
     // Check if index.json already exists
     let existingIndex: ProjectCache | null = null;
     try {
-      const indexContent = await fs.readFile(indexPath, 'utf-8');
+      const indexContent = await fs.readFile(indexPath, "utf-8");
       existingIndex = JSON.parse(indexContent);
     } catch (error) {
       // Index doesn't exist or is invalid, will create new one
@@ -105,12 +114,13 @@ export class CacheDirectoryService extends EventEmitter {
       total_message_count: existingIndex?.total_message_count || 0,
       total_input_tokens: existingIndex?.total_input_tokens || 0,
       total_output_tokens: existingIndex?.total_output_tokens || 0,
-      total_cache_creation_tokens: existingIndex?.total_cache_creation_tokens || 0,
+      total_cache_creation_tokens:
+        existingIndex?.total_cache_creation_tokens || 0,
       total_cache_read_tokens: existingIndex?.total_cache_read_tokens || 0,
       sessions: existingIndex?.sessions || {},
       working_directories: existingIndex?.working_directories || [projectPath],
       earliest_timestamp: existingIndex?.earliest_timestamp || now,
-      latest_timestamp: existingIndex?.latest_timestamp || now
+      latest_timestamp: existingIndex?.latest_timestamp || now,
     };
 
     // Atomic write operation
@@ -124,11 +134,11 @@ export class CacheDirectoryService extends EventEmitter {
    */
   private async atomicWriteJson(filePath: string, data: any): Promise<void> {
     const tempPath = `${filePath}.tmp`;
-    
+
     try {
       // Write to temporary file first
-      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
-      
+      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
+
       // Atomically move temporary file to final location
       await fs.rename(tempPath, filePath);
     } catch (error) {
@@ -145,7 +155,9 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Discovers and registers existing cache directories
    */
-  public async discoverCacheDirectories(searchPaths: string[]): Promise<CacheDirectoryInfo[]> {
+  public async discoverCacheDirectories(
+    searchPaths: string[],
+  ): Promise<CacheDirectoryInfo[]> {
     const discovered: CacheDirectoryInfo[] = [];
 
     for (const searchPath of searchPaths) {
@@ -153,7 +165,10 @@ export class CacheDirectoryService extends EventEmitter {
         const results = await this.traverseDirectory(searchPath);
         discovered.push(...results);
       } catch (error) {
-        console.warn(`Error discovering cache directories in ${searchPath}:`, error);
+        console.warn(
+          `Error discovering cache directories in ${searchPath}:`,
+          error,
+        );
       }
     }
 
@@ -163,7 +178,11 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Recursively traverses directories to find cache directories
    */
-  private async traverseDirectory(dirPath: string, maxDepth: number = 3, currentDepth: number = 0): Promise<CacheDirectoryInfo[]> {
+  private async traverseDirectory(
+    dirPath: string,
+    maxDepth: number = 3,
+    currentDepth: number = 0,
+  ): Promise<CacheDirectoryInfo[]> {
     if (currentDepth >= maxDepth) {
       return [];
     }
@@ -181,21 +200,25 @@ export class CacheDirectoryService extends EventEmitter {
           if (entry.name === this.CACHE_DIR_NAME) {
             const projectPath = dirPath;
             const indexPath = path.join(fullPath, CACHE_INDEX_FILENAME);
-            
+
             const cacheInfo: CacheDirectoryInfo = {
               projectPath,
               cachePath: fullPath,
               indexPath,
               exists: true,
               isValid: await this.validateCacheDirectory(fullPath),
-              lastUpdated: await this.getLastUpdated(indexPath)
+              lastUpdated: await this.getLastUpdated(indexPath),
             };
 
             this.cacheDirectories.set(projectPath, cacheInfo);
             discovered.push(cacheInfo);
           } else {
             // Recursively search subdirectories
-            const subResults = await this.traverseDirectory(fullPath, maxDepth, currentDepth + 1);
+            const subResults = await this.traverseDirectory(
+              fullPath,
+              maxDepth,
+              currentDepth + 1,
+            );
             discovered.push(...subResults);
           }
         }
@@ -213,13 +236,17 @@ export class CacheDirectoryService extends EventEmitter {
   public async validateCacheDirectory(cachePath: string): Promise<boolean> {
     try {
       const indexPath = path.join(cachePath, CACHE_INDEX_FILENAME);
-      
+
       // Check if index.json exists and is readable
-      const indexContent = await fs.readFile(indexPath, 'utf-8');
+      const indexContent = await fs.readFile(indexPath, "utf-8");
       const indexData = JSON.parse(indexContent);
 
       // Basic validation of index structure
-      return !!(indexData.version && indexData.project_path && indexData.sessions);
+      return !!(
+        indexData.version &&
+        indexData.project_path &&
+        indexData.sessions
+      );
     } catch (error) {
       return false;
     }
@@ -230,7 +257,7 @@ export class CacheDirectoryService extends EventEmitter {
    */
   private async getLastUpdated(indexPath: string): Promise<string | undefined> {
     try {
-      const indexContent = await fs.readFile(indexPath, 'utf-8');
+      const indexContent = await fs.readFile(indexPath, "utf-8");
       const indexData = JSON.parse(indexContent);
       return indexData.last_updated;
     } catch (error) {
@@ -241,7 +268,10 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Updates cache metadata for a project
    */
-  public async updateCacheMetadata(projectPath: string, updates: Partial<ProjectCache>): Promise<void> {
+  public async updateCacheMetadata(
+    projectPath: string,
+    updates: Partial<ProjectCache>,
+  ): Promise<void> {
     const cacheInfo = this.cacheDirectories.get(projectPath);
     if (!cacheInfo) {
       throw new Error(`No cache directory found for project: ${projectPath}`);
@@ -249,14 +279,14 @@ export class CacheDirectoryService extends EventEmitter {
 
     try {
       // Read current index
-      const indexContent = await fs.readFile(cacheInfo.indexPath, 'utf-8');
+      const indexContent = await fs.readFile(cacheInfo.indexPath, "utf-8");
       const currentIndex: ProjectCache = JSON.parse(indexContent);
 
       // Merge updates
       const updatedIndex: ProjectCache = {
         ...currentIndex,
         ...updates,
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
       };
 
       // Atomic write
@@ -265,15 +295,16 @@ export class CacheDirectoryService extends EventEmitter {
       // Update cached info
       cacheInfo.lastUpdated = updatedIndex.last_updated;
 
-      this.emit('directoryEvent', {
-        type: 'updated',
+      this.emit("directoryEvent", {
+        type: "updated",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: updates
+        metadata: updates,
       } as CacheDirectoryEvent);
-
     } catch (error) {
-      throw new Error(`Failed to update cache metadata for ${projectPath}: ${error}`);
+      throw new Error(
+        `Failed to update cache metadata for ${projectPath}: ${error}`,
+      );
     }
   }
 
@@ -287,7 +318,7 @@ export class CacheDirectoryService extends EventEmitter {
     }
 
     try {
-      const indexContent = await fs.readFile(cacheInfo.indexPath, 'utf-8');
+      const indexContent = await fs.readFile(cacheInfo.indexPath, "utf-8");
       const indexData: ProjectCache = JSON.parse(indexContent);
 
       return {
@@ -296,7 +327,7 @@ export class CacheDirectoryService extends EventEmitter {
         total_cached_messages: indexData.total_message_count,
         total_sessions: Object.keys(indexData.sessions).length,
         cache_created: indexData.cache_created,
-        last_updated: indexData.last_updated
+        last_updated: indexData.last_updated,
       };
     } catch (error) {
       return { cache_enabled: false };
@@ -306,19 +337,21 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Validates cache consistency and returns validation results
    */
-  public async validateCacheConsistency(projectPath: string): Promise<CacheValidationResult> {
+  public async validateCacheConsistency(
+    projectPath: string,
+  ): Promise<CacheValidationResult> {
     const cacheInfo = this.cacheDirectories.get(projectPath);
     if (!cacheInfo) {
       return {
         is_valid: false,
-        reason: 'Cache directory not found',
+        reason: "Cache directory not found",
         version_compatible: false,
-        files_to_recache: []
+        files_to_recache: [],
       };
     }
 
     try {
-      const indexContent = await fs.readFile(cacheInfo.indexPath, 'utf-8');
+      const indexContent = await fs.readFile(cacheInfo.indexPath, "utf-8");
       const indexData: ProjectCache = JSON.parse(indexContent);
 
       // Check version compatibility
@@ -326,9 +359,11 @@ export class CacheDirectoryService extends EventEmitter {
 
       // Check if cached files still exist and are up to date
       const filesToRecache: string[] = [];
-      for (const [filename, fileInfo] of Object.entries(indexData.cached_files)) {
+      for (const [filename, fileInfo] of Object.entries(
+        indexData.cached_files,
+      )) {
         const filePath = path.resolve(indexData.project_path, filename);
-        
+
         try {
           const stats = await fs.stat(filePath);
           if (stats.mtime.getTime() !== fileInfo.source_mtime) {
@@ -342,25 +377,29 @@ export class CacheDirectoryService extends EventEmitter {
 
       const isValid = versionCompatible && filesToRecache.length === 0;
 
-      this.emit('directoryEvent', {
-        type: 'validated',
+      this.emit("directoryEvent", {
+        type: "validated",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { isValid, filesToRecache: filesToRecache.length }
+        metadata: { isValid, filesToRecache: filesToRecache.length },
       } as CacheDirectoryEvent);
 
       return {
         is_valid: isValid,
-        reason: !isValid ? (versionCompatible ? 'Files need recaching' : 'Version incompatible') : undefined,
+        reason: !isValid
+          ? versionCompatible
+            ? "Files need recaching"
+            : "Version incompatible"
+          : undefined,
         version_compatible: versionCompatible,
-        files_to_recache: filesToRecache
+        files_to_recache: filesToRecache,
       };
     } catch (error) {
       return {
         is_valid: false,
         reason: `Error validating cache: ${error}`,
         version_compatible: false,
-        files_to_recache: []
+        files_to_recache: [],
       };
     }
   }
@@ -378,15 +417,16 @@ export class CacheDirectoryService extends EventEmitter {
       await fs.rm(cacheInfo.cachePath, { recursive: true, force: true });
       this.cacheDirectories.delete(projectPath);
 
-      this.emit('directoryEvent', {
-        type: 'deleted',
+      this.emit("directoryEvent", {
+        type: "deleted",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { cachePath: cacheInfo.cachePath }
+        metadata: { cachePath: cacheInfo.cachePath },
       } as CacheDirectoryEvent);
-
     } catch (error) {
-      throw new Error(`Failed to remove cache directory for ${projectPath}: ${error}`);
+      throw new Error(
+        `Failed to remove cache directory for ${projectPath}: ${error}`,
+      );
     }
   }
 
@@ -400,7 +440,9 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Gets information about a specific cache directory
    */
-  public getCacheDirectory(projectPath: string): CacheDirectoryInfo | undefined {
+  public getCacheDirectory(
+    projectPath: string,
+  ): CacheDirectoryInfo | undefined {
     return this.cacheDirectories.get(projectPath);
   }
 
@@ -414,12 +456,16 @@ export class CacheDirectoryService extends EventEmitter {
   /**
    * Initializes the service by discovering existing cache directories
    */
-  public async initialize(searchPaths: string[] = [process.cwd()]): Promise<void> {
+  public async initialize(
+    searchPaths: string[] = [process.cwd()],
+  ): Promise<void> {
     try {
       await this.discoverCacheDirectories(searchPaths);
-      console.log(`Cache directory service initialized with ${this.cacheDirectories.size} cache directories`);
+      console.log(
+        `Cache directory service initialized with ${this.cacheDirectories.size} cache directories`,
+      );
     } catch (error) {
-      console.error('Error initializing cache directory service:', error);
+      console.error("Error initializing cache directory service:", error);
     }
   }
 

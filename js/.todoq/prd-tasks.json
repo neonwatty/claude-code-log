@@ -1,0 +1,527 @@
+{
+  "tasks": [
+    {
+      "number": "1.0",
+      "name": "Phase 1: Foundation Infrastructure Setup",
+      "description": "Set up Node.js + TypeScript backend with Express.js, Lit + TypeScript frontend with Vite, and shared interfaces",
+      "parent": null,
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [],
+      "files": [
+        "js/backend/package.json",
+        "js/frontend/package.json",
+        "js/shared/package.json",
+        "js/backend/tsconfig.json",
+        "js/frontend/tsconfig.json"
+      ],
+      "docs_references": [
+        "https://docs.npmjs.com/cli/v10/using-npm/workspaces",
+        "https://www.typescriptlang.org/docs/handbook/project-references.html"
+      ],
+      "testing_strategy": "Project setup validation with successful builds and basic smoke tests",
+      "notes": "Foundation for entire web application - must be solid"
+    },
+    {
+      "number": "1.1",
+      "name": "Backend Express TypeScript Setup",
+      "description": "Configure Express.js with TypeScript, security middleware, CORS, and basic error handling",
+      "parent": "1.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [],
+      "files": [
+        "js/backend/src/app.ts",
+        "js/backend/src/server.ts",
+        "js/backend/src/middleware/",
+        "js/backend/src/routes/index.ts"
+      ],
+      "docs_references": [
+        "https://expressjs.com/en/guide/using-middleware.html",
+        "https://helmetjs.github.io/"
+      ],
+      "testing_strategy": "Jest + Supertest for API endpoint testing with TypeScript support",
+      "notes": "Include Helmet security, CORS configuration, and compression middleware"
+    },
+    {
+      "number": "1.2",
+      "name": "Frontend Lit Web Components Setup",
+      "description": "Set up Lit + TypeScript frontend with Vite build system and component architecture",
+      "parent": "1.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [],
+      "files": [
+        "js/frontend/src/app.ts",
+        "js/frontend/src/components/base/",
+        "js/frontend/vite.config.ts",
+        "js/frontend/index.html"
+      ],
+      "docs_references": [
+        "https://lit.dev/docs/components/overview/",
+        "https://vitejs.dev/config/"
+      ],
+      "testing_strategy": "Vitest with browser mode for Lit component testing, avoiding JSDOM limitations",
+      "notes": "Focus on reusable Web Components with reactive properties and lifecycle management"
+    },
+    {
+      "number": "1.3",
+      "name": "Shared TypeScript Interface Layer",
+      "description": "Create shared TypeScript interfaces and schemas compatible with existing JSONL format",
+      "parent": "1.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": [],
+      "files": [
+        "js/shared/src/schemas/",
+        "js/shared/src/interfaces/",
+        "js/shared/src/types/"
+      ],
+      "docs_references": [
+        "https://www.typescriptlang.org/docs/handbook/interfaces.html"
+      ],
+      "testing_strategy": "Type compatibility tests ensuring backward compatibility with Python models",
+      "notes": "Must maintain full compatibility with existing JSONL format and Python claude-code-log"
+    },
+    {
+      "number": "1.4",
+      "name": "WebSocket Server Implementation",
+      "description": "Implement WebSocket server for real-time communication between frontend and backend",
+      "parent": "1.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["1.1"],
+      "files": [
+        "js/backend/src/websocket/server.ts",
+        "js/backend/src/websocket/connectionManager.ts",
+        "js/backend/src/websocket/messageTypes.ts"
+      ],
+      "docs_references": ["https://github.com/websockets/ws"],
+      "testing_strategy": "WebSocket integration tests with mock clients and connection management validation",
+      "notes": "Foundation for real-time session updates and live synchronization"
+    },
+    {
+      "number": "2.0",
+      "name": "Phase 1: Data Integration and Processing",
+      "description": "Implement TypeScript JSONL parsing, API endpoints, caching, and file system monitoring",
+      "parent": null,
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["1.0"],
+      "files": [
+        "js/backend/src/parsers/",
+        "js/backend/src/services/",
+        "js/backend/src/routes/"
+      ],
+      "docs_references": [
+        "https://nodejs.org/api/fs.html#fswatchfilename-options-listener"
+      ],
+      "testing_strategy": "Comprehensive parser tests with edge cases and performance benchmarks",
+      "notes": "Critical for data accuracy and application performance"
+    },
+    {
+      "number": "2.1",
+      "name": "JSONL Parser TypeScript Implementation",
+      "description": "Convert Python JSONL parsing logic to TypeScript with identical data model output",
+      "parent": "2.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["1.3"],
+      "files": [
+        "js/backend/src/parsers/jsonl-parser.ts",
+        "js/backend/src/parsers/content-parser.ts"
+      ],
+      "docs_references": ["https://nodejs.org/api/stream.html"],
+      "testing_strategy": "Parser tests with representative JSONL files ensuring identical output to Python version",
+      "notes": "Must handle large files efficiently and maintain exact compatibility with Python parser"
+    },
+    {
+      "number": "2.2",
+      "name": "Session Data API Endpoints",
+      "description": "Create RESTful API endpoints for retrieving session data, projects, and metadata",
+      "parent": "2.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["2.1"],
+      "files": [
+        "js/backend/src/routes/sessions.ts",
+        "js/backend/src/routes/projects.ts",
+        "js/backend/src/services/session-context.service.ts"
+      ],
+      "docs_references": ["https://expressjs.com/en/guide/routing.html"],
+      "testing_strategy": "API integration tests with Supertest covering all endpoints and error conditions",
+      "notes": "Include pagination, filtering, and search capabilities"
+    },
+    {
+      "number": "2.3",
+      "name": "Cache System and Performance Optimization",
+      "description": "Implement intelligent caching for session data with invalidation and performance optimization",
+      "parent": "2.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["2.1"],
+      "files": [
+        "js/backend/src/services/cache-*.service.ts",
+        "js/backend/src/utils/cache/"
+      ],
+      "docs_references": ["https://nodejs.org/api/fs.html#class-fswatcher"],
+      "testing_strategy": "Cache performance tests and invalidation logic validation",
+      "notes": "Critical for handling large session datasets efficiently"
+    },
+    {
+      "number": "2.4",
+      "name": "File System Monitoring Integration",
+      "description": "Add real-time file system monitoring with Node.js fs.watch for live session updates",
+      "parent": "2.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["1.4", "2.2"],
+      "files": [
+        "js/backend/src/services/fileMonitor.ts",
+        "js/backend/src/services/file-modification.service.ts"
+      ],
+      "docs_references": [
+        "https://nodejs.org/api/fs.html#fswatchfilename-options-listener"
+      ],
+      "testing_strategy": "File monitoring integration tests with mock file system changes",
+      "notes": "Enable automatic detection of new Claude Code sessions"
+    },
+    {
+      "number": "3.0",
+      "name": "Phase 1: Core Visualization Components",
+      "description": "Build Lit Web Components for session visualization, timeline, filtering, and responsive layout",
+      "parent": null,
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["2.0"],
+      "files": ["js/frontend/src/components/", "js/frontend/src/styles/"],
+      "docs_references": [
+        "https://lit.dev/docs/templates/overview/",
+        "https://lit.dev/docs/tools/testing/"
+      ],
+      "testing_strategy": "Vitest browser mode for component testing with real DOM interactions",
+      "notes": "Must inherit visual styling from original Python version for consistency"
+    },
+    {
+      "number": "3.1",
+      "name": "Session Detail and Message Rendering Components",
+      "description": "Implement Lit Web Components for rich session detail views with syntax highlighting and collapsible content",
+      "parent": "3.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["1.2"],
+      "files": [
+        "js/frontend/src/components/session-detail/",
+        "js/frontend/src/components/message-card/",
+        "js/frontend/src/styles/components/"
+      ],
+      "docs_references": [
+        "https://lit.dev/docs/components/reactive-properties/",
+        "https://prismjs.com/"
+      ],
+      "testing_strategy": "Component tests focusing on rendering accuracy and user interaction",
+      "notes": "Include syntax highlighting, copy functionality, and legacy style inheritance"
+    },
+    {
+      "number": "3.2",
+      "name": "Interactive Timeline Component",
+      "description": "Create zoomable, filterable timeline component with real-time updates via WebSocket",
+      "parent": "3.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["1.2", "1.4"],
+      "files": [
+        "js/frontend/src/components/timeline/",
+        "js/frontend/src/utils/websocket/"
+      ],
+      "docs_references": ["https://lit.dev/docs/components/events/"],
+      "testing_strategy": "Timeline interaction tests with WebSocket message simulation",
+      "notes": "Support chronological visualization with smooth scrolling and zoom controls"
+    },
+    {
+      "number": "3.3",
+      "name": "Filtering and Search Components",
+      "description": "Build filtering and search functionality with reactive properties and saved presets",
+      "parent": "3.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["3.1"],
+      "files": [
+        "js/frontend/src/components/filter-bar/",
+        "js/frontend/src/services/search.service.ts"
+      ],
+      "docs_references": [
+        "https://lit.dev/docs/components/reactive-properties/"
+      ],
+      "testing_strategy": "Filter and search functionality tests with various query types",
+      "notes": "Include full-text search, message type filtering, and date range selection"
+    },
+    {
+      "number": "3.4",
+      "name": "Responsive Layout System",
+      "description": "Implement responsive layout system using Lit's template system with mobile and desktop optimizations",
+      "parent": "3.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["3.1", "3.2"],
+      "files": [
+        "js/frontend/src/styles/shared/",
+        "js/frontend/src/components/base/"
+      ],
+      "docs_references": ["https://lit.dev/docs/templates/conditionals/"],
+      "testing_strategy": "Responsive design tests across different viewport sizes",
+      "notes": "Ensure optimal experience on desktop, tablet, and mobile devices"
+    },
+    {
+      "number": "4.0",
+      "name": "Phase 2: Session Continuation Integration",
+      "description": "Enable session continuation and Claude Code CLI integration with child process management",
+      "parent": null,
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["3.0"],
+      "files": ["js/backend/src/services/claude-integration.service.ts"],
+      "docs_references": ["https://nodejs.org/api/child_process.html"],
+      "testing_strategy": "Integration tests with mock Claude Code CLI processes",
+      "notes": "Core feature enabling seamless session continuation from web interface"
+    },
+    {
+      "number": "4.1",
+      "name": "Claude Code CLI Process Management",
+      "description": "Implement Node.js child process management for Claude Code CLI integration with proper error handling",
+      "parent": "4.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["2.2"],
+      "files": [
+        "js/backend/src/services/claude-integration.service.ts",
+        "js/backend/src/utils/process-manager.ts"
+      ],
+      "docs_references": [
+        "https://nodejs.org/api/child_process.html#child_processspawncommand-args-options"
+      ],
+      "testing_strategy": "Process management tests with mock CLI interactions and error scenarios",
+      "notes": "Handle process lifecycle, stdout/stderr capture, and graceful termination"
+    },
+    {
+      "number": "4.2",
+      "name": "Session Context Preparation and Transfer",
+      "description": "Create mechanisms for preparing and transferring session context to Claude Code CLI",
+      "parent": "4.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["4.1"],
+      "files": [
+        "js/backend/src/services/session-context.service.ts",
+        "js/backend/src/utils/context-transfer.ts"
+      ],
+      "docs_references": ["https://docs.anthropic.com/claude/docs"],
+      "testing_strategy": "Context transfer tests ensuring proper session state reconstruction",
+      "notes": "Ensure seamless continuation with full conversation context"
+    },
+    {
+      "number": "4.3",
+      "name": "Session Branching and New Session Creation",
+      "description": "Build functionality for creating new sessions that branch from specific historical points",
+      "parent": "4.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["4.2"],
+      "files": [
+        "js/backend/src/services/session-branching.service.ts",
+        "js/frontend/src/components/session-continuation/"
+      ],
+      "docs_references": [],
+      "testing_strategy": "Branching functionality tests with various session states",
+      "notes": "Allow users to explore alternative conversation paths from any point"
+    },
+    {
+      "number": "4.4",
+      "name": "Real-time Session Status Updates",
+      "description": "Implement WebSocket-driven live updates for session status and progress during continuation",
+      "parent": "4.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["1.4", "4.1"],
+      "files": [
+        "js/backend/src/websocket/session-events.ts",
+        "js/frontend/src/services/websocket-service.ts"
+      ],
+      "docs_references": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/WebSocket"
+      ],
+      "testing_strategy": "WebSocket integration tests for real-time status updates",
+      "notes": "Provide live feedback during session continuation and CLI interactions"
+    },
+    {
+      "number": "5.0",
+      "name": "Phase 2: Enhanced Features and Capabilities",
+      "description": "Add advanced features including export capabilities, user preferences, analytics, and offline support",
+      "parent": null,
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["4.0"],
+      "files": [],
+      "docs_references": [],
+      "testing_strategy": "Feature-specific tests for export, preferences, and offline functionality",
+      "notes": "Polish features that enhance user experience and productivity"
+    },
+    {
+      "number": "5.1",
+      "name": "Export and Sharing Capabilities",
+      "description": "Add server-side processing for exporting sessions and selected messages in various formats",
+      "parent": "5.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["3.1"],
+      "files": [
+        "js/backend/src/services/export.service.ts",
+        "js/frontend/src/components/export-dialog/"
+      ],
+      "docs_references": ["https://nodejs.org/api/stream.html"],
+      "testing_strategy": "Export functionality tests with different formats and large datasets",
+      "notes": "Support multiple formats: HTML, Markdown, JSON, and PDF"
+    },
+    {
+      "number": "5.2",
+      "name": "User Preferences and Customization",
+      "description": "Implement persistent user preferences including themes, layouts, and saved filter presets",
+      "parent": "5.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["3.3"],
+      "files": [
+        "js/backend/src/services/preferences.service.ts",
+        "js/frontend/src/services/preferences.service.ts"
+      ],
+      "docs_references": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage"
+      ],
+      "testing_strategy": "Preferences persistence tests across browser sessions",
+      "notes": "Enable personalization while maintaining consistent core experience"
+    },
+    {
+      "number": "5.3",
+      "name": "Advanced Analytics and Token Usage Views",
+      "description": "Create analytics views with real-time updates showing token consumption patterns and usage insights",
+      "parent": "5.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["3.2"],
+      "files": [
+        "js/frontend/src/components/analytics/",
+        "js/backend/src/services/analytics.service.ts"
+      ],
+      "docs_references": ["https://d3js.org/getting-started"],
+      "testing_strategy": "Analytics calculation tests and visualization rendering validation",
+      "notes": "Provide insights into Claude Code usage patterns and optimization opportunities"
+    },
+    {
+      "number": "5.4",
+      "name": "Offline Support and Service Worker",
+      "description": "Add service worker for offline viewing of cached sessions and performance optimizations",
+      "parent": "5.0",
+      "status": "pending",
+      "priority": 3,
+      "dependencies": ["2.3"],
+      "files": [
+        "js/frontend/src/sw.js",
+        "js/frontend/src/services/offline.service.ts"
+      ],
+      "docs_references": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API"
+      ],
+      "testing_strategy": "Offline functionality tests with network simulation",
+      "notes": "Enable continued productivity even without network connectivity"
+    },
+    {
+      "number": "6.0",
+      "name": "Phase 2: Testing, Polish and Production Ready",
+      "description": "Comprehensive testing, performance optimization, accessibility, and production deployment preparation",
+      "parent": null,
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["5.0"],
+      "files": ["js/backend/__tests__/", "js/frontend/__tests__/"],
+      "docs_references": [
+        "https://github.com/goldbergyoni/nodejs-testing-best-practices"
+      ],
+      "testing_strategy": "Full test suite with unit, integration, and e2e tests following testing diamond strategy",
+      "notes": "Ensure production readiness with comprehensive testing and optimization"
+    },
+    {
+      "number": "6.1",
+      "name": "Comprehensive Backend Testing Suite",
+      "description": "Implement complete Jest + Supertest testing for TypeScript backend with coverage requirements",
+      "parent": "6.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["4.4"],
+      "files": [
+        "js/backend/__tests__/**/*.test.ts",
+        "js/backend/jest.config.js"
+      ],
+      "docs_references": [
+        "https://jestjs.io/docs/configuration",
+        "https://github.com/visionmedia/supertest"
+      ],
+      "testing_strategy": "Testing diamond strategy with focus on component tests, minimal e2e tests",
+      "notes": "Achieve >90% test coverage with focus on critical business logic"
+    },
+    {
+      "number": "6.2",
+      "name": "Frontend Component Testing with Vitest Browser Mode",
+      "description": "Complete Lit component testing using Vitest browser mode avoiding JSDOM limitations",
+      "parent": "6.0",
+      "status": "pending",
+      "priority": 1,
+      "dependencies": ["3.4"],
+      "files": [
+        "js/frontend/__tests__/**/*.test.ts",
+        "js/frontend/vitest.config.ts"
+      ],
+      "docs_references": [
+        "https://vitest.dev/config/",
+        "https://lit.dev/docs/tools/testing/"
+      ],
+      "testing_strategy": "Real browser testing for Lit components with user interaction simulation",
+      "notes": "Focus on component behavior in actual browser environments"
+    },
+    {
+      "number": "6.3",
+      "name": "Performance Optimization and Accessibility",
+      "description": "Implement performance optimizations, accessibility improvements, and WCAG 2.1 AA compliance",
+      "parent": "6.0",
+      "status": "pending",
+      "priority": 2,
+      "dependencies": ["6.1", "6.2"],
+      "files": [
+        "js/frontend/src/utils/performance/",
+        "js/frontend/src/services/accessibility-service.ts"
+      ],
+      "docs_references": [
+        "https://web.dev/accessibility/",
+        "https://www.w3.org/WAI/WCAG21/quickref/"
+      ],
+      "testing_strategy": "Accessibility testing with automated tools and manual validation",
+      "notes": "Ensure inclusive design with proper ARIA labels and keyboard navigation"
+    },
+    {
+      "number": "6.4",
+      "name": "Documentation and User Onboarding",
+      "description": "Create comprehensive documentation, user guides, and onboarding experience",
+      "parent": "6.0",
+      "status": "pending",
+      "priority": 3,
+      "dependencies": ["6.3"],
+      "files": [
+        "js/README.md",
+        "js/docs/",
+        "js/frontend/src/components/onboarding/"
+      ],
+      "docs_references": [],
+      "testing_strategy": "Documentation accuracy validation and onboarding flow testing",
+      "notes": "Enable smooth user adoption with clear guidance and examples"
+    }
+  ]
+}

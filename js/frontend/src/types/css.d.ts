@@ -1,10 +1,10 @@
 // Type declarations for CSS imports with Vite
-declare module '*.css?inline' {
+declare module "*.css?inline" {
   const content: string;
   export default content;
 }
 
-declare module '*.css' {
+declare module "*.css" {
   const content: string;
   export default content;
 }

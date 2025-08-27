@@ -1,24 +1,43 @@
-import express from 'express';
-import compression from 'compression';
-import * as dotenv from 'dotenv';
-import apiRoutes from './routes/index';
+import express from "express";
+import compression from "compression";
+import * as dotenv from "dotenv";
+import apiRoutes from "./routes/index";
 
 // Enhanced middleware
-import { corsConfig } from './middleware/cors';
-import { 
-  securityHeaders, 
-  apiRateLimit, 
-  apiSecurityHeaders, 
-  sanitizeRequest, 
-  requestSizeLimit 
-} from './middleware/security';
-import { jsonContentTypeValidation } from './middleware/validation';
-import { 
-  globalErrorHandler, 
-  notFoundHandler, 
+import { corsConfig } from "./middleware/cors";
+import {
+  securityHeaders,
+  apiRateLimit,
+  apiSecurityHeaders,
+  sanitizeRequest,
+  requestSizeLimit,
+} from "./middleware/security";
+import { jsonContentTypeValidation } from "./middleware/validation";
+import {
+  globalErrorHandler,
+  notFoundHandler,
   requestLogger,
-  healthCheckHandler
-} from './middleware/errorHandler';
+  healthCheckHandler,
+} from "./middleware/errorHandler";
+import {
+  staticFileCache,
+  etagMiddleware,
+  responseCacheMiddleware,
+  performanceMiddleware,
+  responseOptimization,
+  keepAliveConfig,
+  requestTimeout,
+  compressionConfig,
+} from "./middleware/performance";
+import {
+  ipFilter,
+  enhancedRequestValidation,
+  contentValidation,
+  requestFingerprinting,
+  fingerprintRateLimit,
+  securityAuditLog,
+  productionSecurityCheck,
+} from "./middleware/security-enhanced";
 
 // Load environment variables
 dotenv.config();
@@ -26,7 +45,30 @@ dotenv.config();
 const app = express();
 
 // Trust proxy for rate limiting and security headers
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
+
+// Enhanced security for production
+if (process.env.NODE_ENV === "production") {
+  app.use(productionSecurityCheck);
+  app.use(ipFilter);
+  app.use(requestFingerprinting);
+  app.use(fingerprintRateLimit(200, 900000)); // 200 requests per 15 minutes
+  app.use(securityAuditLog);
+}
+
+// Enhanced request validation (only in production to avoid test conflicts)
+if (process.env.NODE_ENV === "production") {
+  app.use(enhancedRequestValidation);
+  app.use(contentValidation);
+}
+
+// Performance optimizations
+app.use(requestTimeout(30000)); // 30 second timeout
+app.use(keepAliveConfig);
+app.use(responseOptimization);
+app.use(performanceMiddleware);
+app.use(staticFileCache);
+app.use(etagMiddleware);
 
 // Security headers
 app.use(securityHeaders);
@@ -36,36 +78,41 @@ app.use(apiSecurityHeaders);
 app.use(corsConfig);
 
 // Rate limiting
-if (process.env.NODE_ENV !== 'development') {
+if (process.env.NODE_ENV !== "development") {
   app.use(apiRateLimit);
 }
 
 // Request size limiting
 app.use(requestSizeLimit);
 
-// Compression middleware
-app.use(compression());
+// Compression middleware with optimized configuration
+app.use(compression(compressionConfig));
 
 // Content type validation for POST/PUT/PATCH requests
 app.use(jsonContentTypeValidation);
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Request sanitization
 app.use(sanitizeRequest);
 
 // Request logging
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
   app.use(requestLogger);
 }
 
+// Response caching for API routes (cache for 5 minutes in production)
+if (process.env.NODE_ENV === "production") {
+  app.use("/api", responseCacheMiddleware(300000));
+}
+
 // Mount API routes
-app.use('/api', apiRoutes);
+app.use("/api", apiRoutes);
 
 // Health check endpoint
-app.get('/health', healthCheckHandler);
+app.get("/health", healthCheckHandler);
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);

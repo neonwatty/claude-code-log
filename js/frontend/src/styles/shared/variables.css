@@ -6,15 +6,27 @@
   --color-primary: #2196f3;
   --color-primary-hover: #1976d2;
   --color-primary-light: #e3f2fd;
-  
+
   --color-secondary: #9c27b0;
   --color-secondary-hover: #7b1fa2;
   --color-secondary-light: #f3e5f5;
-  
+
   /* Background Colors - Neumorphic Gradient */
-  --color-background: linear-gradient(90deg, #f3d6d2, #f1dcce, #f0e4ca, #eeecc7, #e3ecc3, #d5eac0, #c6e8bd, #b9e6bc, #b6e3c5, #b3e1cf);
+  --color-background: linear-gradient(
+    90deg,
+    #f3d6d2,
+    #f1dcce,
+    #f0e4ca,
+    #eeecc7,
+    #e3ecc3,
+    #d5eac0,
+    #c6e8bd,
+    #b9e6bc,
+    #b6e3c5,
+    #b3e1cf
+  );
   --color-background-solid: #f0e4ca;
-  
+
   /* Surface Colors - Card and Component Backgrounds */
   --color-surface: #ffffff66;
   --color-surface-hover: #ffffff99;
@@ -22,60 +34,60 @@
   --color-surface-disabled: #f8f9fa66;
   --color-surface-header: #e8f4fd66;
   --color-surface-filter: #f8f9fa66;
-  
+
   /* Text Colors */
   --color-text: #333;
   --color-text-muted: #666;
   --color-text-light: #6c757d;
   --color-text-header: #2c3e50;
   --color-text-section: #495057;
-  
+
   /* Border Colors - Neumorphic Styling */
   --color-border-light: #ffffff66;
   --color-border-dark: #00000017;
   --color-border-medium: #dee2e6;
-  
+
   /* Shadow Colors - Neumorphic Effect */
   --color-shadow-light: #eeeeee44;
   --color-shadow-dark: #00000011;
   --color-shadow-hover-light: #eeeeee66;
   --color-shadow-hover-dark: #00000022;
   --color-shadow-floating: rgba(0, 0, 0, 0.2);
-  
+
   /* Message Type Colors - Semantic Color System */
   --color-message-user: #2196f3;
   --color-message-user-bg: #e3f2fd55;
-  
+
   --color-message-assistant: #9c27b0;
   --color-message-assistant-bg: #f3e5f5;
-  
+
   --color-message-system: #ff9800;
   --color-message-system-bg: #fff3e0;
-  
+
   --color-message-system-warning: #ff9800;
   --color-message-system-warning-bg: #fff3e088;
-  
+
   --color-message-system-error: #f44336;
   --color-message-system-error-bg: #ffebee88;
-  
+
   --color-message-system-info: #2196f3;
   --color-message-system-info-bg: #e3f2fd88;
-  
+
   --color-message-tool-use: #e91e63;
   --color-message-tool-use-bg: #fce4ec;
-  
+
   --color-message-tool-result: #4caf50;
   --color-message-tool-result-bg: #e8f5e8;
-  
+
   --color-message-thinking: #9e9e9e;
   --color-message-thinking-bg: #fafafa;
-  
+
   --color-message-image: #ff5722;
   --color-message-image-bg: #fbe9e7;
-  
+
   --color-message-sidechain: #666;
   --color-message-sidechain-bg: #f8f9fa88;
-  
+
   /* Spacing Scale - 8px base unit */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -83,11 +95,16 @@
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-xxl: 32px;
-  
+
   /* Typography Scale */
-  --font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Source Code Pro', 'Ubuntu Mono', 'Cascadia Code', 'Menlo', 'Consolas', monospace;
-  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  
+  --font-family-mono:
+    "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Droid Sans Mono",
+    "Source Code Pro", "Ubuntu Mono", "Cascadia Code", "Menlo", "Consolas",
+    monospace;
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue",
+    Arial, sans-serif;
+
   --font-size-xs: 0.75em;
   --font-size-sm: 0.8em;
   --font-size-base: 0.85em;
@@ -95,28 +112,28 @@
   --font-size-lg: 1em;
   --font-size-xl: 1.2em;
   --font-size-xxl: 1.8em;
-  
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   --line-height-tight: 1.2;
   --line-height-base: 1.4;
   --line-height-relaxed: 1.5;
-  
+
   /* Border Radius Scale */
   --border-radius-xs: 3px;
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 20px;
   --border-radius-xl: 50%;
-  
+
   /* Transitions */
   --transition-fast: 0.2s ease;
   --transition-medium: 0.3s ease;
   --transition-slow: 0.5s ease;
-  
+
   /* Z-Index Scale */
   --z-base: 1;
   --z-sticky: 100;
@@ -124,28 +141,34 @@
   --z-modal: 1000;
   --z-tooltip: 1001;
   --z-floating: 1002;
-  
+
   /* Layout Constraints */
   --layout-max-width: 1200px;
   --layout-container-padding: 10px;
-  
+
   /* Component Dimensions */
   --floating-btn-size: 50px;
   --filter-toolbar-height: auto;
   --session-header-padding: 16px;
   --message-padding: 1em;
-  
+
   /* Backdrop Filter */
   --backdrop-blur: blur(8px);
   --backdrop-blur-strong: blur(8px) saturate(180%);
-  
+
   /* Box Shadows - Neumorphic System */
-  --shadow-neumorphic: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
-  --shadow-neumorphic-hover: -10px -10px 15px var(--color-shadow-hover-light), 10px 10px 15px var(--color-shadow-hover-dark);
+  --shadow-neumorphic:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
+  --shadow-neumorphic-hover:
+    -10px -10px 15px var(--color-shadow-hover-light),
+    10px 10px 15px var(--color-shadow-hover-dark);
   --shadow-floating: 2px 2px 5px var(--color-shadow-floating);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
   /* Interactive States */
   --transform-hover: translateY(-1px);
   --transform-hover-float: translateY(-2px);
@@ -156,24 +179,36 @@
 /* Dark Mode Variables (for future implementation) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: linear-gradient(90deg, #2d1b1b, #2e1d1c, #2f1f1d, #30201e, #31221f, #322420, #332621, #342822, #352a23, #362c24);
+    --color-background: linear-gradient(
+      90deg,
+      #2d1b1b,
+      #2e1d1c,
+      #2f1f1d,
+      #30201e,
+      #31221f,
+      #322420,
+      #332621,
+      #342822,
+      #352a23,
+      #362c24
+    );
     --color-background-solid: #2f1f1d;
-    
+
     --color-surface: #33333366;
     --color-surface-hover: #44444499;
     --color-surface-active: #555555aa;
     --color-surface-disabled: #22222266;
-    
+
     --color-text: #e0e0e0;
     --color-text-muted: #a0a0a0;
     --color-text-light: #888888;
     --color-text-header: #f0f0f0;
     --color-text-section: #d0d0d0;
-    
+
     --color-border-light: #ffffff22;
     --color-border-dark: #00000033;
     --color-border-medium: #444444;
-    
+
     --color-shadow-light: #ffffff11;
     --color-shadow-dark: #00000033;
     --color-shadow-hover-light: #ffffff22;
@@ -187,7 +222,7 @@
     --color-border-light: #ffffff;
     --color-border-dark: #000000;
     --color-border-medium: #666666;
-    
+
     --shadow-neumorphic: 0 2px 4px rgba(0, 0, 0, 0.5);
     --shadow-neumorphic-hover: 0 4px 8px rgba(0, 0, 0, 0.6);
   }
@@ -199,7 +234,7 @@
     --transition-fast: none;
     --transition-medium: none;
     --transition-slow: none;
-    
+
     --transform-hover: none;
     --transform-hover-float: none;
   }

@@ -1,16 +1,15 @@
-import * as fs from 'fs/promises';
-import * as fsSync from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
-import { 
-  ProjectCache, 
-  CacheValidationResult, 
-  CachedFileInfo,
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as crypto from "crypto";
+import { EventEmitter } from "events";
+import {
+  ProjectCache,
+  CacheValidationResult,
+  // CachedFileInfo, // Unused
   SessionCacheData,
   CACHE_FORMAT_VERSION,
-  CACHE_INDEX_FILENAME 
-} from '../utils/cache';
+  CACHE_INDEX_FILENAME,
+} from "../utils/cache";
 
 export interface ValidationOptions {
   enableChecksumValidation?: boolean;
@@ -20,7 +19,12 @@ export interface ValidationOptions {
 }
 
 export interface ValidationEvent {
-  type: 'validation_started' | 'validation_completed' | 'migration_performed' | 'corruption_detected' | 'fallback_triggered';
+  type:
+    | "validation_started"
+    | "validation_completed"
+    | "migration_performed"
+    | "corruption_detected"
+    | "fallback_triggered";
   projectPath: string;
   timestamp: string;
   metadata?: any;
@@ -43,10 +47,15 @@ export interface ChecksumValidationResult {
 
 export class CacheValidationService extends EventEmitter {
   private static instance: CacheValidationService | null = null;
-  private readonly SUPPORTED_VERSIONS = ['1.0.0', '0.9.0', '0.8.0'];
+  private readonly SUPPORTED_VERSIONS = ["1.0.0", "0.9.0", "0.8.0"];
   private readonly REQUIRED_FIELDS = [
-    'version', 'cache_created', 'last_updated', 'project_path',
-    'cached_files', 'sessions', 'total_message_count'
+    "version",
+    "cache_created",
+    "last_updated",
+    "project_path",
+    "cached_files",
+    "sessions",
+    "total_message_count",
   ];
 
   constructor() {
@@ -64,31 +73,41 @@ export class CacheValidationService extends EventEmitter {
    * Validates a cache directory and its index file
    */
   public async validateCache(
-    projectPath: string, 
-    options: ValidationOptions = {}
+    projectPath: string,
+    options: ValidationOptions = {},
   ): Promise<CacheValidationResult> {
     const startTime = Date.now();
-    
-    this.emit('validationEvent', {
-      type: 'validation_started',
+
+    this.emit("validationEvent", {
+      type: "validation_started",
       projectPath,
       timestamp: new Date().toISOString(),
-      metadata: { options }
+      metadata: { options },
     } as ValidationEvent);
 
     try {
-      const cachePath = path.join(projectPath, '.cache');
+      const cachePath = path.join(projectPath, ".cache");
       const indexPath = path.join(cachePath, CACHE_INDEX_FILENAME);
 
       // Check if cache directory exists
-      if (!await this.fileExists(indexPath)) {
-        return this.createValidationResult(false, 'Cache index file not found', false, []);
+      if (!(await this.fileExists(indexPath))) {
+        return this.createValidationResult(
+          false,
+          "Cache index file not found",
+          false,
+          [],
+        );
       }
 
       // Load and parse index file
       const indexData = await this.loadIndexFile(indexPath);
       if (!indexData) {
-        return this.createValidationResult(false, 'Failed to parse index file', false, []);
+        return this.createValidationResult(
+          false,
+          "Failed to parse index file",
+          false,
+          [],
+        );
       }
 
       // Check version compatibility first
@@ -101,72 +120,92 @@ export class CacheValidationService extends EventEmitter {
           migratedData = migrationResult.migratedData;
         } else {
           return this.createValidationResult(
-            false, 
-            `Version ${indexData.version} incompatible and migration failed: ${migrationResult.error}`, 
-            false, 
-            []
+            false,
+            `Version ${indexData.version} incompatible and migration failed: ${migrationResult.error}`,
+            false,
+            [],
           );
         }
       } else if (!versionValidation.isCompatible) {
         return this.createValidationResult(
-          false, 
-          `Version ${indexData.version} incompatible with current version ${CACHE_FORMAT_VERSION}`, 
-          false, 
-          []
+          false,
+          `Version ${indexData.version} incompatible with current version ${CACHE_FORMAT_VERSION}`,
+          false,
+          [],
         );
       }
 
       // Validate basic structure (after potential migration)
       const structureValidation = this.validateStructure(migratedData);
       if (!structureValidation.isValid) {
-        return this.createValidationResult(false, structureValidation.reason, false, []);
+        return this.createValidationResult(
+          false,
+          structureValidation.reason,
+          false,
+          [],
+        );
       }
 
       // Validate file checksums if enabled
       if (options.enableChecksumValidation) {
-        const checksumValidation = await this.validateChecksums(migratedData, projectPath);
+        const checksumValidation = await this.validateChecksums(
+          migratedData,
+          projectPath,
+        );
         if (!checksumValidation.isValid) {
-          this.emit('validationEvent', {
-            type: 'corruption_detected',
+          this.emit("validationEvent", {
+            type: "corruption_detected",
             projectPath,
             timestamp: new Date().toISOString(),
-            metadata: { corruptedFields: checksumValidation.corruptedFields }
+            metadata: { corruptedFields: checksumValidation.corruptedFields },
           } as ValidationEvent);
 
           if (options.strictValidation) {
-            return this.createValidationResult(false, 'Cache corruption detected', true, []);
+            return this.createValidationResult(
+              false,
+              "Cache corruption detected",
+              true,
+              [],
+            );
           }
         }
       }
 
       // Check file modifications
-      const filesToRecache = await this.checkFileModifications(migratedData, projectPath);
+      const filesToRecache = await this.checkFileModifications(
+        migratedData,
+        projectPath,
+      );
 
       const isValid = filesToRecache.length === 0;
-      const result = this.createValidationResult(isValid, undefined, true, filesToRecache);
+      const result = this.createValidationResult(
+        isValid,
+        undefined,
+        true,
+        filesToRecache,
+      );
 
-      this.emit('validationEvent', {
-        type: 'validation_completed',
+      this.emit("validationEvent", {
+        type: "validation_completed",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { 
-          isValid, 
+        metadata: {
+          isValid,
           filesToRecache: filesToRecache.length,
-          durationMs: Date.now() - startTime 
-        }
+          durationMs: Date.now() - startTime,
+        },
       } as ValidationEvent);
 
       return result;
-
     } catch (error) {
       const errorMessage = `Validation error: ${error}`;
-      
+
       if (options.enableVersionMigration) {
-        this.emit('validationEvent', {
-          type: 'fallback_triggered',
+        this.emit("validationEvent", {
+          type: "fallback_triggered",
           projectPath,
           timestamp: new Date().toISOString(),
-          metadata: { error: errorMessage }
+          metadata: { error: errorMessage },
         } as ValidationEvent);
       }
 
@@ -177,9 +216,12 @@ export class CacheValidationService extends EventEmitter {
   /**
    * Validates the basic structure of cache data
    */
-  private validateStructure(cacheData: any): { isValid: boolean; reason?: string } {
-    if (!cacheData || typeof cacheData !== 'object') {
-      return { isValid: false, reason: 'Invalid cache data format' };
+  private validateStructure(cacheData: any): {
+    isValid: boolean;
+    reason?: string;
+  } {
+    if (!cacheData || typeof cacheData !== "object") {
+      return { isValid: false, reason: "Invalid cache data format" };
     }
 
     // Check required fields
@@ -190,24 +232,33 @@ export class CacheValidationService extends EventEmitter {
     }
 
     // Validate data types
-    if (typeof cacheData.version !== 'string') {
-      return { isValid: false, reason: 'Invalid version field type' };
+    if (typeof cacheData.version !== "string") {
+      return { isValid: false, reason: "Invalid version field type" };
     }
 
-    if (typeof cacheData.project_path !== 'string') {
-      return { isValid: false, reason: 'Invalid project_path field type' };
+    if (typeof cacheData.project_path !== "string") {
+      return { isValid: false, reason: "Invalid project_path field type" };
     }
 
-    if (typeof cacheData.cached_files !== 'object' || Array.isArray(cacheData.cached_files)) {
-      return { isValid: false, reason: 'Invalid cached_files field type' };
+    if (
+      typeof cacheData.cached_files !== "object" ||
+      Array.isArray(cacheData.cached_files)
+    ) {
+      return { isValid: false, reason: "Invalid cached_files field type" };
     }
 
-    if (typeof cacheData.sessions !== 'object' || Array.isArray(cacheData.sessions)) {
-      return { isValid: false, reason: 'Invalid sessions field type' };
+    if (
+      typeof cacheData.sessions !== "object" ||
+      Array.isArray(cacheData.sessions)
+    ) {
+      return { isValid: false, reason: "Invalid sessions field type" };
     }
 
-    if (typeof cacheData.total_message_count !== 'number') {
-      return { isValid: false, reason: 'Invalid total_message_count field type' };
+    if (typeof cacheData.total_message_count !== "number") {
+      return {
+        isValid: false,
+        reason: "Invalid total_message_count field type",
+      };
     }
 
     return { isValid: true };
@@ -216,30 +267,36 @@ export class CacheValidationService extends EventEmitter {
   /**
    * Validates version compatibility
    */
-  private validateVersion(version: string): { isCompatible: boolean; needsMigration: boolean } {
+  private validateVersion(version: string): {
+    isCompatible: boolean;
+    needsMigration: boolean;
+  } {
     const isCurrentVersion = version === CACHE_FORMAT_VERSION;
     const isSupported = this.SUPPORTED_VERSIONS.includes(version);
-    
+
     return {
       isCompatible: isCurrentVersion,
-      needsMigration: !isCurrentVersion && isSupported
+      needsMigration: !isCurrentVersion && isSupported,
     };
   }
 
   /**
    * Migrates cache data from older versions to current version
    */
-  private async migrateCache(cacheData: any, indexPath: string): Promise<MigrationResult> {
+  private async migrateCache(
+    cacheData: any,
+    indexPath: string,
+  ): Promise<MigrationResult> {
     const fromVersion = cacheData.version;
-    
+
     try {
       let migratedData: ProjectCache;
 
       switch (fromVersion) {
-        case '0.9.0':
+        case "0.9.0":
           migratedData = this.migrateFrom090(cacheData);
           break;
-        case '0.8.0':
+        case "0.8.0":
           migratedData = this.migrateFrom080(cacheData);
           break;
         default:
@@ -247,33 +304,32 @@ export class CacheValidationService extends EventEmitter {
             success: false,
             fromVersion,
             toVersion: CACHE_FORMAT_VERSION,
-            error: `Unsupported version for migration: ${fromVersion}`
+            error: `Unsupported version for migration: ${fromVersion}`,
           };
       }
 
       // Write migrated data back to file
       await this.atomicWriteJson(indexPath, migratedData);
 
-      this.emit('validationEvent', {
-        type: 'migration_performed',
+      this.emit("validationEvent", {
+        type: "migration_performed",
         projectPath: path.dirname(path.dirname(indexPath)),
         timestamp: new Date().toISOString(),
-        metadata: { fromVersion, toVersion: CACHE_FORMAT_VERSION }
+        metadata: { fromVersion, toVersion: CACHE_FORMAT_VERSION },
       } as ValidationEvent);
 
       return {
         success: true,
         fromVersion,
         toVersion: CACHE_FORMAT_VERSION,
-        migratedData
+        migratedData,
       };
-
     } catch (error) {
       return {
         success: false,
         fromVersion,
         toVersion: CACHE_FORMAT_VERSION,
-        error: `Migration failed: ${error}`
+        error: `Migration failed: ${error}`,
       };
     }
   }
@@ -294,9 +350,12 @@ export class CacheValidationService extends EventEmitter {
       total_cache_creation_tokens: oldData.total_cache_creation_tokens || 0,
       total_cache_read_tokens: oldData.total_cache_read_tokens || 0,
       sessions: oldData.sessions || {},
-      working_directories: oldData.working_directories || [oldData.project_path],
-      earliest_timestamp: oldData.earliest_timestamp || new Date().toISOString(),
-      latest_timestamp: oldData.latest_timestamp || new Date().toISOString()
+      working_directories: oldData.working_directories || [
+        oldData.project_path,
+      ],
+      earliest_timestamp:
+        oldData.earliest_timestamp || new Date().toISOString(),
+      latest_timestamp: oldData.latest_timestamp || new Date().toISOString(),
     };
   }
 
@@ -306,22 +365,26 @@ export class CacheValidationService extends EventEmitter {
   private migrateFrom080(oldData: any): ProjectCache {
     // 0.8.0 might have different field names or missing fields
     const sessions: Record<string, SessionCacheData> = {};
-    
+
     // Convert old session format if it exists
     if (oldData.session_data) {
-      for (const [sessionId, sessionInfo] of Object.entries(oldData.session_data as any)) {
+      for (const [sessionId, sessionInfo] of Object.entries(
+        oldData.session_data as any,
+      )) {
         sessions[sessionId] = {
           session_id: sessionId,
-          summary: (sessionInfo as any).summary || '',
-          first_timestamp: (sessionInfo as any).first_timestamp || new Date().toISOString(),
-          last_timestamp: (sessionInfo as any).last_timestamp || new Date().toISOString(),
+          summary: (sessionInfo as any).summary || "",
+          first_timestamp:
+            (sessionInfo as any).first_timestamp || new Date().toISOString(),
+          last_timestamp:
+            (sessionInfo as any).last_timestamp || new Date().toISOString(),
           message_count: (sessionInfo as any).message_count || 0,
-          first_user_message: (sessionInfo as any).first_user_message || '',
+          first_user_message: (sessionInfo as any).first_user_message || "",
           cwd: (sessionInfo as any).cwd,
           total_input_tokens: (sessionInfo as any).total_input_tokens || 0,
           total_output_tokens: (sessionInfo as any).total_output_tokens || 0,
           total_cache_creation_tokens: 0,
-          total_cache_read_tokens: 0
+          total_cache_read_tokens: 0,
         };
       }
     }
@@ -340,7 +403,7 @@ export class CacheValidationService extends EventEmitter {
       sessions,
       working_directories: [oldData.project_path],
       earliest_timestamp: oldData.earliest || new Date().toISOString(),
-      latest_timestamp: oldData.latest || new Date().toISOString()
+      latest_timestamp: oldData.latest || new Date().toISOString(),
     };
   }
 
@@ -348,25 +411,30 @@ export class CacheValidationService extends EventEmitter {
    * Validates checksums of cached data
    */
   private async validateChecksums(
-    cacheData: ProjectCache, 
-    projectPath: string
+    cacheData: ProjectCache,
+    projectPath: string,
   ): Promise<ChecksumValidationResult> {
     try {
       // Calculate checksum of the cache data structure
-      const dataString = JSON.stringify(cacheData, Object.keys(cacheData).sort());
-      const actualChecksum = crypto.createHash('sha256').update(dataString).digest('hex');
+      const dataString = JSON.stringify(
+        cacheData,
+        Object.keys(cacheData).sort(),
+      );
+      const actualChecksum = crypto
+        .createHash("sha256")
+        .update(dataString)
+        .digest("hex");
 
       // For this implementation, we'll consider the cache valid if we can calculate a checksum
       // In a full implementation, you might store checksums in metadata
       return {
         isValid: true,
-        actualChecksum
+        actualChecksum,
       };
-
     } catch (error) {
       return {
         isValid: false,
-        corruptedFields: ['checksum_calculation_failed']
+        corruptedFields: ["checksum_calculation_failed"],
       };
     }
   }
@@ -375,8 +443,8 @@ export class CacheValidationService extends EventEmitter {
    * Checks if cached files have been modified since caching
    */
   private async checkFileModifications(
-    cacheData: ProjectCache, 
-    projectPath: string
+    cacheData: ProjectCache,
+    projectPath: string,
   ): Promise<string[]> {
     const filesToRecache: string[] = [];
 
@@ -384,7 +452,7 @@ export class CacheValidationService extends EventEmitter {
       try {
         const fullPath = path.resolve(projectPath, filename);
         const stats = await fs.stat(fullPath);
-        
+
         if (stats.mtime.getTime() !== fileInfo.source_mtime) {
           filesToRecache.push(filename);
         }
@@ -402,9 +470,9 @@ export class CacheValidationService extends EventEmitter {
    */
   public async quickValidate(projectPath: string): Promise<boolean> {
     try {
-      const indexPath = path.join(projectPath, '.cache', CACHE_INDEX_FILENAME);
-      
-      if (!await this.fileExists(indexPath)) {
+      const indexPath = path.join(projectPath, ".cache", CACHE_INDEX_FILENAME);
+
+      if (!(await this.fileExists(indexPath))) {
         return false;
       }
 
@@ -416,8 +484,10 @@ export class CacheValidationService extends EventEmitter {
       const structureValidation = this.validateStructure(indexData);
       const versionValidation = this.validateVersion(indexData.version);
 
-      return structureValidation.isValid && (versionValidation.isCompatible || versionValidation.needsMigration);
-
+      return (
+        structureValidation.isValid &&
+        (versionValidation.isCompatible || versionValidation.needsMigration)
+      );
     } catch (error) {
       return false;
     }
@@ -428,20 +498,19 @@ export class CacheValidationService extends EventEmitter {
    */
   public async repairCache(projectPath: string): Promise<boolean> {
     try {
-      const cachePath = path.join(projectPath, '.cache');
-      
+      const cachePath = path.join(projectPath, ".cache");
+
       // Remove corrupted cache
       await fs.rm(cachePath, { recursive: true, force: true });
 
-      this.emit('validationEvent', {
-        type: 'fallback_triggered',
+      this.emit("validationEvent", {
+        type: "fallback_triggered",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { action: 'cache_repair_initiated' }
+        metadata: { action: "cache_repair_initiated" },
       } as ValidationEvent);
 
       return true;
-
     } catch (error) {
       console.error(`Failed to repair cache for ${projectPath}:`, error);
       return false;
@@ -473,11 +542,11 @@ export class CacheValidationService extends EventEmitter {
       indexExists: false,
       structureValid: false,
       fileCount: 0,
-      sessionCount: 0
+      sessionCount: 0,
     };
 
     try {
-      const cachePath = path.join(projectPath, '.cache');
+      const cachePath = path.join(projectPath, ".cache");
       const indexPath = path.join(cachePath, CACHE_INDEX_FILENAME);
 
       details.cacheExists = await this.fileExists(cachePath);
@@ -493,9 +562,11 @@ export class CacheValidationService extends EventEmitter {
           details.sessionCount = Object.keys(indexData.sessions || {}).length;
         }
       }
-
     } catch (error) {
-      console.warn(`Error getting validation details for ${projectPath}:`, error);
+      console.warn(
+        `Error getting validation details for ${projectPath}:`,
+        error,
+      );
     }
 
     return details;
@@ -515,7 +586,7 @@ export class CacheValidationService extends EventEmitter {
 
   private async loadIndexFile(indexPath: string): Promise<ProjectCache | null> {
     try {
-      const content = await fs.readFile(indexPath, 'utf-8');
+      const content = await fs.readFile(indexPath, "utf-8");
       return JSON.parse(content);
     } catch (error) {
       console.warn(`Failed to load index file ${indexPath}:`, error);
@@ -525,9 +596,9 @@ export class CacheValidationService extends EventEmitter {
 
   private async atomicWriteJson(filePath: string, data: any): Promise<void> {
     const tempPath = `${filePath}.tmp`;
-    
+
     try {
-      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
       await fs.rename(tempPath, filePath);
     } catch (error) {
       try {
@@ -540,16 +611,16 @@ export class CacheValidationService extends EventEmitter {
   }
 
   private createValidationResult(
-    isValid: boolean, 
-    reason?: string, 
-    versionCompatible: boolean = true, 
-    filesToRecache: string[] = []
+    isValid: boolean,
+    reason?: string,
+    versionCompatible: boolean = true,
+    filesToRecache: string[] = [],
   ): CacheValidationResult {
     return {
       is_valid: isValid,
       reason,
       version_compatible: versionCompatible,
-      files_to_recache: filesToRecache
+      files_to_recache: filesToRecache,
     };
   }
 

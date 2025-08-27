@@ -1,7 +1,11 @@
-import { html, css, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { BaseComponent } from '../base/base-component.js';
-import type { ZodSession, ZodTranscriptEntry, ZodContentItem } from '../../../../shared/src/schemas/index.js';
+import { html, css, TemplateResult } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { BaseComponent } from "../base/base-component.js";
+import type {
+  ZodSession,
+  ZodTranscriptEntry,
+  ZodContentItem,
+} from "../../../../shared/src/schemas/index.js";
 
 export interface MessageTypeIcons {
   user: string;
@@ -20,24 +24,33 @@ export interface SessionDetailState {
   showTimeline: boolean;
 }
 
-@customElement('session-detail')
+@customElement("session-detail")
 export class SessionDetail extends BaseComponent {
   @property({ type: Object })
   session: ZodSession | null = null;
 
-  @property({ type: Boolean, attribute: 'show-header' })
+  @property({ type: Boolean, attribute: "show-header" })
   showHeader = true;
 
-  @property({ type: Boolean, attribute: 'enable-filtering' })
+  @property({ type: Boolean, attribute: "enable-filtering" })
   enableFiltering = true;
 
-  @property({ type: Boolean, attribute: 'virtual-scrolling' })
+  @property({ type: Boolean, attribute: "virtual-scrolling" })
   virtualScrolling = false;
 
   @state()
   private detailState: SessionDetailState = {
     expandedMessages: new Set(),
-    filteredMessageTypes: new Set(['user', 'assistant', 'system', 'tool_use', 'tool_result', 'thinking', 'image', 'sidechain']),
+    filteredMessageTypes: new Set([
+      "user",
+      "assistant",
+      "system",
+      "tool_use",
+      "tool_result",
+      "thinking",
+      "image",
+      "sidechain",
+    ]),
     showTimeline: false,
   };
 
@@ -45,14 +58,14 @@ export class SessionDetail extends BaseComponent {
   private scrollContainer: HTMLElement | null = null;
 
   private readonly messageTypeIcons: MessageTypeIcons = {
-    user: '🤷',
-    assistant: '🤖',
-    system: '⚙️',
-    tool_use: '🛠️',
-    tool_result: '🧰',
-    thinking: '💭',
-    image: '🖼️',
-    sidechain: '🔗',
+    user: "🤷",
+    assistant: "🤖",
+    system: "⚙️",
+    tool_use: "🛠️",
+    tool_result: "🧰",
+    thinking: "💭",
+    image: "🖼️",
+    sidechain: "🔗",
   };
 
   static override styles = [
@@ -76,7 +89,9 @@ export class SessionDetail extends BaseComponent {
         border-radius: var(--border-radius-md);
         padding: var(--spacing-md);
         margin-bottom: var(--spacing-lg);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border-left: var(--color-border-light) 1px solid;
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
@@ -177,7 +192,9 @@ export class SessionDetail extends BaseComponent {
         border-radius: var(--border-radius-md);
         border-left: var(--color-border-light) 1px solid;
         background-color: var(--color-surface);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
         border-right: var(--color-border-dark) 1px solid;
@@ -296,7 +313,7 @@ export class SessionDetail extends BaseComponent {
       }
 
       .session-divider::after {
-        content: '';
+        content: "";
         position: absolute;
         top: -1px;
         left: 0;
@@ -339,34 +356,36 @@ export class SessionDetail extends BaseComponent {
         .session-metadata {
           grid-template-columns: 1fr;
         }
-        
+
         .filter-toolbar {
           flex-direction: column;
           align-items: stretch;
         }
-        
+
         .message-header {
           flex-direction: column;
           align-items: stretch;
         }
-        
+
         .message-meta {
           align-items: flex-start;
         }
       }
-    `
+    `,
   ];
 
   protected override firstUpdated(): void {
-    this.scrollContainer = this.shadowRoot?.querySelector('.message-container') as HTMLElement;
+    this.scrollContainer = this.shadowRoot?.querySelector(
+      ".message-container",
+    ) as HTMLElement;
   }
 
   private getMessageType(entry: ZodTranscriptEntry): string {
-    if (entry.type === 'summary') return 'summary';
-    if (entry.type === 'system') return 'system';
-    if (entry.type === 'user') return 'user';
-    if (entry.type === 'assistant') return 'assistant';
-    return 'unknown';
+    if (entry.type === "summary") return "summary";
+    if (entry.type === "system") return "system";
+    if (entry.type === "user") return "user";
+    if (entry.type === "assistant") return "assistant";
+    return "unknown";
   }
 
   private getContentType(content: ZodContentItem): string {
@@ -374,14 +393,14 @@ export class SessionDetail extends BaseComponent {
   }
 
   private formatDuration(): string {
-    if (!this.session) return '';
-    
+    if (!this.session) return "";
+
     const start = new Date(this.session.firstTimestamp);
     const end = new Date(this.session.lastTimestamp);
     const diffMs = end.getTime() - start.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
-    
+
     if (diffHours > 0) {
       const remainingMins = diffMins % 60;
       return `${diffHours}h ${remainingMins}m`;
@@ -390,17 +409,30 @@ export class SessionDetail extends BaseComponent {
   }
 
   private formatTokenUsage(): string {
-    if (!this.session) return '';
-    
-    const { input_tokens = 0, output_tokens = 0, cache_creation_input_tokens = 0, cache_read_input_tokens = 0 } = this.session.totalUsage;
+    if (!this.session) return "";
+
+    const {
+      input_tokens = 0,
+      output_tokens = 0,
+      cache_creation_input_tokens = 0,
+      cache_read_input_tokens = 0,
+    } = this.session.totalUsage;
     const parts = [];
-    
-    if (input_tokens > 0) parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
-    if (output_tokens > 0) parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
-    if (cache_creation_input_tokens > 0) parts.push(`Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`);
-    if (cache_read_input_tokens > 0) parts.push(`Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`);
-    
-    return parts.join(' | ');
+
+    if (input_tokens > 0)
+      parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
+    if (output_tokens > 0)
+      parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
+    if (cache_creation_input_tokens > 0)
+      parts.push(
+        `Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`,
+      );
+    if (cache_read_input_tokens > 0)
+      parts.push(
+        `Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`,
+      );
+
+    return parts.join(" | ");
   }
 
   private handleFilterToggle(messageType: string): void {
@@ -410,10 +442,10 @@ export class SessionDetail extends BaseComponent {
     } else {
       newFiltered.add(messageType);
     }
-    
+
     this.detailState = {
       ...this.detailState,
-      filteredMessageTypes: newFiltered
+      filteredMessageTypes: newFiltered,
     };
   }
 
@@ -424,10 +456,10 @@ export class SessionDetail extends BaseComponent {
 
   private renderContentItem(content: ZodContentItem): TemplateResult {
     switch (content.type) {
-      case 'text':
+      case "text":
         return html`<div class="text-content">${content.text}</div>`;
-      
-      case 'tool_use':
+
+      case "tool_use":
         return html`
           <div class="tool-content tool-use">
             <div class="tool-header">🛠️ ${content.name}</div>
@@ -436,33 +468,42 @@ export class SessionDetail extends BaseComponent {
             </div>
           </div>
         `;
-      
-      case 'tool_result':
+
+      case "tool_result":
         return html`
           <div class="tool-content tool-result">
-            <div class="tool-header">🧰 Tool Result ${content.is_error ? '(Error)' : ''}</div>
-            <pre>${typeof content.content === 'string' ? content.content : JSON.stringify(content.content, null, 2)}</pre>
+            <div class="tool-header">
+              🧰 Tool Result ${content.is_error ? "(Error)" : ""}
+            </div>
+            <pre>
+${typeof content.content === "string"
+                ? content.content
+                : JSON.stringify(content.content, null, 2)}</pre
+            >
           </div>
         `;
-      
-      case 'thinking':
+
+      case "thinking":
         return html`
           <div class="thinking-content">
             <div>💭 Thinking</div>
             <div class="thinking-text">${content.thinking}</div>
           </div>
         `;
-      
-      case 'image':
+
+      case "image":
         return html`
           <div class="image-content">
             <div>🖼️ Image (${content.source.media_type})</div>
-            <img src="data:${content.source.media_type};base64,${content.source.data}" 
-                 alt="Content image" 
-                 style="max-width: 100%; height: auto; border-radius: var(--border-radius-sm);" />
+            <img
+              src="data:${content.source.media_type};base64,${content.source
+                .data}"
+              alt="Content image"
+              style="max-width: 100%; height: auto; border-radius: var(--border-radius-sm);"
+            />
           </div>
         `;
-      
+
       default:
         return html`<div class="unknown-content">Unknown content type</div>`;
     }
@@ -471,72 +512,93 @@ export class SessionDetail extends BaseComponent {
   private renderMessage(entry: ZodTranscriptEntry): TemplateResult {
     const messageType = this.getMessageType(entry);
     const isVisible = this.shouldShowMessage(entry);
-    const icon = this.messageTypeIcons[messageType as keyof MessageTypeIcons] || '❓';
-    
-    if (entry.type === 'summary') {
+    const icon =
+      this.messageTypeIcons[messageType as keyof MessageTypeIcons] || "❓";
+
+    if (entry.type === "summary") {
       return html`
-        <div class="message summary ${isVisible ? '' : 'filtered-hidden'}">
+        <div class="message summary ${isVisible ? "" : "filtered-hidden"}">
           <div class="message-header">
             <div class="message-type">📋 Summary</div>
           </div>
-          <div class="message-content session-summary">
-            ${entry.summary}
-          </div>
+          <div class="message-content session-summary">${entry.summary}</div>
         </div>
       `;
     }
 
-    if (entry.type === 'system') {
+    if (entry.type === "system") {
       return html`
-        <div class="message system ${isVisible ? '' : 'filtered-hidden'}">
+        <div class="message system ${isVisible ? "" : "filtered-hidden"}">
           <div class="message-header">
             <div class="message-type">${icon} System</div>
             <div class="message-meta">
-              <span class="timestamp">${this.formatTimestamp(entry.timestamp)}</span>
+              <span class="timestamp"
+                >${this.formatTimestamp(entry.timestamp)}</span
+              >
             </div>
           </div>
-          <div class="message-content">
-            ${entry.content}
-          </div>
+          <div class="message-content">${entry.content}</div>
         </div>
       `;
     }
 
-    if (entry.type === 'user') {
-      const tokenUsage = entry.message.content?.length ? '' : ''; // User messages typically don't have token usage
-      
+    if (entry.type === "user") {
+      const tokenUsage = entry.message.content?.length ? "" : ""; // User messages typically don't have token usage
+
       return html`
-        <div class="message user ${entry.isSidechain ? 'sidechain' : ''} ${isVisible ? '' : 'filtered-hidden'}">
-          ${entry.isSidechain ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>` : ''}
+        <div
+          class="message user ${entry.isSidechain
+            ? "sidechain"
+            : ""} ${isVisible ? "" : "filtered-hidden"}"
+        >
+          ${entry.isSidechain
+            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
+            : ""}
           <div class="message-header">
             <div class="message-type">${icon} User</div>
             <div class="message-meta">
-              <span class="timestamp">${this.formatTimestamp(entry.timestamp)}</span>
+              <span class="timestamp"
+                >${this.formatTimestamp(entry.timestamp)}</span
+              >
             </div>
           </div>
           <div class="message-content">
-            ${entry.message.content?.map(content => this.renderContentItem(content))}
+            ${entry.message.content?.map((content) =>
+              this.renderContentItem(content),
+            )}
           </div>
         </div>
       `;
     }
 
-    if (entry.type === 'assistant') {
+    if (entry.type === "assistant") {
       const usage = entry.message.usage;
-      const tokenUsage = usage ? this.formatAssistantTokenUsage(usage) : '';
-      
+      const tokenUsage = usage ? this.formatAssistantTokenUsage(usage) : "";
+
       return html`
-        <div class="message assistant ${entry.isSidechain ? 'sidechain' : ''} ${isVisible ? '' : 'filtered-hidden'}">
-          ${entry.isSidechain ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>` : ''}
+        <div
+          class="message assistant ${entry.isSidechain
+            ? "sidechain"
+            : ""} ${isVisible ? "" : "filtered-hidden"}"
+        >
+          ${entry.isSidechain
+            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
+            : ""}
           <div class="message-header">
             <div class="message-type">${icon} Assistant</div>
             <div class="message-meta">
-              <span class="timestamp">${this.formatTimestamp(entry.timestamp)}</span>
-              ${tokenUsage ? html`<span class="token-usage">${tokenUsage}</span>` : ''}
+              <span class="timestamp"
+                >${this.formatTimestamp(entry.timestamp)}</span
+              >
+              ${tokenUsage
+                ? html`<span class="token-usage">${tokenUsage}</span>`
+                : ""}
             </div>
           </div>
           <div class="message-content">
-            ${entry.message.content?.map(content => this.renderContentItem(content))}
+            ${entry.message.content?.map((content) =>
+              this.renderContentItem(content),
+            )}
           </div>
         </div>
       `;
@@ -547,39 +609,55 @@ export class SessionDetail extends BaseComponent {
 
   private formatAssistantTokenUsage(usage: any): string {
     const parts = [];
-    if (usage.input_tokens) parts.push(`In: ${this.formatTokenCount(usage.input_tokens)}`);
-    if (usage.output_tokens) parts.push(`Out: ${this.formatTokenCount(usage.output_tokens)}`);
-    if (usage.cache_creation_input_tokens) parts.push(`Cache+: ${this.formatTokenCount(usage.cache_creation_input_tokens)}`);
-    if (usage.cache_read_input_tokens) parts.push(`Cache: ${this.formatTokenCount(usage.cache_read_input_tokens)}`);
-    return parts.join(' | ');
+    if (usage.input_tokens)
+      parts.push(`In: ${this.formatTokenCount(usage.input_tokens)}`);
+    if (usage.output_tokens)
+      parts.push(`Out: ${this.formatTokenCount(usage.output_tokens)}`);
+    if (usage.cache_creation_input_tokens)
+      parts.push(
+        `Cache+: ${this.formatTokenCount(usage.cache_creation_input_tokens)}`,
+      );
+    if (usage.cache_read_input_tokens)
+      parts.push(
+        `Cache: ${this.formatTokenCount(usage.cache_read_input_tokens)}`,
+      );
+    return parts.join(" | ");
   }
 
   private renderFilterToolbar(): TemplateResult {
     if (!this.enableFiltering) return html``;
 
     const messageTypes = [
-      { key: 'user', label: 'User', icon: '🤷' },
-      { key: 'assistant', label: 'Assistant', icon: '🤖' },
-      { key: 'system', label: 'System', icon: '⚙️' },
-      { key: 'tool_use', label: 'Tool Use', icon: '🛠️' },
-      { key: 'tool_result', label: 'Tool Results', icon: '🧰' },
-      { key: 'thinking', label: 'Thinking', icon: '💭' },
-      { key: 'image', label: 'Images', icon: '🖼️' },
-      { key: 'sidechain', label: 'Sub-assistant', icon: '🔗' },
+      { key: "user", label: "User", icon: "🤷" },
+      { key: "assistant", label: "Assistant", icon: "🤖" },
+      { key: "system", label: "System", icon: "⚙️" },
+      { key: "tool_use", label: "Tool Use", icon: "🛠️" },
+      { key: "tool_result", label: "Tool Results", icon: "🧰" },
+      { key: "thinking", label: "Thinking", icon: "💭" },
+      { key: "image", label: "Images", icon: "🖼️" },
+      { key: "sidechain", label: "Sub-assistant", icon: "🔗" },
     ];
 
     return html`
       <div class="filter-toolbar">
-        <span style="font-weight: 600; margin-right: var(--spacing-sm);">Filter:</span>
-        ${messageTypes.map(type => html`
-          <button 
-            class="filter-toggle ${this.detailState.filteredMessageTypes.has(type.key) ? 'active' : ''}"
-            @click=${() => this.handleFilterToggle(type.key)}
-          >
-            <span>${type.icon}</span>
-            <span>${type.label}</span>
-          </button>
-        `)}
+        <span style="font-weight: 600; margin-right: var(--spacing-sm);"
+          >Filter:</span
+        >
+        ${messageTypes.map(
+          (type) => html`
+            <button
+              class="filter-toggle ${this.detailState.filteredMessageTypes.has(
+                type.key,
+              )
+                ? "active"
+                : ""}"
+              @click=${() => this.handleFilterToggle(type.key)}
+            >
+              <span>${type.icon}</span>
+              <span>${type.label}</span>
+            </button>
+          `,
+        )}
       </div>
     `;
   }
@@ -595,8 +673,13 @@ export class SessionDetail extends BaseComponent {
     return html`
       <div class="session-header">
         <div class="session-header-title">
-          <span>Session: ${this.session.summary || this.session.id.slice(0, 8)}</span>
-          <span style="font-size: 0.8em; color: var(--color-text-muted);">${this.session.id}</span>
+          <span
+            >Session:
+            ${this.session.summary || this.session.id.slice(0, 8)}</span
+          >
+          <span style="font-size: 0.8em; color: var(--color-text-muted);"
+            >${this.session.id}</span
+          >
         </div>
         <div class="session-metadata">
           <div class="metadata-item">
@@ -611,12 +694,14 @@ export class SessionDetail extends BaseComponent {
             <span class="metadata-label">Time Range:</span>
             <span>${timeRange}</span>
           </div>
-          ${tokenUsage ? html`
-            <div class="metadata-item">
-              <span class="metadata-label">Token Usage:</span>
-              <span>${tokenUsage}</span>
-            </div>
-          ` : ''}
+          ${tokenUsage
+            ? html`
+                <div class="metadata-item">
+                  <span class="metadata-label">Token Usage:</span>
+                  <span>${tokenUsage}</span>
+                </div>
+              `
+            : ""}
           <div class="metadata-item">
             <span class="metadata-label">Working Directory:</span>
             <span>${this.session.cwd}</span>
@@ -641,25 +726,24 @@ export class SessionDetail extends BaseComponent {
       `;
     }
 
-    const sortedEntries = [...this.session.entries].sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    const sortedEntries = [...this.session.entries].sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
     return html`
       <div class="session-detail-container">
-        ${this.renderSessionHeader()}
-        ${this.renderFilterToolbar()}
-        
+        ${this.renderSessionHeader()} ${this.renderFilterToolbar()}
+
         <div class="message-container">
-          ${sortedEntries.length > 0 
-            ? sortedEntries.map(entry => this.renderMessage(entry))
+          ${sortedEntries.length > 0
+            ? sortedEntries.map((entry) => this.renderMessage(entry))
             : html`
-              <div class="empty-state">
-                <div class="empty-state-icon">💬</div>
-                <div>No messages in this session</div>
-              </div>
-            `
-          }
+                <div class="empty-state">
+                  <div class="empty-state-icon">💬</div>
+                  <div>No messages in this session</div>
+                </div>
+              `}
         </div>
       </div>
     `;
@@ -668,6 +752,6 @@ export class SessionDetail extends BaseComponent {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'session-detail': SessionDetail;
+    "session-detail": SessionDetail;
   }
 }

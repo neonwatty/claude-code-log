@@ -1,6 +1,11 @@
-import { WebSocket } from 'ws';
-import { v4 as uuidv4 } from 'uuid';
-import { WebSocketEventMessage, WebSocketMessageType, IHeartbeatMessage, IPongMessage } from './messageTypes';
+import { WebSocket } from "ws";
+import { v4 as uuidv4 } from "uuid";
+import {
+  WebSocketEventMessage,
+  WebSocketMessageType,
+  IHeartbeatMessage,
+  IPongMessage,
+} from "./messageTypes";
 
 export interface IWebSocketClient {
   id: string;
@@ -32,15 +37,17 @@ export class ConnectionManager {
       isAlive: true,
       lastPing: Date.now(),
       connectedAt: Date.now(),
-      metadata
+      metadata,
     };
 
     this.clients.set(clientId, client);
-    
+
     // Set up socket event handlers
     this.setupSocketHandlers(client);
-    
-    console.log(`WebSocket client connected: ${clientId} (Total: ${this.clients.size})`);
+
+    console.log(
+      `WebSocket client connected: ${clientId} (Total: ${this.clients.size})`,
+    );
     return clientId;
   }
 
@@ -49,7 +56,9 @@ export class ConnectionManager {
     if (client) {
       client.socket.terminate();
       this.clients.delete(clientId);
-      console.log(`WebSocket client disconnected: ${clientId} (Total: ${this.clients.size})`);
+      console.log(
+        `WebSocket client disconnected: ${clientId} (Total: ${this.clients.size})`,
+      );
     }
   }
 
@@ -87,10 +96,15 @@ export class ConnectionManager {
       }
     }
 
-    console.log(`Broadcast message: ${message.type}, sent to ${sentCount} clients, ${failedCount} failed`);
+    console.log(
+      `Broadcast message: ${message.type}, sent to ${sentCount} clients, ${failedCount} failed`,
+    );
   }
 
-  public sendToClient(clientId: string, message: WebSocketEventMessage): boolean {
+  public sendToClient(
+    clientId: string,
+    message: WebSocketEventMessage,
+  ): boolean {
     const client = this.clients.get(clientId);
     if (!client || client.socket.readyState !== WebSocket.OPEN) {
       return false;
@@ -109,7 +123,7 @@ export class ConnectionManager {
   private setupSocketHandlers(client: IWebSocketClient): void {
     const { socket, id } = client;
 
-    socket.on('message', (data: Buffer) => {
+    socket.on("message", (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString()) as WebSocketEventMessage;
         this.handleClientMessage(id, message);
@@ -118,7 +132,7 @@ export class ConnectionManager {
       }
     });
 
-    socket.on('pong', () => {
+    socket.on("pong", () => {
       const clientRef = this.clients.get(id);
       if (clientRef) {
         clientRef.isAlive = true;
@@ -126,17 +140,20 @@ export class ConnectionManager {
       }
     });
 
-    socket.on('close', () => {
+    socket.on("close", () => {
       this.removeClient(id);
     });
 
-    socket.on('error', (error) => {
+    socket.on("error", (error) => {
       console.error(`WebSocket error for client ${id}:`, error);
       this.removeClient(id);
     });
   }
 
-  private handleClientMessage(clientId: string, message: WebSocketEventMessage): void {
+  private handleClientMessage(
+    clientId: string,
+    message: WebSocketEventMessage,
+  ): void {
     switch (message.type) {
       case WebSocketMessageType.PONG:
         const client = this.clients.get(clientId);
@@ -145,16 +162,16 @@ export class ConnectionManager {
           client.lastPing = Date.now();
         }
         break;
-      
+
       case WebSocketMessageType.HEARTBEAT:
         // Respond with pong
         const pongMessage: IPongMessage = {
           type: WebSocketMessageType.PONG,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         this.sendToClient(clientId, pongMessage);
         break;
-      
+
       default:
         console.log(`Received message from client ${clientId}:`, message.type);
         break;
@@ -176,14 +193,14 @@ export class ConnectionManager {
         // Send ping to check if client is still alive
         if (client.socket.readyState === WebSocket.OPEN) {
           client.isAlive = false;
-          
+
           try {
             client.socket.ping();
-            
+
             // Also send heartbeat message
             const heartbeatMessage: IHeartbeatMessage = {
               type: WebSocketMessageType.HEARTBEAT,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
             client.socket.send(JSON.stringify(heartbeatMessage));
           } catch (error) {
@@ -212,8 +229,8 @@ export class ConnectionManager {
     for (const [clientId, client] of this.clients) {
       client.socket.terminate();
     }
-    
+
     this.clients.clear();
-    console.log('WebSocket connection manager destroyed');
+    console.log("WebSocket connection manager destroyed");
   }
 }

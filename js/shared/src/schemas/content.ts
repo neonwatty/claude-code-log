@@ -2,47 +2,47 @@
  * Zod schemas for content types - provides runtime validation for content blocks.
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Base content schema with discriminated unions
 export const TextContentSchema = z.object({
-  type: z.literal('text'),
+  type: z.literal("text"),
   text: z.string(),
 });
 
 export const ToolUseContentSchema = z.object({
-  type: z.literal('tool_use'),
+  type: z.literal("tool_use"),
   id: z.string(),
   name: z.string(),
   input: z.record(z.string(), z.any()),
 });
 
 export const ToolResultContentSchema = z.object({
-  type: z.literal('tool_result'),
+  type: z.literal("tool_result"),
   tool_use_id: z.string(),
   content: z.union([z.string(), z.array(z.record(z.string(), z.any()))]),
   is_error: z.boolean().optional(),
 });
 
 export const ThinkingContentSchema = z.object({
-  type: z.literal('thinking'),
+  type: z.literal("thinking"),
   thinking: z.string(),
   signature: z.string().optional(),
 });
 
 export const ImageSourceSchema = z.object({
-  type: z.literal('base64'),
+  type: z.literal("base64"),
   media_type: z.string(),
   data: z.string(),
 });
 
 export const ImageContentSchema = z.object({
-  type: z.literal('image'),
+  type: z.literal("image"),
   source: ImageSourceSchema,
 });
 
 // Discriminated union for all content types
-export const ContentItemSchema = z.discriminatedUnion('type', [
+export const ContentItemSchema = z.discriminatedUnion("type", [
   TextContentSchema,
   ToolUseContentSchema,
   ToolResultContentSchema,

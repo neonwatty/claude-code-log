@@ -20,7 +20,7 @@ class MockLitElement {
   }
 
   static get styles() {
-    return this._styles || '';
+    return this._styles || "";
   }
 
   static set styles(value) {
@@ -43,7 +43,7 @@ class MockLitElement {
   firstUpdated() {}
 
   render() {
-    return '';
+    return "";
   }
 
   createRenderRoot() {
@@ -70,7 +70,7 @@ class MockLitElement {
 
 // Mock CSS template literal tag
 const css = (strings, ...values) => {
-  let result = '';
+  let result = "";
   for (let i = 0; i < strings.length; i++) {
     result += strings[i];
     if (i < values.length) {
@@ -92,5 +92,5 @@ module.exports = {
   LitElement: MockLitElement,
   css,
   html,
-  nothing
+  nothing,
 };

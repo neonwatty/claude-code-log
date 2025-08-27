@@ -41,12 +41,12 @@ npm run build:frontend
 Components should follow Lit conventions:
 
 ```typescript
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { LitElement, html, css } from "lit";
+import { customElement, property } from "lit/decorators.js";
 
-@customElement('my-component')
+@customElement("my-component")
 export class MyComponent extends LitElement {
-  @property() text = '';
+  @property() text = "";
 
   static styles = css`
     :host {
@@ -63,5 +63,5 @@ export class MyComponent extends LitElement {
 ## Importing Shared Types
 
 ```typescript
-import { ISession, ITranscriptEntry } from '@shared';
+import { ISession, ITranscriptEntry } from "@shared";
 ```

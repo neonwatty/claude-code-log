@@ -5,6 +5,7 @@ This document describes the CSS style system for the Lit web components, which h
 ## Overview
 
 The style system is organized into two main categories:
+
 - **Shared styles** (`shared/`): Common design tokens, typography, layout utilities, and patterns
 - **Component styles** (`components/`): Component-specific styling that extends the shared system
 
@@ -13,6 +14,7 @@ The style system is organized into two main categories:
 ### Shared Styles (`/shared/`)
 
 #### `variables.css`
+
 Contains all CSS custom properties (CSS variables) that define the design system:
 
 - **Colors**: Primary, secondary, message types, backgrounds, borders, shadows
@@ -22,6 +24,7 @@ Contains all CSS custom properties (CSS variables) that define the design system
 - **Neumorphic Design**: Shadow and border combinations for depth effect
 
 #### `typography.css`
+
 Typography styles and classes:
 
 - **Headings**: `.heading-primary`, `.heading-secondary`, etc.
@@ -31,6 +34,7 @@ Typography styles and classes:
 - **Links**: `.link-base`, `.session-link`
 
 #### `layout.css`
+
 Layout utilities and common patterns:
 
 - **Cards**: `.card-base`, `.card-message`, `.card-session-header`
@@ -40,6 +44,7 @@ Layout utilities and common patterns:
 - **Positioning**: `.relative`, `.absolute`, `.fixed`, `.sticky`
 
 #### `utilities.css`
+
 Common utility classes and interactive patterns:
 
 - **Buttons**: `.btn-base`, `.btn-primary`, `.filter-toggle`
@@ -53,7 +58,7 @@ Common utility classes and interactive patterns:
 Each component has its own CSS file with styles specific to that component:
 
 - `session-list.css` - SessionList component styling
-- `session-detail.css` - SessionDetail component styling  
+- `session-detail.css` - SessionDetail component styling
 - `message-card.css` - MessageCard component styling
 - `filter-bar.css` - FilterBar component styling
 - `timeline.css` - Timeline component styling
@@ -63,8 +68,8 @@ Each component has its own CSS file with styles specific to that component:
 ### Basic Usage
 
 ```typescript
-import { LitElement, css } from 'lit';
-import { baseStyles } from '../../styles/shared/index.js';
+import { LitElement, css } from "lit";
+import { baseStyles } from "../../styles/shared/index.js";
 
 export class MyComponent extends LitElement {
   static styles = [
@@ -73,14 +78,14 @@ export class MyComponent extends LitElement {
       :host {
         display: block;
       }
-      
+
       /* Component-specific styles */
       .my-element {
         background: var(--color-surface);
         padding: var(--spacing-md);
         border-radius: var(--border-radius-md);
       }
-    `
+    `,
   ];
 }
 ```
@@ -88,9 +93,9 @@ export class MyComponent extends LitElement {
 ### Advanced Usage
 
 ```typescript
-import { LitElement, css } from 'lit';
-import { sharedStyles } from '../../styles/shared/index.js';
-import { sessionListStyles } from '../../styles/components/index.js';
+import { LitElement, css } from "lit";
+import { sharedStyles } from "../../styles/shared/index.js";
+import { sessionListStyles } from "../../styles/components/index.js";
 
 export class MyComponent extends LitElement {
   static styles = [
@@ -98,7 +103,7 @@ export class MyComponent extends LitElement {
     sessionListStyles, // Component-specific styles
     css`
       /* Additional component styles */
-    `
+    `,
   ];
 }
 ```
@@ -106,7 +111,7 @@ export class MyComponent extends LitElement {
 ### Selective Imports
 
 ```typescript
-import { variables, typography, utilities } from '../../styles/shared/index.js';
+import { variables, typography, utilities } from "../../styles/shared/index.js";
 
 export class MyComponent extends LitElement {
   static styles = [
@@ -145,7 +150,7 @@ The color system uses semantic naming and supports both light and dark modes:
 
 ```css
 /* Font families */
---font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', ...;
+--font-family-mono: "SF Mono", "Monaco", "Inconsolata", ...;
 --font-family-sans: -apple-system, BlinkMacSystemFont, ...;
 
 /* Font sizes */
@@ -169,11 +174,11 @@ The color system uses semantic naming and supports both light and dark modes:
 Based on 8px grid system:
 
 ```css
---spacing-xs: 4px;   /* 0.5 units */
---spacing-sm: 8px;   /* 1 unit */
---spacing-md: 12px;  /* 1.5 units */
---spacing-lg: 16px;  /* 2 units */
---spacing-xl: 24px;  /* 3 units */
+--spacing-xs: 4px; /* 0.5 units */
+--spacing-sm: 8px; /* 1 unit */
+--spacing-md: 12px; /* 1.5 units */
+--spacing-lg: 16px; /* 2 units */
+--spacing-xl: 24px; /* 3 units */
 --spacing-xxl: 32px; /* 4 units */
 ```
 

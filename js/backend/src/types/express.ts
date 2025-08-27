@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { User } from '@shared/types';
+import { Request, Response } from "express";
+import { User } from "@shared/types";
 
 // Extend Express Request interface to include user information
 declare global {
@@ -36,12 +36,12 @@ export interface ApiError extends Error {
 export type AsyncMiddleware = (
   req: Request,
   res: Response,
-  next: (error?: any) => void
+  next: (error?: any) => void,
 ) => Promise<void>;
 
 export type ErrorHandler = (
   err: ApiError,
   req: Request,
   res: Response,
-  next: (error?: any) => void
+  next: (error?: any) => void,
 ) => void;

@@ -1,1 +1,5 @@
-export { ToastNotificationsComponent, type Toast, type ToastAction } from './toast-notifications.js';
+export {
+  ToastNotificationsComponent,
+  type Toast,
+  type ToastAction,
+} from "./toast-notifications.js";

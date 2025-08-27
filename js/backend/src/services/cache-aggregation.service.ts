@@ -1,13 +1,13 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { EventEmitter } from 'events';
-import { 
-  ProjectCache, 
-  SessionCacheData, 
+import fs from "fs/promises";
+import path from "path";
+import { EventEmitter } from "events";
+import {
+  ProjectCache,
+  SessionCacheData,
   CachedFileInfo,
-  CacheStats 
-} from '../utils/cache';
-import { getCacheDirectoryService } from './cache-directory.service';
+  CacheStats,
+} from "../utils/cache";
+import { getCacheDirectoryService } from "./cache-directory.service";
 
 export interface AggregatedStats {
   totalProjects: number;
@@ -54,7 +54,7 @@ export interface SessionSummary {
 
 export interface TimeBasedAggregation {
   timeRange: string;
-  granularity: 'hour' | 'day' | 'week' | 'month';
+  granularity: "hour" | "day" | "week" | "month";
   dataPoints: Array<{
     timestamp: string;
     messageCount: number;
@@ -74,14 +74,18 @@ export interface QueryOptions {
   minMessages?: number;
   maxMessages?: number;
   searchText?: string;
-  sortBy?: 'timestamp' | 'tokens' | 'messages' | 'duration';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "timestamp" | "tokens" | "messages" | "duration";
+  sortOrder?: "asc" | "desc";
   limit?: number;
   offset?: number;
 }
 
 export interface AggregationEvent {
-  type: 'aggregation_started' | 'project_processed' | 'aggregation_completed' | 'query_executed';
+  type:
+    | "aggregation_started"
+    | "project_processed"
+    | "aggregation_completed"
+    | "query_executed";
   timestamp: string;
   metadata?: any;
 }
@@ -101,7 +105,10 @@ export interface CachePerformanceMetrics {
 export class CacheAggregationService extends EventEmitter {
   private static instance: CacheAggregationService | null = null;
   private aggregatedCache: Map<string, ProjectCache> = new Map();
-  private queryMetrics: Map<string, { count: number; totalTime: number; lastAccess: number }> = new Map();
+  private queryMetrics: Map<
+    string,
+    { count: number; totalTime: number; lastAccess: number }
+  > = new Map();
   private performanceMetrics: CachePerformanceMetrics = {
     hitRate: 0,
     missRate: 0,
@@ -111,7 +118,7 @@ export class CacheAggregationService extends EventEmitter {
     memoryUsage: 0,
     diskUsage: 0,
     buildTime: 0,
-    lastBuildTime: new Date().toISOString()
+    lastBuildTime: new Date().toISOString(),
   };
 
   constructor() {
@@ -128,13 +135,15 @@ export class CacheAggregationService extends EventEmitter {
   /**
    * Loads and aggregates cache data from all discovered projects
    */
-  public async aggregateAllProjects(rootPaths: string[] = [process.cwd()]): Promise<AggregatedStats> {
+  public async aggregateAllProjects(
+    rootPaths: string[] = [process.cwd()],
+  ): Promise<AggregatedStats> {
     const startTime = Date.now();
-    
-    this.emit('aggregationEvent', {
-      type: 'aggregation_started',
+
+    this.emit("aggregationEvent", {
+      type: "aggregation_started",
       timestamp: new Date().toISOString(),
-      metadata: { rootPaths }
+      metadata: { rootPaths },
     } as AggregationEvent);
 
     try {
@@ -144,53 +153,58 @@ export class CacheAggregationService extends EventEmitter {
       // Discover all cache directories
       const cacheDirectoryService = getCacheDirectoryService();
       const allCacheDirectories: any[] = [];
-      
+
       for (const rootPath of rootPaths) {
-        const directories = await cacheDirectoryService.discoverCacheDirectories([rootPath]);
+        const directories =
+          await cacheDirectoryService.discoverCacheDirectories([rootPath]);
         allCacheDirectories.push(...directories);
       }
 
       // Load cache data from each project
       for (const cacheInfo of allCacheDirectories) {
         try {
-          const projectCache = await this.loadProjectCache(cacheInfo.projectPath);
+          const projectCache = await this.loadProjectCache(
+            cacheInfo.projectPath,
+          );
           if (projectCache) {
             this.aggregatedCache.set(cacheInfo.projectPath, projectCache);
-            
-            this.emit('aggregationEvent', {
-              type: 'project_processed',
+
+            this.emit("aggregationEvent", {
+              type: "project_processed",
               timestamp: new Date().toISOString(),
-              metadata: { 
+              metadata: {
                 projectPath: cacheInfo.projectPath,
                 sessionCount: Object.keys(projectCache.sessions).length,
-                messageCount: projectCache.total_message_count
-              }
+                messageCount: projectCache.total_message_count,
+              },
             } as AggregationEvent);
           }
         } catch (error) {
-          console.warn(`Failed to load cache for project ${cacheInfo.projectPath}:`, error);
+          console.warn(
+            `Failed to load cache for project ${cacheInfo.projectPath}:`,
+            error,
+          );
         }
       }
 
       // Calculate aggregated statistics
       const stats = this.calculateAggregatedStats();
-      
+
       // Update performance metrics
       this.performanceMetrics.buildTime = Date.now() - startTime;
       this.performanceMetrics.lastBuildTime = new Date().toISOString();
 
-      this.emit('aggregationEvent', {
-        type: 'aggregation_completed',
+      this.emit("aggregationEvent", {
+        type: "aggregation_completed",
         timestamp: new Date().toISOString(),
-        metadata: { 
+        metadata: {
           totalProjects: stats.totalProjects,
           totalSessions: stats.totalSessions,
-          buildTimeMs: this.performanceMetrics.buildTime
-        }
+          buildTimeMs: this.performanceMetrics.buildTime,
+        },
       } as AggregationEvent);
 
       return stats;
-
     } catch (error) {
       throw new Error(`Aggregation failed: ${error}`);
     }
@@ -212,12 +226,17 @@ export class CacheAggregationService extends EventEmitter {
     for (const [projectPath, cache] of this.aggregatedCache) {
       const projectName = path.basename(projectPath);
       const sessions = Object.values(cache.sessions);
-      
+
       // Calculate top sessions by token usage
       const topSessions = sessions
-        .sort((a, b) => (b.total_input_tokens + b.total_output_tokens) - (a.total_input_tokens + a.total_output_tokens))
+        .sort(
+          (a, b) =>
+            b.total_input_tokens +
+            b.total_output_tokens -
+            (a.total_input_tokens + a.total_output_tokens),
+        )
         .slice(0, 5)
-        .map(session => this.createSessionSummary(session, projectPath));
+        .map((session) => this.createSessionSummary(session, projectPath));
 
       const summary: ProjectSummary = {
         projectPath,
@@ -226,22 +245,30 @@ export class CacheAggregationService extends EventEmitter {
         messageCount: cache.total_message_count,
         fileCount: Object.keys(cache.cached_files).length,
         totalTokens: cache.total_input_tokens + cache.total_output_tokens,
-        averageSessionLength: sessions.length > 0 ? Math.round(cache.total_message_count / sessions.length) : 0,
+        averageSessionLength:
+          sessions.length > 0
+            ? Math.round(cache.total_message_count / sessions.length)
+            : 0,
         lastActivity: cache.latest_timestamp,
         cacheSize: this.estimateCacheSize(cache),
-        topSessions
+        topSessions,
       };
 
       summaries.push(summary);
     }
 
-    return summaries.sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime());
+    return summaries.sort(
+      (a, b) =>
+        new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime(),
+    );
   }
 
   /**
    * Queries sessions with flexible filtering options
    */
-  public async querySessions(options: QueryOptions = {}): Promise<SessionSummary[]> {
+  public async querySessions(
+    options: QueryOptions = {},
+  ): Promise<SessionSummary[]> {
     const startTime = Date.now();
     let sessions: SessionSummary[] = [];
 
@@ -254,45 +281,50 @@ export class CacheAggregationService extends EventEmitter {
 
     // Apply filters
     if (options.projects) {
-      sessions = sessions.filter(s => options.projects!.includes(s.projectPath));
+      sessions = sessions.filter((s) =>
+        options.projects!.includes(s.projectPath),
+      );
     }
 
     if (options.sessionIds) {
-      sessions = sessions.filter(s => options.sessionIds!.includes(s.sessionId));
+      sessions = sessions.filter((s) =>
+        options.sessionIds!.includes(s.sessionId),
+      );
     }
 
     if (options.fromDate) {
       const fromDate = new Date(options.fromDate);
-      sessions = sessions.filter(s => new Date(s.firstTimestamp) >= fromDate);
+      sessions = sessions.filter((s) => new Date(s.firstTimestamp) >= fromDate);
     }
 
     if (options.toDate) {
       const toDate = new Date(options.toDate);
-      sessions = sessions.filter(s => new Date(s.lastTimestamp) <= toDate);
+      sessions = sessions.filter((s) => new Date(s.lastTimestamp) <= toDate);
     }
 
     if (options.minTokens) {
-      sessions = sessions.filter(s => s.totalTokens >= options.minTokens!);
+      sessions = sessions.filter((s) => s.totalTokens >= options.minTokens!);
     }
 
     if (options.maxTokens) {
-      sessions = sessions.filter(s => s.totalTokens <= options.maxTokens!);
+      sessions = sessions.filter((s) => s.totalTokens <= options.maxTokens!);
     }
 
     if (options.minMessages) {
-      sessions = sessions.filter(s => s.messageCount >= options.minMessages!);
+      sessions = sessions.filter((s) => s.messageCount >= options.minMessages!);
     }
 
     if (options.maxMessages) {
-      sessions = sessions.filter(s => s.messageCount <= options.maxMessages!);
+      sessions = sessions.filter((s) => s.messageCount <= options.maxMessages!);
     }
 
     if (options.searchText) {
       const searchLower = options.searchText.toLowerCase();
-      sessions = sessions.filter(s => 
-        s.firstUserMessage.toLowerCase().includes(searchLower) ||
-        (s.summary && s.summary.toLowerCase().includes(searchLower)) ||
-        s.cwd.toLowerCase().includes(searchLower)
+      sessions = sessions.filter(
+        (s) =>
+          s.firstUserMessage.toLowerCase().includes(searchLower) ||
+          (s.summary && s.summary.toLowerCase().includes(searchLower)) ||
+          s.cwd.toLowerCase().includes(searchLower),
       );
     }
 
@@ -300,21 +332,21 @@ export class CacheAggregationService extends EventEmitter {
     if (options.sortBy) {
       sessions.sort((a, b) => {
         let aValue: any, bValue: any;
-        
+
         switch (options.sortBy) {
-          case 'timestamp':
+          case "timestamp":
             aValue = new Date(a.firstTimestamp).getTime();
             bValue = new Date(b.firstTimestamp).getTime();
             break;
-          case 'tokens':
+          case "tokens":
             aValue = a.totalTokens;
             bValue = b.totalTokens;
             break;
-          case 'messages':
+          case "messages":
             aValue = a.messageCount;
             bValue = b.messageCount;
             break;
-          case 'duration':
+          case "duration":
             aValue = a.duration;
             bValue = b.duration;
             break;
@@ -323,7 +355,7 @@ export class CacheAggregationService extends EventEmitter {
         }
 
         const result = aValue - bValue;
-        return options.sortOrder === 'desc' ? -result : result;
+        return options.sortOrder === "desc" ? -result : result;
       });
     }
 
@@ -338,17 +370,17 @@ export class CacheAggregationService extends EventEmitter {
 
     // Update query metrics
     const queryTime = Date.now() - startTime;
-    this.updateQueryMetrics('querySessions', queryTime);
+    this.updateQueryMetrics("querySessions", queryTime);
 
-    this.emit('aggregationEvent', {
-      type: 'query_executed',
+    this.emit("aggregationEvent", {
+      type: "query_executed",
       timestamp: new Date().toISOString(),
-      metadata: { 
-        queryType: 'sessions',
+      metadata: {
+        queryType: "sessions",
         resultCount: sessions.length,
         queryTime,
-        options 
-      }
+        options,
+      },
     } as AggregationEvent);
 
     return sessions;
@@ -358,19 +390,25 @@ export class CacheAggregationService extends EventEmitter {
    * Creates time-based aggregations for trend analysis
    */
   public createTimeBasedAggregation(
-    granularity: 'hour' | 'day' | 'week' | 'month' = 'day',
+    granularity: "hour" | "day" | "week" | "month" = "day",
     fromDate?: string,
-    toDate?: string
+    toDate?: string,
   ): TimeBasedAggregation {
-    const startDate = fromDate ? new Date(fromDate) : this.getEarliestTimestamp();
+    const startDate = fromDate
+      ? new Date(fromDate)
+      : this.getEarliestTimestamp();
     const endDate = toDate ? new Date(toDate) : new Date();
-    
-    const dataPoints = this.generateTimeDataPoints(startDate, endDate, granularity);
-    
+
+    const dataPoints = this.generateTimeDataPoints(
+      startDate,
+      endDate,
+      granularity,
+    );
+
     return {
       timeRange: `${startDate.toISOString()} to ${endDate.toISOString()}`,
       granularity,
-      dataPoints
+      dataPoints,
     };
   }
 
@@ -379,31 +417,49 @@ export class CacheAggregationService extends EventEmitter {
    */
   public getCachePerformanceMetrics(): CachePerformanceMetrics {
     // Calculate hit rate from query metrics
-    const totalQueries = Array.from(this.queryMetrics.values())
-      .reduce((sum, metric) => sum + metric.count, 0);
+    const totalQueries = Array.from(this.queryMetrics.values()).reduce(
+      (sum, metric) => sum + metric.count,
+      0,
+    );
 
-    const avgQueryTime = totalQueries > 0 
-      ? Array.from(this.queryMetrics.values())
-          .reduce((sum, metric) => sum + metric.totalTime, 0) / totalQueries
-      : 0;
+    const avgQueryTime =
+      totalQueries > 0
+        ? Array.from(this.queryMetrics.values()).reduce(
+            (sum, metric) => sum + metric.totalTime,
+            0,
+          ) / totalQueries
+        : 0;
 
     // Estimate cache efficiency based on aggregated data size vs disk usage
-    const estimatedDataSize = Array.from(this.aggregatedCache.values())
-      .reduce((sum, cache) => sum + this.estimateCacheSize(cache), 0);
+    const estimatedDataSize = Array.from(this.aggregatedCache.values()).reduce(
+      (sum, cache) => sum + this.estimateCacheSize(cache),
+      0,
+    );
 
     return {
       ...this.performanceMetrics,
       totalQueries,
       avgQueryTime,
-      cacheEfficiency: estimatedDataSize > 0 ? Math.min(100, (estimatedDataSize / (this.performanceMetrics.diskUsage || estimatedDataSize)) * 100) : 100,
-      memoryUsage: this.getMemoryUsageMB()
+      cacheEfficiency:
+        estimatedDataSize > 0
+          ? Math.min(
+              100,
+              (estimatedDataSize /
+                (this.performanceMetrics.diskUsage || estimatedDataSize)) *
+                100,
+            )
+          : 100,
+      memoryUsage: this.getMemoryUsageMB(),
     };
   }
 
   /**
    * Gets top sessions by various criteria
    */
-  public getTopSessions(criteria: 'tokens' | 'messages' | 'duration' = 'tokens', limit: number = 10): SessionSummary[] {
+  public getTopSessions(
+    criteria: "tokens" | "messages" | "duration" = "tokens",
+    limit: number = 10,
+  ): SessionSummary[] {
     const allSessions: SessionSummary[] = [];
 
     for (const [projectPath, cache] of this.aggregatedCache) {
@@ -413,13 +469,13 @@ export class CacheAggregationService extends EventEmitter {
     }
 
     switch (criteria) {
-      case 'tokens':
+      case "tokens":
         allSessions.sort((a, b) => b.totalTokens - a.totalTokens);
         break;
-      case 'messages':
+      case "messages":
         allSessions.sort((a, b) => b.messageCount - a.messageCount);
         break;
-      case 'duration':
+      case "duration":
         allSessions.sort((a, b) => b.duration - a.duration);
         break;
     }
@@ -430,7 +486,10 @@ export class CacheAggregationService extends EventEmitter {
   /**
    * Gets usage statistics by time period
    */
-  public getUsageByPeriod(period: 'daily' | 'weekly' | 'monthly' = 'daily', days: number = 30): Array<{
+  public getUsageByPeriod(
+    period: "daily" | "weekly" | "monthly" = "daily",
+    days: number = 30,
+  ): Array<{
     date: string;
     sessionCount: number;
     messageCount: number;
@@ -438,36 +497,46 @@ export class CacheAggregationService extends EventEmitter {
     activeProjects: Set<string>;
   }> {
     const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
-    
-    const usage = new Map<string, {
-      sessionCount: number;
-      messageCount: number;
-      tokenCount: number;
-      activeProjects: Set<string>;
-    }>();
+    const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+
+    const usage = new Map<
+      string,
+      {
+        sessionCount: number;
+        messageCount: number;
+        tokenCount: number;
+        activeProjects: Set<string>;
+      }
+    >();
 
     // Initialize time buckets
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateKey = d.toISOString().split('T')[0];
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const dateKey = d.toISOString().split("T")[0];
       usage.set(dateKey, {
         sessionCount: 0,
         messageCount: 0,
         tokenCount: 0,
-        activeProjects: new Set()
+        activeProjects: new Set(),
       });
     }
 
     // Aggregate data by date
     for (const [projectPath, cache] of this.aggregatedCache) {
       for (const sessionData of Object.values(cache.sessions)) {
-        const sessionDate = new Date(sessionData.first_timestamp).toISOString().split('T')[0];
+        const sessionDate = new Date(sessionData.first_timestamp)
+          .toISOString()
+          .split("T")[0];
         const bucket = usage.get(sessionDate);
-        
+
         if (bucket) {
           bucket.sessionCount++;
           bucket.messageCount += sessionData.message_count;
-          bucket.tokenCount += sessionData.total_input_tokens + sessionData.total_output_tokens;
+          bucket.tokenCount +=
+            sessionData.total_input_tokens + sessionData.total_output_tokens;
           bucket.activeProjects.add(projectPath);
         }
       }
@@ -478,17 +547,19 @@ export class CacheAggregationService extends EventEmitter {
       sessionCount: data.sessionCount,
       messageCount: data.messageCount,
       tokenCount: data.tokenCount,
-      activeProjects: data.activeProjects
+      activeProjects: data.activeProjects,
     }));
   }
 
   /**
    * Private helper methods
    */
-  private async loadProjectCache(projectPath: string): Promise<ProjectCache | null> {
+  private async loadProjectCache(
+    projectPath: string,
+  ): Promise<ProjectCache | null> {
     try {
-      const cachePath = path.join(projectPath, '.cache', 'index.json');
-      const content = await fs.readFile(cachePath, 'utf-8');
+      const cachePath = path.join(projectPath, ".cache", "index.json");
+      const content = await fs.readFile(cachePath, "utf-8");
       return JSON.parse(content);
     } catch (error) {
       return null;
@@ -536,39 +607,50 @@ export class CacheAggregationService extends EventEmitter {
       totalCacheReadTokens,
       earliestTimestamp,
       latestTimestamp,
-      averageSessionLength: totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
-      averageMessagesPerSession: totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
-      averageTokensPerMessage: totalMessages > 0 ? Math.round((totalInputTokens + totalOutputTokens) / totalMessages) : 0,
-      totalCacheSizeMB
+      averageSessionLength:
+        totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
+      averageMessagesPerSession:
+        totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0,
+      averageTokensPerMessage:
+        totalMessages > 0
+          ? Math.round((totalInputTokens + totalOutputTokens) / totalMessages)
+          : 0,
+      totalCacheSizeMB,
     };
   }
 
-  private createSessionSummary(sessionData: SessionCacheData, projectPath: string): SessionSummary {
-    const duration = new Date(sessionData.last_timestamp).getTime() - new Date(sessionData.first_timestamp).getTime();
-    
+  private createSessionSummary(
+    sessionData: SessionCacheData,
+    projectPath: string,
+  ): SessionSummary {
+    const duration =
+      new Date(sessionData.last_timestamp).getTime() -
+      new Date(sessionData.first_timestamp).getTime();
+
     return {
       sessionId: sessionData.session_id,
       projectPath,
       messageCount: sessionData.message_count,
       firstTimestamp: sessionData.first_timestamp,
       lastTimestamp: sessionData.last_timestamp,
-      totalTokens: sessionData.total_input_tokens + sessionData.total_output_tokens,
+      totalTokens:
+        sessionData.total_input_tokens + sessionData.total_output_tokens,
       duration,
-      cwd: sessionData.cwd || '',
+      cwd: sessionData.cwd || "",
       summary: sessionData.summary,
-      firstUserMessage: sessionData.first_user_message
+      firstUserMessage: sessionData.first_user_message,
     };
   }
 
   private estimateCacheSize(cache: ProjectCache): number {
     // Rough estimation based on JSON size
     const jsonSize = JSON.stringify(cache).length;
-    return Math.round(jsonSize / 1024 / 1024 * 100) / 100; // MB with 2 decimal places
+    return Math.round((jsonSize / 1024 / 1024) * 100) / 100; // MB with 2 decimal places
   }
 
   private getEarliestTimestamp(): Date {
     let earliest = new Date();
-    
+
     for (const cache of this.aggregatedCache.values()) {
       const cacheEarliest = new Date(cache.earliest_timestamp);
       if (cacheEarliest < earliest) {
@@ -580,11 +662,11 @@ export class CacheAggregationService extends EventEmitter {
   }
 
   private generateTimeDataPoints(
-    startDate: Date, 
-    endDate: Date, 
-    granularity: 'hour' | 'day' | 'week' | 'month'
-  ): TimeBasedAggregation['dataPoints'] {
-    const dataPoints: TimeBasedAggregation['dataPoints'] = [];
+    startDate: Date,
+    endDate: Date,
+    granularity: "hour" | "day" | "week" | "month",
+  ): TimeBasedAggregation["dataPoints"] {
+    const dataPoints: TimeBasedAggregation["dataPoints"] = [];
     const current = new Date(startDate);
 
     while (current <= endDate) {
@@ -598,11 +680,12 @@ export class CacheAggregationService extends EventEmitter {
       for (const [projectPath, cache] of this.aggregatedCache) {
         for (const sessionData of Object.values(cache.sessions)) {
           const sessionDate = new Date(sessionData.first_timestamp);
-          
+
           if (this.isInTimePeriod(sessionDate, current, granularity)) {
             sessionCount++;
             messageCount += sessionData.message_count;
-            tokenCount += sessionData.total_input_tokens + sessionData.total_output_tokens;
+            tokenCount +=
+              sessionData.total_input_tokens + sessionData.total_output_tokens;
             activeProjects.add(projectPath);
           }
         }
@@ -613,7 +696,7 @@ export class CacheAggregationService extends EventEmitter {
         messageCount,
         sessionCount,
         tokenCount,
-        activeProjects: activeProjects.size
+        activeProjects: activeProjects.size,
       });
 
       // Advance to next period
@@ -623,32 +706,43 @@ export class CacheAggregationService extends EventEmitter {
     return dataPoints;
   }
 
-  private isInTimePeriod(date: Date, periodStart: Date, granularity: 'hour' | 'day' | 'week' | 'month'): boolean {
+  private isInTimePeriod(
+    date: Date,
+    periodStart: Date,
+    granularity: "hour" | "day" | "week" | "month",
+  ): boolean {
     const periodEnd = new Date(periodStart);
     this.advanceDate(periodEnd, granularity);
-    
+
     return date >= periodStart && date < periodEnd;
   }
 
-  private advanceDate(date: Date, granularity: 'hour' | 'day' | 'week' | 'month'): void {
+  private advanceDate(
+    date: Date,
+    granularity: "hour" | "day" | "week" | "month",
+  ): void {
     switch (granularity) {
-      case 'hour':
+      case "hour":
         date.setHours(date.getHours() + 1);
         break;
-      case 'day':
+      case "day":
         date.setDate(date.getDate() + 1);
         break;
-      case 'week':
+      case "week":
         date.setDate(date.getDate() + 7);
         break;
-      case 'month':
+      case "month":
         date.setMonth(date.getMonth() + 1);
         break;
     }
   }
 
   private updateQueryMetrics(queryType: string, queryTime: number): void {
-    const metric = this.queryMetrics.get(queryType) || { count: 0, totalTime: 0, lastAccess: 0 };
+    const metric = this.queryMetrics.get(queryType) || {
+      count: 0,
+      totalTime: 0,
+      lastAccess: 0,
+    };
     metric.count++;
     metric.totalTime += queryTime;
     metric.lastAccess = Date.now();

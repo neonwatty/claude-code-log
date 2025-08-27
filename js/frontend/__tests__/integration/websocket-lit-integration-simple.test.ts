@@ -4,21 +4,21 @@
  */
 
 // Vitest globals: describe, it, expect, beforeEach, afterEach
-import { html, fixture, expect as litExpected } from '@open-wc/testing';
-import { vi } from 'vitest';
+import { html, fixture, expect as litExpected } from "@open-wc/testing";
+import { vi } from "vitest";
 
 // Mock WebSocket Service for integration testing
 class MockWebSocketServiceIntegration {
   private eventHandlers: Map<string, Function[]> = new Map();
   private _isConnected = false;
-  private _connectionState = 'DISCONNECTED';
+  private _connectionState = "DISCONNECTED";
 
   on(event: string, handler: Function): () => void {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, []);
     }
     this.eventHandlers.get(event)!.push(handler);
-    
+
     return () => {
       const handlers = this.eventHandlers.get(event);
       if (handlers) {
@@ -32,11 +32,11 @@ class MockWebSocketServiceIntegration {
 
   emit(event: string, data?: any): void {
     const handlers = this.eventHandlers.get(event) || [];
-    handlers.forEach(handler => {
+    handlers.forEach((handler) => {
       try {
         handler(data);
       } catch (error) {
-        console.error('Handler error:', error);
+        console.error("Handler error:", error);
       }
     });
   }
@@ -51,25 +51,37 @@ class MockWebSocketServiceIntegration {
 
   connect(): void {
     this._isConnected = true;
-    this._connectionState = 'CONNECTED';
-    this.emit('state:changed', { oldState: 'DISCONNECTED', newState: 'CONNECTED' });
+    this._connectionState = "CONNECTED";
+    this.emit("state:changed", {
+      oldState: "DISCONNECTED",
+      newState: "CONNECTED",
+    });
   }
 
   disconnect(): void {
     this._isConnected = false;
-    this._connectionState = 'DISCONNECTED';
-    this.emit('state:changed', { oldState: 'CONNECTED', newState: 'DISCONNECTED' });
+    this._connectionState = "DISCONNECTED";
+    this.emit("state:changed", {
+      oldState: "CONNECTED",
+      newState: "DISCONNECTED",
+    });
   }
 
   forceReconnect(): void {
     this._isConnected = false;
-    this._connectionState = 'RECONNECTING';
-    this.emit('state:changed', { oldState: 'DISCONNECTED', newState: 'RECONNECTING' });
-    
+    this._connectionState = "RECONNECTING";
+    this.emit("state:changed", {
+      oldState: "DISCONNECTED",
+      newState: "RECONNECTING",
+    });
+
     setTimeout(() => {
       this._isConnected = true;
-      this._connectionState = 'CONNECTED';
-      this.emit('state:changed', { oldState: 'RECONNECTING', newState: 'CONNECTED' });
+      this._connectionState = "CONNECTED";
+      this.emit("state:changed", {
+        oldState: "RECONNECTING",
+        newState: "CONNECTED",
+      });
     }, 100);
   }
 
@@ -78,15 +90,15 @@ class MockWebSocketServiceIntegration {
     const oldState = this._connectionState;
     this._connectionState = state;
     this._isConnected = connected;
-    this.emit('state:changed', { oldState, newState: state });
+    this.emit("state:changed", { oldState, newState: state });
   }
 
   simulateMessage(message: any): void {
-    this.emit('message', message);
+    this.emit("message", message);
   }
 
   simulateError(error: any): void {
-    this.emit('error', error);
+    this.emit("error", error);
   }
 }
 
@@ -96,16 +108,20 @@ class MockWebSocketController {
   private webSocketService: MockWebSocketServiceIntegration;
   private _handlers: Map<string, Function[]> = new Map();
 
-  constructor(host: any, webSocketService: MockWebSocketServiceIntegration, config: any = {}) {
+  constructor(
+    host: any,
+    webSocketService: MockWebSocketServiceIntegration,
+    config: any = {},
+  ) {
     this.host = host;
     this.webSocketService = webSocketService;
-    
+
     // Setup message handling
-    this.webSocketService.on('message', (message) => {
+    this.webSocketService.on("message", (message) => {
       this.processMessage(message);
     });
 
-    this.webSocketService.on('state:changed', () => {
+    this.webSocketService.on("state:changed", () => {
       // Update host connection state when WebSocket state changes
       this.host.connectionState = this.webSocketService.getConnectionState();
       if (this.host && this.host.requestUpdate) {
@@ -115,19 +131,19 @@ class MockWebSocketController {
   }
 
   onSessionCreated(handler: Function): void {
-    this.addHandler('SESSION_CREATED', handler);
+    this.addHandler("SESSION_CREATED", handler);
   }
 
   onSessionUpdated(handler: Function): void {
-    this.addHandler('SESSION_UPDATED', handler);
+    this.addHandler("SESSION_UPDATED", handler);
   }
 
   onSessionDeleted(handler: Function): void {
-    this.addHandler('SESSION_DELETED', handler);
+    this.addHandler("SESSION_DELETED", handler);
   }
 
   onCacheInvalidated(handler: Function): void {
-    this.addHandler('CACHE_INVALIDATED', handler);
+    this.addHandler("CACHE_INVALIDATED", handler);
   }
 
   getConnectionState(): string {
@@ -138,7 +154,11 @@ class MockWebSocketController {
     return this.webSocketService.isConnected();
   }
 
-  optimisticUpdate(propertyName: string, newValue: any, rollbackTimeoutMs = 5000): void {
+  optimisticUpdate(
+    propertyName: string,
+    newValue: any,
+    rollbackTimeoutMs = 5000,
+  ): void {
     // Mock optimistic update by directly updating the host property
     if (this.host) {
       this.host[propertyName] = newValue;
@@ -169,13 +189,13 @@ class MockWebSocketController {
 
   private processMessage(message: any): void {
     if (!message || !message.type) return;
-    
+
     const handlers = this._handlers.get(message.type) || [];
-    handlers.forEach(handler => {
+    handlers.forEach((handler) => {
       try {
         handler(message);
       } catch (error) {
-        console.error('Message handler error:', error);
+        console.error("Message handler error:", error);
       }
     });
   }
@@ -184,8 +204,8 @@ class MockWebSocketController {
 // Test component
 class IntegrationTestComponent {
   sessions: any[] = [];
-  connectionState: string = 'DISCONNECTED';
-  lastUpdate: string = 'Never';
+  connectionState: string = "DISCONNECTED";
+  lastUpdate: string = "Never";
   updateCount: number = 0;
   errors: string[] = [];
   updateComplete: Promise<void> = Promise.resolve();
@@ -196,12 +216,12 @@ class IntegrationTestComponent {
   constructor() {
     const mockService = new MockWebSocketServiceIntegration();
     (window as any).__mockWebSocketService = mockService;
-    
+
     this.webSocketController = new MockWebSocketController(this, mockService, {
       debug: true,
       debounceMs: 50,
       optimisticUpdates: true,
-      autoConnect: false
+      autoConnect: false,
     });
 
     this.setupWebSocketHandlers();
@@ -211,20 +231,20 @@ class IntegrationTestComponent {
   private setupShadowRoot(): void {
     this.shadowRoot = {
       querySelector: (selector: string) => {
-        if (selector.includes('status')) {
-          const div = document.createElement('div');
-          div.className = 'status';
+        if (selector.includes("status")) {
+          const div = document.createElement("div");
+          div.className = "status";
           div.textContent = `Connection: ${this.connectionState} | Sessions: ${this.sessions.length} | Updates: ${this.updateCount}`;
           return div;
         }
-        if (selector.includes('data-session-id')) {
-          const div = document.createElement('div');
-          div.className = 'session';
+        if (selector.includes("data-session-id")) {
+          const div = document.createElement("div");
+          div.className = "session";
           return div;
         }
         return null;
       },
-      querySelectorAll: () => []
+      querySelectorAll: () => [],
     };
   }
 
@@ -239,7 +259,9 @@ class IntegrationTestComponent {
     this.webSocketController.onSessionUpdated((message: any) => {
       if (message.payload?.session) {
         const session = message.payload.session;
-        const index = this.sessions.findIndex(s => s.sessionId === session.sessionId);
+        const index = this.sessions.findIndex(
+          (s) => s.sessionId === session.sessionId,
+        );
         if (index >= 0) {
           const updatedSessions = [...this.sessions];
           updatedSessions[index] = { ...updatedSessions[index], ...session };
@@ -251,13 +273,18 @@ class IntegrationTestComponent {
 
     this.webSocketController.onSessionDeleted((message: any) => {
       if (message.payload?.sessionId) {
-        this.sessions = this.sessions.filter(s => s.sessionId !== message.payload.sessionId);
+        this.sessions = this.sessions.filter(
+          (s) => s.sessionId !== message.payload.sessionId,
+        );
         this.updateStats();
       }
     });
 
     this.webSocketController.onCacheInvalidated((message: any) => {
-      if (message.payload?.scope === 'all' || message.payload?.scope === 'session') {
+      if (
+        message.payload?.scope === "all" ||
+        message.payload?.scope === "session"
+      ) {
         this.sessions = [];
       }
       this.updateStats();
@@ -281,14 +308,18 @@ class IntegrationTestComponent {
   }
 
   performOptimisticUpdate(sessionId: string, updates: any): void {
-    const updatedSessions = this.sessions.map(session => 
-      session.sessionId === sessionId ? { ...session, ...updates } : session
+    const updatedSessions = this.sessions.map((session) =>
+      session.sessionId === sessionId ? { ...session, ...updates } : session,
     );
-    this.webSocketController.optimisticUpdate('sessions', updatedSessions, 2000);
+    this.webSocketController.optimisticUpdate(
+      "sessions",
+      updatedSessions,
+      2000,
+    );
   }
 
   confirmOptimisticUpdate(): void {
-    this.webSocketController.confirmOptimisticUpdate('sessions');
+    this.webSocketController.confirmOptimisticUpdate("sessions");
   }
 
   connectedCallback(): void {
@@ -304,13 +335,15 @@ class IntegrationTestComponent {
   }
 }
 
-describe('WebSocket + Lit Components Integration (Simplified)', () => {
+describe("WebSocket + Lit Components Integration (Simplified)", () => {
   let component: IntegrationTestComponent;
   let mockService: MockWebSocketServiceIntegration;
 
   beforeEach(async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
-    
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+    });
+
     component = new IntegrationTestComponent();
     mockService = component.getWebSocketService();
     await component.updateComplete;
@@ -321,35 +354,35 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
     vi.clearAllMocks();
   });
 
-  describe('Basic Integration', () => {
-    it('should initialize component with WebSocket controller', () => {
+  describe("Basic Integration", () => {
+    it("should initialize component with WebSocket controller", () => {
       expect(component).toBeDefined();
       expect(component.webSocketController).toBeDefined();
       expect(component.sessions).toEqual([]);
     });
 
-    it('should connect WebSocket service to Lit component updates', async () => {
+    it("should connect WebSocket service to Lit component updates", async () => {
       // Connect the service
       mockService.connect();
       await component.updateComplete;
 
       // Check that connection state is reflected in component
-      expect(component.connectionState).toBe('CONNECTED');
+      expect(component.connectionState).toBe("CONNECTED");
     });
 
-    it('should handle WebSocket messages and update component state', async () => {
+    it("should handle WebSocket messages and update component state", async () => {
       const sessionData = {
-        sessionId: 'integration-test-1',
-        title: 'Integration Test Session',
-        createdAt: '2024-01-01T10:00:00Z',
-        status: 'active'
+        sessionId: "integration-test-1",
+        title: "Integration Test Session",
+        createdAt: "2024-01-01T10:00:00Z",
+        status: "active",
       };
 
       const message = {
-        type: 'SESSION_CREATED',
-        timestamp: '2024-01-01T10:00:00Z',
-        id: 'msg-123',
-        payload: { session: sessionData }
+        type: "SESSION_CREATED",
+        timestamp: "2024-01-01T10:00:00Z",
+        id: "msg-123",
+        payload: { session: sessionData },
       };
 
       mockService.simulateMessage(message);
@@ -361,68 +394,73 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
     });
   });
 
-  describe('Real-time Session Management', () => {
+  describe("Real-time Session Management", () => {
     beforeEach(() => {
       mockService.connect();
     });
 
-    it('should handle complete session lifecycle', async () => {
+    it("should handle complete session lifecycle", async () => {
       // Create session
       const sessionData = {
-        sessionId: 'lifecycle-test',
-        title: 'Lifecycle Test Session',
-        status: 'active'
+        sessionId: "lifecycle-test",
+        title: "Lifecycle Test Session",
+        status: "active",
       };
 
       const createMessage = {
-        type: 'SESSION_CREATED',
-        timestamp: '2024-01-01T10:00:00Z',
-        id: 'msg-create',
-        payload: { session: sessionData }
+        type: "SESSION_CREATED",
+        timestamp: "2024-01-01T10:00:00Z",
+        id: "msg-create",
+        payload: { session: sessionData },
       };
 
       mockService.simulateMessage(createMessage);
       await component.updateComplete;
 
       expect(component.sessions).toHaveLength(1);
-      expect(component.sessions[0].status).toBe('active');
+      expect(component.sessions[0].status).toBe("active");
 
       // Update session
       const updatedSessionData = {
-        sessionId: 'lifecycle-test',
-        title: 'Updated Lifecycle Test Session',
-        status: 'completed'
+        sessionId: "lifecycle-test",
+        title: "Updated Lifecycle Test Session",
+        status: "completed",
       };
 
       const updateMessage = {
-        type: 'SESSION_UPDATED',
-        timestamp: '2024-01-01T11:00:00Z',
-        id: 'msg-update',
+        type: "SESSION_UPDATED",
+        timestamp: "2024-01-01T11:00:00Z",
+        id: "msg-update",
         payload: {
           session: updatedSessionData,
           changes: {
-            fields: ['title', 'status'],
-            previousValues: { title: 'Lifecycle Test Session', status: 'active' }
-          }
-        }
+            fields: ["title", "status"],
+            previousValues: {
+              title: "Lifecycle Test Session",
+              status: "active",
+            },
+          },
+        },
       };
 
       mockService.simulateMessage(updateMessage);
       await component.updateComplete;
 
       expect(component.sessions).toHaveLength(1);
-      expect(component.sessions[0].title).toBe('Updated Lifecycle Test Session');
-      expect(component.sessions[0].status).toBe('completed');
+      expect(component.sessions[0].title).toBe(
+        "Updated Lifecycle Test Session",
+      );
+      expect(component.sessions[0].status).toBe("completed");
 
       // Delete session
       const deleteMessage = {
-        type: 'SESSION_DELETED',
-        timestamp: '2024-01-01T12:00:00Z',
-        id: 'msg-delete',
+        type: "SESSION_DELETED",
+        timestamp: "2024-01-01T12:00:00Z",
+        id: "msg-delete",
         payload: {
-          sessionId: 'lifecycle-test',
-          deletedAt: '2024-01-01T12:00:00Z'
-        }
+          sessionId: "lifecycle-test",
+          deletedAt: "2024-01-01T12:00:00Z",
+        },
       };
 
       mockService.simulateMessage(deleteMessage);
@@ -431,20 +469,20 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
       expect(component.sessions).toHaveLength(0);
     });
 
-    it('should handle multiple sessions concurrently', async () => {
+    it("should handle multiple sessions concurrently", async () => {
       const sessions = [
-        { sessionId: 'session-1', title: 'Session 1', status: 'active' },
-        { sessionId: 'session-2', title: 'Session 2', status: 'pending' },
-        { sessionId: 'session-3', title: 'Session 3', status: 'completed' }
+        { sessionId: "session-1", title: "Session 1", status: "active" },
+        { sessionId: "session-2", title: "Session 2", status: "pending" },
+        { sessionId: "session-3", title: "Session 3", status: "completed" },
       ];
 
       // Create multiple sessions
       for (const sessionData of sessions) {
         const message = {
-          type: 'SESSION_CREATED',
+          type: "SESSION_CREATED",
           timestamp: new Date().toISOString(),
           id: `msg-${sessionData.sessionId}`,
-          payload: { session: sessionData }
+          payload: { session: sessionData },
         };
         mockService.simulateMessage(message);
       }
@@ -452,54 +490,60 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
       await component.updateComplete;
 
       expect(component.sessions).toHaveLength(3);
-      expect(component.sessions.map(s => s.sessionId)).toEqual(['session-1', 'session-2', 'session-3']);
+      expect(component.sessions.map((s) => s.sessionId)).toEqual([
+        "session-1",
+        "session-2",
+        "session-3",
+      ]);
     });
   });
 
-  describe('Connection State Management', () => {
-    it('should react to connection state changes', async () => {
-      expect(component.connectionState).toBe('DISCONNECTED');
+  describe("Connection State Management", () => {
+    it("should react to connection state changes", async () => {
+      expect(component.connectionState).toBe("DISCONNECTED");
 
       // Connect
       mockService.connect();
       await component.updateComplete;
 
-      expect(component.connectionState).toBe('CONNECTED');
+      expect(component.connectionState).toBe("CONNECTED");
 
       // Disconnect
       mockService.disconnect();
       await component.updateComplete;
 
-      expect(component.connectionState).toBe('DISCONNECTED');
+      expect(component.connectionState).toBe("DISCONNECTED");
     });
 
-    it('should handle reconnection scenarios', async () => {
-      mockService.setConnectionState('DISCONNECTED', false);
+    it("should handle reconnection scenarios", async () => {
+      mockService.setConnectionState("DISCONNECTED", false);
       await component.updateComplete;
 
-      expect(component.connectionState).toBe('DISCONNECTED');
+      expect(component.connectionState).toBe("DISCONNECTED");
 
       // Start reconnection
       mockService.forceReconnect();
       await component.updateComplete;
 
-      expect(component.connectionState).toBe('RECONNECTING');
+      expect(component.connectionState).toBe("RECONNECTING");
 
       // Complete reconnection
       vi.advanceTimersByTime(150);
       await component.updateComplete;
 
-      expect(component.connectionState).toBe('CONNECTED');
+      expect(component.connectionState).toBe("CONNECTED");
     });
 
-    it('should handle connection errors gracefully', async () => {
+    it("should handle connection errors gracefully", async () => {
       mockService.connect();
       await component.updateComplete;
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       // Simulate connection error
-      mockService.simulateError({ message: 'Connection lost' });
+      mockService.simulateError({ message: "Connection lost" });
       await component.updateComplete;
 
       // Component should still be functional
@@ -509,16 +553,18 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
     });
   });
 
-  describe('Error Handling and Resilience', () => {
-    it('should handle malformed WebSocket messages gracefully', async () => {
+  describe("Error Handling and Resilience", () => {
+    it("should handle malformed WebSocket messages gracefully", async () => {
       mockService.connect();
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       // Send malformed messages
       mockService.simulateMessage(null);
       mockService.simulateMessage(undefined);
-      mockService.simulateMessage({ invalid: 'format' });
-      mockService.simulateMessage('string instead of object');
+      mockService.simulateMessage({ invalid: "format" });
+      mockService.simulateMessage("string instead of object");
 
       await component.updateComplete;
 
@@ -529,8 +575,10 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle component lifecycle errors gracefully', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it("should handle component lifecycle errors gracefully", () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       // Test that disconnecting component doesn't cause errors
       expect(() => {
@@ -546,52 +594,57 @@ describe('WebSocket + Lit Components Integration (Simplified)', () => {
     });
   });
 
-  describe('DOM Integration', () => {
+  describe("DOM Integration", () => {
     beforeEach(() => {
       mockService.connect();
     });
 
-    it('should display connection status correctly', async () => {
-      const statusElement = component.shadowRoot.querySelector('.status');
-      expect(statusElement.textContent).toContain('CONNECTED');
+    it("should display connection status correctly", async () => {
+      const statusElement = component.shadowRoot.querySelector(".status");
+      expect(statusElement.textContent).toContain("CONNECTED");
 
       mockService.disconnect();
       await component.updateComplete;
 
-      const updatedStatusElement = component.shadowRoot.querySelector('.status');
-      expect(updatedStatusElement.textContent).toContain('DISCONNECTED');
+      const updatedStatusElement =
+        component.shadowRoot.querySelector(".status");
+      expect(updatedStatusElement.textContent).toContain("DISCONNECTED");
     });
 
-    it('should display session count correctly', async () => {
-      const statusElement = component.shadowRoot.querySelector('.status');
-      expect(statusElement.textContent).toContain('Sessions: 0');
+    it("should display session count correctly", async () => {
+      const statusElement = component.shadowRoot.querySelector(".status");
+      expect(statusElement.textContent).toContain("Sessions: 0");
 
       // Add sessions
       for (let i = 0; i < 3; i++) {
         const sessionData = {
           sessionId: `count-test-${i}`,
-          title: `Count Test Session ${i}`
+          title: `Count Test Session ${i}`,
         };
 
         const message = {
-          type: 'SESSION_CREATED',
+          type: "SESSION_CREATED",
           timestamp: new Date().toISOString(),
           id: `msg-count-${i}`,
-          payload: { session: sessionData }
+          payload: { session: sessionData },
         };
 
         mockService.simulateMessage(message);
       }
 
       await component.updateComplete;
-      const updatedStatusElement = component.shadowRoot.querySelector('.status');
-      expect(updatedStatusElement.textContent).toContain('Sessions: 3');
+      const updatedStatusElement =
+        component.shadowRoot.querySelector(".status");
+      expect(updatedStatusElement.textContent).toContain("Sessions: 3");
     });
   });
 
-  describe('Memory Management', () => {
-    it('should clean up WebSocket subscriptions on component removal', () => {
-      const hostDisconnectedSpy = vi.spyOn(component.webSocketController, 'hostDisconnected');
+  describe("Memory Management", () => {
+    it("should clean up WebSocket subscriptions on component removal", () => {
+      const hostDisconnectedSpy = vi.spyOn(
+        component.webSocketController,
+        "hostDisconnected",
+      );
 
       // Remove component from DOM
       component.remove();

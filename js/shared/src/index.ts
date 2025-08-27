@@ -1,19 +1,181 @@
 // Main export file for shared TypeScript interfaces and types
 
-// Export all interfaces
-export * from './interfaces';
+// Export all interfaces except conflicting export types
+export type {
+  ITodoItem,
+  IUsageInfo,
+  ITextContent,
+  IToolUseContent,
+  IToolResultContent,
+  IThinkingContent,
+  IImageSource,
+  IImageContent,
+  IContentItem,
+  IUserMessage,
+  IAssistantMessage,
+  IFileInfo,
+  IFileReadResult,
+  ICommandResult,
+  ITodoResult,
+  IEditResult,
+  IToolUseResult,
+  IBaseTranscriptEntry,
+  IUserTranscriptEntry,
+  IAssistantTranscriptEntry,
+  ISummaryTranscriptEntry,
+  ISystemTranscriptEntry,
+  ITranscriptEntry,
+  ISession,
+  IProject,
+  User,
+  LogEntry,
+  // Export-related interfaces (prefer these over Zod types for implementation)
+  ExportFormat,
+  IExportOptions,
+  IExportRequest,
+  IExportProgress,
+  IExportMetadata,
+  IExportResult,
+  IExportStatus,
+  IExportMetrics,
+  IDownloadRequest,
+  IApiResponse,
+} from "./interfaces";
 
-// Export all types  
-export * from './types';
+// Export all types
+export * from "./types";
 
 // Export all constants
-export * from './constants';
+export * from "./constants";
 
-// Export all schemas for runtime validation
-export * from './schemas';
+// Export specific schemas for runtime validation to avoid naming conflicts
+export {
+  // Content schemas
+  TextContentSchema,
+  ToolUseContentSchema,
+  ToolResultContentSchema,
+  ThinkingContentSchema,
+  ImageSourceSchema,
+  ImageContentSchema,
+  ContentItemSchema,
+  type ZodTextContent,
+  type ZodToolUseContent,
+  type ZodToolResultContent,
+  type ZodThinkingContent,
+  type ZodImageContent,
+  type ZodContentItem,
+  // Message schemas
+  timestampSchema,
+  uuidSchema,
+  UsageInfoSchema,
+  TodoItemSchema,
+  UserMessageSchema,
+  AssistantMessageSchema,
+  FileInfoSchema,
+  FileReadResultSchema,
+  CommandResultSchema,
+  TodoResultSchema,
+  EditResultSchema,
+  ToolUseResultSchema,
+  type ZodUsageInfo,
+  type ZodTodoItem,
+  type ZodUserMessage,
+  type ZodAssistantMessage,
+  type ZodFileInfo,
+  type ZodFileReadResult,
+  type ZodCommandResult,
+  type ZodTodoResult,
+  type ZodEditResult,
+  type ZodToolUseResult,
+  // Transcript schemas
+  BaseTranscriptEntrySchema,
+  UserTranscriptEntrySchema,
+  AssistantTranscriptEntrySchema,
+  SummaryTranscriptEntrySchema,
+  SystemTranscriptEntrySchema,
+  TranscriptEntrySchema,
+  SessionSchema,
+  ProjectSchema,
+  ApiResponseSchema,
+  type ZodBaseTranscriptEntry,
+  type ZodUserTranscriptEntry,
+  type ZodAssistantTranscriptEntry,
+  type ZodSummaryTranscriptEntry,
+  type ZodSystemTranscriptEntry,
+  type ZodTranscriptEntry,
+  type ZodSession,
+  type ZodProject,
+  type ZodApiResponse,
+  // Validation utilities
+  validateData,
+  validateContentItem,
+  validateTranscriptEntry,
+  validateUserTranscriptEntry,
+  validateAssistantTranscriptEntry,
+  validateSummaryTranscriptEntry,
+  validateSystemTranscriptEntry,
+  validateSession,
+  validateProject,
+  validateUsageInfo,
+  validateTodoItem,
+  validateTranscriptEntries,
+  validateBatch,
+  createValidationMiddleware,
+  fastValidate,
+  isValid,
+  type ValidationResult,
+  type ValidationOptions,
+  // Claude Code integration schemas
+  ClaudeProcessStateSchema,
+  ClaudeCommandSchema,
+  ClaudeProcessStatusSchema,
+  SessionContinuationRequestSchema,
+  SessionContinuationResponseSchema,
+  ClaudeOutputSchema,
+  ClaudeProcessEventSchema,
+  ClaudeIntegrationConfigSchema,
+  ClaudeIntegrationErrorSchema,
+  type ClaudeProcessState,
+  type ClaudeCommand,
+  type ClaudeProcessStatus,
+  type SessionContinuationRequest,
+  type SessionContinuationResponse,
+  type ClaudeOutput,
+  type ClaudeProcessEvent,
+  type ClaudeIntegrationConfig,
+  type ClaudeIntegrationError,
+  // Export schemas - using Zod types but keeping validation functions
+  ExportFormatSchema,
+  ExportOptionsSchema,
+  ExportRequestSchema,
+  ExportProgressSchema,
+  ExportMetadataSchema,
+  ExportResultSchema,
+  ExportStatusSchema,
+  ExportMetricsSchema,
+  DownloadRequestSchema,
+  validateExportOptions,
+  validateExportRequest,
+  validateExportProgress,
+  validateExportResult,
+  validateExportStatus,
+  validateDownloadRequest,
+  safeValidateExportRequest,
+  safeValidateExportOptions,
+  safeValidateDownloadRequest,
+  type ZodExportFormat,
+  type ZodExportOptions,
+  type ZodExportRequest,
+  type ZodExportProgress,
+  type ZodExportMetadata,
+  type ZodExportResult,
+  type ZodExportStatus,
+  type ZodExportMetrics,
+  type ZodDownloadRequest,
+} from "./schemas";
 
 // Export Anthropic SDK compatibility layer
-export * from './adapters';
+export * from "./adapters";
 
-// Legacy exports for backward compatibility with existing code  
-export type { User, LogEntry, ApiResponse } from '../types';
+// Legacy exports for backward compatibility with existing code
+export type { ApiResponse } from "../types";

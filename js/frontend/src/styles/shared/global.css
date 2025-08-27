@@ -49,7 +49,9 @@
   background-color: var(--color-surface);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
-  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  box-shadow:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
   border-left: var(--color-border-light) 1px solid;
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
@@ -58,7 +60,9 @@
 }
 
 .neumorphic-card:hover {
-  box-shadow: -10px -10px 15px var(--color-shadow-hover-light), 10px 10px 15px var(--color-shadow-hover-dark);
+  box-shadow:
+    -10px -10px 15px var(--color-shadow-hover-light),
+    10px 10px 15px var(--color-shadow-hover-dark);
   transform: translateY(-1px);
 }
 
@@ -131,7 +135,9 @@
   padding: var(--spacing-sm);
   margin: var(--spacing-sm) 0;
   overflow-x: auto;
-  box-shadow: -4px -4px 10px #eeeeee33, 4px 4px 10px #00000007;
+  box-shadow:
+    -4px -4px 10px #eeeeee33,
+    4px 4px 10px #00000007;
   border-left: var(--color-border-light) 1px solid;
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
@@ -140,17 +146,17 @@
 
 .tool-result-content {
   background-color: var(--tool-result-bg);
-  border-left: var(--message-tool-result-color)88 1px solid;
+  border-left: var(--message-tool-result-color) 88 1px solid;
 }
 
 .tool-use-content {
   background-color: var(--tool-use-bg);
-  border-left: var(--message-user-color)88 1px solid;
+  border-left: var(--message-user-color) 88 1px solid;
 }
 
 .thinking-content {
   background-color: var(--thinking-content-bg);
-  border-left: var(--message-thinking-color)88 1px solid;
+  border-left: var(--message-thinking-color) 88 1px solid;
 }
 
 .thinking-text {
@@ -166,7 +172,9 @@
   padding: 6px;
   margin: 4px 0;
   font-size: 0.9em;
-  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  box-shadow:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
   border-left: var(--color-border-light) 1px solid;
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
@@ -179,7 +187,9 @@
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
   margin: 30px 0 20px 0;
-  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  box-shadow:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
   border-left: var(--color-border-light) 1px solid;
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
@@ -203,7 +213,9 @@
   margin: var(--spacing-sm) 0;
   border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
   font-style: italic;
-  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  box-shadow:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
   border-right: var(--color-border-dark) 1px solid;
@@ -226,7 +238,9 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--floating-btn-shadow);
-  transition: background-color var(--transition-normal), transform var(--transition-fast);
+  transition:
+    background-color var(--transition-normal),
+    transform var(--transition-fast);
   z-index: var(--z-floating);
   text-decoration: none;
 }
@@ -285,14 +299,14 @@ details summary {
   .neumorphic-card {
     padding: var(--spacing-sm);
   }
-  
+
   .floating-btn {
     width: 40px;
     height: 40px;
     font-size: 1em;
     right: 10px;
   }
-  
+
   .session-header {
     padding: var(--spacing-sm);
     margin: 20px 0 15px 0;

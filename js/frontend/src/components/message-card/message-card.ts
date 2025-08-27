@@ -1,53 +1,64 @@
-import { html, css, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { BaseComponent } from '../base/base-component.js';
-import type { ZodContentItem, ZodTranscriptEntry } from '../../../../shared/src/schemas/index.js';
+import { html, css, TemplateResult, unsafeCSS } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { BaseComponent } from "../base/base-component.js";
+import type {
+  ZodContentItem,
+  ZodTranscriptEntry,
+} from "../../../../shared/src/schemas/index.js";
 
 // Import Prism.js for syntax highlighting
-import Prism from 'prismjs';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-html';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-yaml';
+import Prism from "prismjs";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-html";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-yaml";
 
 // Import marked for markdown rendering
-import { marked } from 'marked';
+import { marked } from "marked";
 
 export interface MessageCardState {
   expandedSections: Set<string>;
   copiedBlocks: Set<string>;
 }
 
-export type MessageRole = 'user' | 'assistant' | 'system' | 'tool_use' | 'tool_result' | 'thinking' | 'image' | 'summary';
+export type MessageRole =
+  | "user"
+  | "assistant"
+  | "system"
+  | "tool_use"
+  | "tool_result"
+  | "thinking"
+  | "image"
+  | "summary";
 
-@customElement('message-card')
+@customElement("message-card")
 export class MessageCard extends BaseComponent {
   @property({ type: Object })
   message: ZodTranscriptEntry | null = null;
 
   @property({ type: String })
-  role: MessageRole = 'user';
+  role: MessageRole = "user";
 
-  @property({ type: Boolean, attribute: 'enable-copy' })
+  @property({ type: Boolean, attribute: "enable-copy" })
   enableCopy = true;
 
-  @property({ type: Boolean, attribute: 'enable-markdown' })
+  @property({ type: Boolean, attribute: "enable-markdown" })
   enableMarkdown = true;
 
-  @property({ type: Boolean, attribute: 'enable-syntax-highlighting' })
+  @property({ type: Boolean, attribute: "enable-syntax-highlighting" })
   enableSyntaxHighlighting = true;
 
-  @property({ type: Boolean, attribute: 'show-timestamps' })
+  @property({ type: Boolean, attribute: "show-timestamps" })
   showTimestamps = true;
 
-  @property({ type: Boolean, attribute: 'show-token-usage' })
+  @property({ type: Boolean, attribute: "show-token-usage" })
   showTokenUsage = true;
 
   @state()
@@ -57,14 +68,14 @@ export class MessageCard extends BaseComponent {
   };
 
   private readonly roleIcons: Record<MessageRole, string> = {
-    user: '🤷',
-    assistant: '🤖',
-    system: '⚙️',
-    tool_use: '🛠️',
-    tool_result: '🧰',
-    thinking: '💭',
-    image: '🖼️',
-    summary: '📋',
+    user: "🤷",
+    assistant: "🤖",
+    system: "⚙️",
+    tool_use: "🛠️",
+    tool_result: "🧰",
+    thinking: "💭",
+    image: "🖼️",
+    summary: "📋",
   };
 
   static override styles = [
@@ -81,7 +92,9 @@ export class MessageCard extends BaseComponent {
         border-radius: var(--border-radius-md);
         border-left: var(--color-border-light) 1px solid;
         background-color: var(--color-surface);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
         border-right: var(--color-border-dark) 1px solid;
@@ -90,7 +103,9 @@ export class MessageCard extends BaseComponent {
 
       .message-card:hover {
         transform: translateY(-1px);
-        box-shadow: -10px -10px 15px var(--color-shadow-hover-light), 10px 10px 15px var(--color-shadow-hover-dark);
+        box-shadow:
+          -10px -10px 15px var(--color-shadow-hover-light),
+          10px 10px 15px var(--color-shadow-hover-dark);
       }
 
       /* Role-based styling */
@@ -297,7 +312,9 @@ export class MessageCard extends BaseComponent {
         padding: var(--spacing-sm);
         margin: var(--spacing-sm) 0;
         overflow-x: auto;
-        box-shadow: -4px -4px 10px var(--color-shadow-light), 4px 4px 10px var(--color-shadow-dark);
+        box-shadow:
+          -4px -4px 10px var(--color-shadow-light),
+          4px 4px 10px var(--color-shadow-dark);
         border-left: var(--color-border-light) 1px solid;
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
@@ -352,7 +369,9 @@ export class MessageCard extends BaseComponent {
         max-width: 100%;
         height: auto;
         border-radius: var(--border-radius-sm);
-        box-shadow: -3px -3px 6px var(--color-shadow-light), 3px 3px 6px var(--color-shadow-dark);
+        box-shadow:
+          -3px -3px 6px var(--color-shadow-light),
+          3px 3px 6px var(--color-shadow-dark);
       }
 
       .image-info {
@@ -384,7 +403,7 @@ export class MessageCard extends BaseComponent {
           flex-direction: column;
           align-items: stretch;
         }
-        
+
         .message-meta {
           align-items: flex-start;
         }
@@ -435,62 +454,99 @@ export class MessageCard extends BaseComponent {
       .language-json .token.string {
         color: #032f62;
       }
-    `
+    `,
   ];
 
   private detectLanguage(code: string): string {
     // Simple language detection based on common patterns
     const trimmed = code.trim();
-    
+
     // TypeScript/JavaScript detection
-    if (trimmed.includes('interface ') || trimmed.includes('type ') || trimmed.includes(': string') || trimmed.includes(': number')) {
-      return 'typescript';
+    if (
+      trimmed.includes("interface ") ||
+      trimmed.includes("type ") ||
+      trimmed.includes(": string") ||
+      trimmed.includes(": number")
+    ) {
+      return "typescript";
     }
-    if (trimmed.includes('function ') || trimmed.includes('const ') || trimmed.includes('let ') || trimmed.includes('=>') || trimmed.includes('console.log')) {
-      return 'javascript';
+    if (
+      trimmed.includes("function ") ||
+      trimmed.includes("const ") ||
+      trimmed.includes("let ") ||
+      trimmed.includes("=>") ||
+      trimmed.includes("console.log")
+    ) {
+      return "javascript";
     }
-    
+
     // Python detection
-    if (trimmed.includes('def ') || trimmed.includes('import ') || trimmed.includes('from ') || trimmed.includes('print(') || /^\s*#/.test(trimmed)) {
-      return 'python';
+    if (
+      trimmed.includes("def ") ||
+      trimmed.includes("import ") ||
+      trimmed.includes("from ") ||
+      trimmed.includes("print(") ||
+      /^\s*#/.test(trimmed)
+    ) {
+      return "python";
     }
-    
+
     // Shell/Bash detection
-    if (trimmed.startsWith('#!/bin/bash') || trimmed.startsWith('$ ') || trimmed.includes('npm ') || trimmed.includes('git ')) {
-      return 'bash';
+    if (
+      trimmed.startsWith("#!/bin/bash") ||
+      trimmed.startsWith("$ ") ||
+      trimmed.includes("npm ") ||
+      trimmed.includes("git ")
+    ) {
+      return "bash";
     }
-    
+
     // JSON detection
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+    if (
+      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+      (trimmed.startsWith("[") && trimmed.endsWith("]"))
+    ) {
       try {
         JSON.parse(trimmed);
-        return 'json';
+        return "json";
       } catch {
         // Not valid JSON, continue with other checks
       }
     }
-    
+
     // CSS detection
-    if (trimmed.includes('{') && trimmed.includes('}') && (trimmed.includes(':') || trimmed.includes('px') || trimmed.includes('em'))) {
-      return 'css';
+    if (
+      trimmed.includes("{") &&
+      trimmed.includes("}") &&
+      (trimmed.includes(":") ||
+        trimmed.includes("px") ||
+        trimmed.includes("em"))
+    ) {
+      return "css";
     }
-    
+
     // HTML detection
-    if (trimmed.includes('<') && trimmed.includes('>') && (trimmed.includes('<div') || trimmed.includes('<span') || trimmed.includes('<html'))) {
-      return 'html';
+    if (
+      trimmed.includes("<") &&
+      trimmed.includes(">") &&
+      (trimmed.includes("<div") ||
+        trimmed.includes("<span") ||
+        trimmed.includes("<html"))
+    ) {
+      return "html";
     }
-    
+
     // SQL detection
     if (/\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b/i.test(trimmed)) {
-      return 'sql';
+      return "sql";
     }
-    
+
     // YAML detection
-    if (/^\s*[\w\-]+\s*:\s*/.test(trimmed) || trimmed.includes('---')) {
-      return 'yaml';
+    if (/^\s*[\w\-]+\s*:\s*/.test(trimmed) || trimmed.includes("---")) {
+      return "yaml";
     }
-    
-    return 'text';
+
+    return "text";
   }
 
   private highlightCode(code: string, language: string): string {
@@ -499,12 +555,12 @@ export class MessageCard extends BaseComponent {
     }
 
     try {
-      if (language === 'text' || !Prism.languages[language]) {
+      if (language === "text" || !Prism.languages[language]) {
         return code;
       }
       return Prism.highlight(code, Prism.languages[language], language);
     } catch (error) {
-      console.warn('Prism.js highlighting failed:', error);
+      console.warn("Prism.js highlighting failed:", error);
       return code;
     }
   }
@@ -514,19 +570,20 @@ export class MessageCard extends BaseComponent {
       await navigator.clipboard.writeText(text);
       this.cardState = {
         ...this.cardState,
-        copiedBlocks: new Set([...this.cardState.copiedBlocks, blockId])
+        copiedBlocks: new Set([...this.cardState.copiedBlocks, blockId]),
       };
-      
+
       // Reset copied state after 2 seconds
       setTimeout(() => {
         this.cardState = {
           ...this.cardState,
-          copiedBlocks: new Set([...this.cardState.copiedBlocks].filter(id => id !== blockId))
+          copiedBlocks: new Set(
+            [...this.cardState.copiedBlocks].filter((id) => id !== blockId),
+          ),
         };
       }, 2000);
-      
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      console.error("Failed to copy to clipboard:", error);
     }
   }
 
@@ -538,34 +595,39 @@ export class MessageCard extends BaseComponent {
     try {
       return marked.parse(text);
     } catch (error) {
-      console.warn('Markdown parsing failed:', error);
+      console.warn("Markdown parsing failed:", error);
       return text;
     }
   }
 
-  private extractCodeBlocks(text: string): { beforeCode: string; codeBlocks: Array<{ language: string; code: string; id: string }>; afterCode: string } {
+  private extractCodeBlocks(text: string): {
+    beforeCode: string;
+    codeBlocks: Array<{ language: string; code: string; id: string }>;
+    afterCode: string;
+  } {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-    const codeBlocks: Array<{ language: string; code: string; id: string }> = [];
+    const codeBlocks: Array<{ language: string; code: string; id: string }> =
+      [];
     let lastIndex = 0;
-    let beforeCode = '';
-    let afterCode = '';
+    let beforeCode = "";
+    let afterCode = "";
     let match;
 
     while ((match = codeBlockRegex.exec(text)) !== null) {
       if (codeBlocks.length === 0) {
         beforeCode = text.slice(0, match.index);
       }
-      
+
       const language = match[1] || this.detectLanguage(match[2]);
       const code = match[2].trim();
       const id = `code-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       codeBlocks.push({ language, code, id });
       lastIndex = match.index + match[0].length;
     }
 
     afterCode = text.slice(lastIndex);
-    
+
     if (codeBlocks.length === 0) {
       beforeCode = text;
     }
@@ -573,7 +635,11 @@ export class MessageCard extends BaseComponent {
     return { beforeCode, codeBlocks, afterCode };
   }
 
-  private renderCodeBlock(codeBlock: { language: string; code: string; id: string }): TemplateResult {
+  private renderCodeBlock(codeBlock: {
+    language: string;
+    code: string;
+    id: string;
+  }): TemplateResult {
     const { language, code, id } = codeBlock;
     const highlightedCode = this.highlightCode(code, language);
     const isCopied = this.cardState.copiedBlocks.has(id);
@@ -582,15 +648,17 @@ export class MessageCard extends BaseComponent {
       <div class="code-block">
         <div class="code-block-header">
           <span class="code-language">${language}</span>
-          ${this.enableCopy ? html`
-            <button 
-              class="copy-button ${isCopied ? 'copied' : ''}"
-              @click=${() => this.copyToClipboard(code, id)}
-              title="${isCopied ? 'Copied!' : 'Copy to clipboard'}"
-            >
-              ${isCopied ? '✓ Copied' : '📋 Copy'}
-            </button>
-          ` : ''}
+          ${this.enableCopy
+            ? html`
+                <button
+                  class="copy-button ${isCopied ? "copied" : ""}"
+                  @click=${() => this.copyToClipboard(code, id)}
+                  title="${isCopied ? "Copied!" : "Copy to clipboard"}"
+                >
+                  ${isCopied ? "✓ Copied" : "📋 Copy"}
+                </button>
+              `
+            : ""}
         </div>
         <div class="code-content">
           <pre><code>${unsafeHTML(highlightedCode)}</code></pre>
@@ -600,101 +668,130 @@ export class MessageCard extends BaseComponent {
   }
 
   private renderTextContent(content: string): TemplateResult {
-    const { beforeCode, codeBlocks, afterCode } = this.extractCodeBlocks(content);
-    
+    const { beforeCode, codeBlocks, afterCode } =
+      this.extractCodeBlocks(content);
+
     // Check if this looks like markdown (has headers, lists, etc.)
-    const isMarkdown = /^#{1,6}\s|^\*\s|^\d+\.\s|^\>\s/m.test(content) || content.includes('**') || content.includes('*');
-    
+    const isMarkdown =
+      /^#{1,6}\s|^\*\s|^\d+\.\s|^\>\s/m.test(content) ||
+      content.includes("**") ||
+      content.includes("*");
+
     return html`
       <div class="content-section">
-        ${beforeCode ? html`
-          <div class="text-content ${isMarkdown ? 'markdown' : ''}">
-            ${isMarkdown ? unsafeHTML(this.renderMarkdown(beforeCode)) : beforeCode}
-          </div>
-        ` : ''}
-        
-        ${codeBlocks.map(block => this.renderCodeBlock(block))}
-        
-        ${afterCode ? html`
-          <div class="text-content ${isMarkdown ? 'markdown' : ''}">
-            ${isMarkdown ? unsafeHTML(this.renderMarkdown(afterCode)) : afterCode}
-          </div>
-        ` : ''}
+        ${beforeCode
+          ? html`
+              <div class="text-content ${isMarkdown ? "markdown" : ""}">
+                ${isMarkdown
+                  ? unsafeHTML(this.renderMarkdown(beforeCode))
+                  : beforeCode}
+              </div>
+            `
+          : ""}
+        ${codeBlocks.map((block) => this.renderCodeBlock(block))}
+        ${afterCode
+          ? html`
+              <div class="text-content ${isMarkdown ? "markdown" : ""}">
+                ${isMarkdown
+                  ? unsafeHTML(this.renderMarkdown(afterCode))
+                  : afterCode}
+              </div>
+            `
+          : ""}
       </div>
     `;
   }
 
-  private renderContentItem(content: ZodContentItem, index: number): TemplateResult {
+  private renderContentItem(
+    content: ZodContentItem,
+    index: number,
+  ): TemplateResult {
     switch (content.type) {
-      case 'text':
+      case "text":
         return this.renderTextContent(content.text);
-      
-      case 'tool_use':
+
+      case "tool_use":
         const toolUseId = `tool-use-${index}`;
         return html`
           <div class="tool-content tool-use">
-            <div class="tool-header">
-              🛠️ ${content.name}
-            </div>
+            <div class="tool-header">🛠️ ${content.name}</div>
             <div class="tool-input">
-              ${this.renderCodeBlock({ 
-                language: 'json', 
-                code: JSON.stringify(content.input, null, 2), 
-                id: toolUseId 
+              ${this.renderCodeBlock({
+                language: "json",
+                code: JSON.stringify(content.input, null, 2),
+                id: toolUseId,
               })}
             </div>
           </div>
         `;
-      
-      case 'tool_result':
+
+      case "tool_result":
         const toolResultId = `tool-result-${index}`;
-        const resultContent = typeof content.content === 'string' ? content.content : JSON.stringify(content.content, null, 2);
+        const resultContent =
+          typeof content.content === "string"
+            ? content.content
+            : JSON.stringify(content.content, null, 2);
         return html`
           <div class="tool-content tool-result">
             <div class="tool-header">
-              🧰 Tool Result ${content.is_error ? '(Error)' : ''}
+              🧰 Tool Result ${content.is_error ? "(Error)" : ""}
             </div>
-            ${this.renderCodeBlock({ 
-              language: content.is_error ? 'text' : this.detectLanguage(resultContent), 
-              code: resultContent, 
-              id: toolResultId 
+            ${this.renderCodeBlock({
+              language: content.is_error
+                ? "text"
+                : this.detectLanguage(resultContent),
+              code: resultContent,
+              id: toolResultId,
             })}
           </div>
         `;
-      
-      case 'thinking':
+
+      case "thinking":
         return html`
           <div class="thinking-content">
-            <div style="margin-bottom: var(--spacing-xs); font-weight: 600;">💭 Thinking</div>
+            <div style="margin-bottom: var(--spacing-xs); font-weight: 600;">
+              💭 Thinking
+            </div>
             ${content.thinking}
           </div>
         `;
-      
-      case 'image':
+
+      case "image":
         return html`
           <div class="image-content">
-            <div class="image-info">🖼️ Image (${content.source.media_type})</div>
-            <img 
-              src="data:${content.source.media_type};base64,${content.source.data}" 
+            <div class="image-info">
+              🖼️ Image (${content.source.media_type})
+            </div>
+            <img
+              src="data:${content.source.media_type};base64,${content.source
+                .data}"
               alt="Content image"
             />
           </div>
         `;
-      
+
       default:
         return html`<div class="unknown-content">Unknown content type</div>`;
     }
   }
 
   private formatTokenUsage(usage: any): string {
-    if (!usage) return '';
-    
+    if (!usage) return "";
+
     const parts = [];
-    if (usage.input_tokens) parts.push(`In: ${this.formatTokenCount(usage.input_tokens)}`);
-    if (usage.output_tokens) parts.push(`Out: ${this.formatTokenCount(usage.output_tokens)}`);
-    if (usage.cache_creation_input_tokens) parts.push(`Cache+: ${this.formatTokenCount(usage.cache_creation_input_tokens)}`);
-    if (usage.cache_read_input_tokens) parts.push(`Cache: ${this.formatTokenCount(usage.cache_read_input_tokens)}`);
-    return parts.join(' | ');
+    if (usage.input_tokens)
+      parts.push(`In: ${this.formatTokenCount(usage.input_tokens)}`);
+    if (usage.output_tokens)
+      parts.push(`Out: ${this.formatTokenCount(usage.output_tokens)}`);
+    if (usage.cache_creation_input_tokens)
+      parts.push(
+        `Cache+: ${this.formatTokenCount(usage.cache_creation_input_tokens)}`,
+      );
+    if (usage.cache_read_input_tokens)
+      parts.push(
+        `Cache: ${this.formatTokenCount(usage.cache_read_input_tokens)}`,
+      );
+    return parts.join(" | ");
   }
 
   protected override render(): TemplateResult {
@@ -704,10 +801,11 @@ export class MessageCard extends BaseComponent {
 
     const messageRole = this.role;
     const icon = this.roleIcons[messageRole];
-    const isSidechain = 'isSidechain' in this.message && this.message.isSidechain;
+    const isSidechain =
+      "isSidechain" in this.message && this.message.isSidechain;
 
     // Handle different message types
-    if (this.message.type === 'summary') {
+    if (this.message.type === "summary") {
       return html`
         <div class="message-card summary">
           <div class="message-header">
@@ -723,20 +821,26 @@ export class MessageCard extends BaseComponent {
       `;
     }
 
-    if (this.message.type === 'system') {
+    if (this.message.type === "system") {
       return html`
-        <div class="message-card system ${isSidechain ? 'sidechain' : ''}">
-          ${isSidechain ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>` : ''}
+        <div class="message-card system ${isSidechain ? "sidechain" : ""}">
+          ${isSidechain
+            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
+            : ""}
           <div class="message-header">
             <div class="message-type">
               <span>${icon}</span>
               <span>System</span>
             </div>
-            ${this.showTimestamps ? html`
-              <div class="message-meta">
-                <span class="timestamp">${this.formatTimestamp(this.message.timestamp)}</span>
-              </div>
-            ` : ''}
+            ${this.showTimestamps
+              ? html`
+                  <div class="message-meta">
+                    <span class="timestamp"
+                      >${this.formatTimestamp(this.message.timestamp)}</span
+                    >
+                  </div>
+                `
+              : ""}
           </div>
           <div class="message-content">
             ${this.renderTextContent(this.message.content)}
@@ -745,60 +849,83 @@ export class MessageCard extends BaseComponent {
       `;
     }
 
-    if (this.message.type === 'user') {
+    if (this.message.type === "user") {
       return html`
-        <div class="message-card user ${isSidechain ? 'sidechain' : ''}">
-          ${isSidechain ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>` : ''}
+        <div class="message-card user ${isSidechain ? "sidechain" : ""}">
+          ${isSidechain
+            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
+            : ""}
           <div class="message-header">
             <div class="message-type">
               <span>${icon}</span>
               <span>User</span>
             </div>
-            ${this.showTimestamps ? html`
-              <div class="message-meta">
-                <span class="timestamp">${this.formatTimestamp(this.message.timestamp)}</span>
-              </div>
-            ` : ''}
+            ${this.showTimestamps
+              ? html`
+                  <div class="message-meta">
+                    <span class="timestamp"
+                      >${this.formatTimestamp(this.message.timestamp)}</span
+                    >
+                  </div>
+                `
+              : ""}
           </div>
           <div class="message-content">
-            ${this.message.message.content?.map((content, index) => this.renderContentItem(content, index))}
+            ${this.message.message.content?.map((content, index) =>
+              this.renderContentItem(content, index),
+            )}
           </div>
         </div>
       `;
     }
 
-    if (this.message.type === 'assistant') {
+    if (this.message.type === "assistant") {
       const usage = this.message.message.usage;
-      const tokenUsage = this.showTokenUsage && usage ? this.formatTokenUsage(usage) : '';
+      const tokenUsage =
+        this.showTokenUsage && usage ? this.formatTokenUsage(usage) : "";
 
       return html`
-        <div class="message-card assistant ${isSidechain ? 'sidechain' : ''}">
-          ${isSidechain ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>` : ''}
+        <div class="message-card assistant ${isSidechain ? "sidechain" : ""}">
+          ${isSidechain
+            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
+            : ""}
           <div class="message-header">
             <div class="message-type">
               <span>${icon}</span>
               <span>Assistant</span>
             </div>
-            ${this.showTimestamps || tokenUsage ? html`
-              <div class="message-meta">
-                ${this.showTimestamps ? html`<span class="timestamp">${this.formatTimestamp(this.message.timestamp)}</span>` : ''}
-                ${tokenUsage ? html`<span class="token-usage">${tokenUsage}</span>` : ''}
-              </div>
-            ` : ''}
+            ${this.showTimestamps || tokenUsage
+              ? html`
+                  <div class="message-meta">
+                    ${this.showTimestamps
+                      ? html`<span class="timestamp"
+                          >${this.formatTimestamp(this.message.timestamp)}</span
+                        >`
+                      : ""}
+                    ${tokenUsage
+                      ? html`<span class="token-usage">${tokenUsage}</span>`
+                      : ""}
+                  </div>
+                `
+              : ""}
           </div>
           <div class="message-content">
-            ${this.message.message.content?.map((content, index) => this.renderContentItem(content, index))}
+            ${this.message.message.content?.map((content, index) =>
+              this.renderContentItem(content, index),
+            )}
           </div>
         </div>
       `;
     }
 
-    return html`<div class="message-card unknown">Unknown message type: ${this.message.type}</div>`;
+    return html`<div class="message-card unknown">
+      Unknown message type: ${this.message.type}
+    </div>`;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'message-card': MessageCard;
+    "message-card": MessageCard;
   }
 }

@@ -3,8 +3,8 @@
  * Provides convenient validation functions with detailed error reporting.
  */
 
-import { z } from 'zod';
-import { 
+import { z } from "zod";
+import {
   ContentItemSchema,
   TranscriptEntrySchema,
   UserTranscriptEntrySchema,
@@ -15,7 +15,7 @@ import {
   ProjectSchema,
   UsageInfoSchema,
   TodoItemSchema,
-} from './index';
+} from "./index";
 
 // Validation result types
 export interface ValidationResult<T> {
@@ -36,13 +36,13 @@ export interface ValidationOptions {
 export function validateData<T>(
   schema: z.ZodSchema<T>,
   data: unknown,
-  options: ValidationOptions = {}
+  options: ValidationOptions = {},
 ): ValidationResult<T> {
   const { strict = true, stripUnknown = false, abortEarly = false } = options;
-  
+
   try {
     let processedSchema = schema;
-    
+
     if (stripUnknown && schema instanceof z.ZodObject) {
       processedSchema = schema.strip() as z.ZodSchema<T>;
     } else if (strict && schema instanceof z.ZodObject) {
@@ -50,15 +50,15 @@ export function validateData<T>(
     }
 
     const result = processedSchema.safeParse(data);
-    
+
     if (result.success) {
       return {
         success: true,
         data: result.data,
       };
     } else {
-      const errors = result.error.issues.map(issue => {
-        const path = issue.path.length > 0 ? ` at ${issue.path.join('.')}` : '';
+      const errors = result.error.issues.map((issue) => {
+        const path = issue.path.length > 0 ? ` at ${issue.path.join(".")}` : "";
         return `${issue.message}${path}`;
       });
       return {
@@ -69,7 +69,9 @@ export function validateData<T>(
   } catch (error) {
     return {
       success: false,
-      errors: [`Validation error: ${error instanceof Error ? error.message : String(error)}`],
+      errors: [
+        `Validation error: ${error instanceof Error ? error.message : String(error)}`,
+      ],
     };
   }
 }
@@ -77,70 +79,100 @@ export function validateData<T>(
 /**
  * Validate content item with detailed error reporting.
  */
-export function validateContentItem(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof ContentItemSchema>> {
+export function validateContentItem(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof ContentItemSchema>> {
   return validateData(ContentItemSchema, data, options);
 }
 
 /**
  * Validate transcript entry with type-specific validation.
  */
-export function validateTranscriptEntry(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof TranscriptEntrySchema>> {
+export function validateTranscriptEntry(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof TranscriptEntrySchema>> {
   return validateData(TranscriptEntrySchema, data, options);
 }
 
 /**
  * Validate user transcript entry.
  */
-export function validateUserTranscriptEntry(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof UserTranscriptEntrySchema>> {
+export function validateUserTranscriptEntry(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof UserTranscriptEntrySchema>> {
   return validateData(UserTranscriptEntrySchema, data, options);
 }
 
 /**
  * Validate assistant transcript entry.
  */
-export function validateAssistantTranscriptEntry(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof AssistantTranscriptEntrySchema>> {
+export function validateAssistantTranscriptEntry(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof AssistantTranscriptEntrySchema>> {
   return validateData(AssistantTranscriptEntrySchema, data, options);
 }
 
 /**
  * Validate summary transcript entry.
  */
-export function validateSummaryTranscriptEntry(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof SummaryTranscriptEntrySchema>> {
+export function validateSummaryTranscriptEntry(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof SummaryTranscriptEntrySchema>> {
   return validateData(SummaryTranscriptEntrySchema, data, options);
 }
 
 /**
  * Validate system transcript entry.
  */
-export function validateSystemTranscriptEntry(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof SystemTranscriptEntrySchema>> {
+export function validateSystemTranscriptEntry(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof SystemTranscriptEntrySchema>> {
   return validateData(SystemTranscriptEntrySchema, data, options);
 }
 
 /**
  * Validate session data.
  */
-export function validateSession(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof SessionSchema>> {
+export function validateSession(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof SessionSchema>> {
   return validateData(SessionSchema, data, options);
 }
 
 /**
  * Validate project data.
  */
-export function validateProject(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof ProjectSchema>> {
+export function validateProject(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof ProjectSchema>> {
   return validateData(ProjectSchema, data, options);
 }
 
 /**
  * Validate usage info.
  */
-export function validateUsageInfo(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof UsageInfoSchema>> {
+export function validateUsageInfo(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof UsageInfoSchema>> {
   return validateData(UsageInfoSchema, data, options);
 }
 
 /**
  * Validate todo item.
  */
-export function validateTodoItem(data: unknown, options?: ValidationOptions): ValidationResult<z.infer<typeof TodoItemSchema>> {
+export function validateTodoItem(
+  data: unknown,
+  options?: ValidationOptions,
+): ValidationResult<z.infer<typeof TodoItemSchema>> {
   return validateData(TodoItemSchema, data, options);
 }
 
@@ -149,7 +181,7 @@ export function validateTodoItem(data: unknown, options?: ValidationOptions): Va
  */
 export function validateTranscriptEntries(
   data: unknown,
-  options?: ValidationOptions
+  options?: ValidationOptions,
 ): ValidationResult<z.infer<typeof TranscriptEntrySchema>[]> {
   return validateData(z.array(TranscriptEntrySchema), data, options);
 }
@@ -160,10 +192,17 @@ export function validateTranscriptEntries(
 export function validateBatch<T>(
   schema: z.ZodSchema<T>,
   dataArray: unknown[],
-  options?: ValidationOptions
-): { validEntries: T[]; invalidEntries: Array<{ index: number; data: unknown; errors: string[] }> } {
+  options?: ValidationOptions,
+): {
+  validEntries: T[];
+  invalidEntries: Array<{ index: number; data: unknown; errors: string[] }>;
+} {
   const validEntries: T[] = [];
-  const invalidEntries: Array<{ index: number; data: unknown; errors: string[] }> = [];
+  const invalidEntries: Array<{
+    index: number;
+    data: unknown;
+    errors: string[];
+  }> = [];
 
   dataArray.forEach((item, index) => {
     const result = validateData(schema, item, options);
@@ -173,7 +212,7 @@ export function validateBatch<T>(
       invalidEntries.push({
         index,
         data: item,
-        errors: result.errors || ['Unknown validation error'],
+        errors: result.errors || ["Unknown validation error"],
       });
     }
   });
@@ -193,7 +232,7 @@ export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
     } else {
       res.status(400).json({
         success: false,
-        error: 'Validation failed',
+        error: "Validation failed",
         details: result.errors,
       });
     }
@@ -203,7 +242,10 @@ export function createValidationMiddleware<T>(schema: z.ZodSchema<T>) {
 /**
  * Performance-optimized validation for production use.
  */
-export function fastValidate<T>(schema: z.ZodSchema<T>, data: unknown): T | null {
+export function fastValidate<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+): T | null {
   try {
     return schema.parse(data);
   } catch {

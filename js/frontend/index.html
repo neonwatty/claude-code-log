@@ -1,12 +1,161 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Code Log</title>
-</head>
-<body>
-  <app-main></app-main>
-  <script type="module" src="./src/app.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Code Log</title>
+    
+    <!-- PWA and Offline Support -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="Claude Code Log - Real-time session visualization and analysis with offline support" />
+    
+    <!-- Service Worker preload for better performance -->
+    <link rel="preload" href="./src/sw.js" as="script" />
+    
+    <!-- Offline fallback styling -->
+    <style>
+      .offline-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #f59e0b;
+        color: white;
+        text-align: center;
+        padding: 8px;
+        font-size: 14px;
+        z-index: 9999;
+        transform: translateY(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .offline-indicator.visible {
+        transform: translateY(0);
+      }
+      
+      body.offline .offline-indicator {
+        transform: translateY(0);
+      }
+      
+      /* Loading state for when service worker is installing */
+      .sw-loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        display: none;
+      }
+      
+      .sw-loading.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Offline indicator -->
+    <div id="offline-indicator" class="offline-indicator">
+      📱 You're offline - Cached content is available
+    </div>
+    
+    <!-- Service worker loading indicator -->
+    <div id="sw-loading" class="sw-loading">
+      <p>🔄 Setting up offline support...</p>
+    </div>
+    
+    <app-main></app-main>
+    <script type="module" src="./src/app.ts"></script>
+    
+    <!-- Offline support script -->
+    <script>
+      // Simple offline detection and UI updates
+      function updateOfflineStatus() {
+        const offlineIndicator = document.getElementById('offline-indicator');
+        const body = document.body;
+        
+        if (navigator.onLine) {
+          body.classList.remove('offline');
+          offlineIndicator.classList.remove('visible');
+        } else {
+          body.classList.add('offline');
+          offlineIndicator.classList.add('visible');
+        }
+      }
+      
+      // Listen for online/offline events
+      window.addEventListener('online', updateOfflineStatus);
+      window.addEventListener('offline', updateOfflineStatus);
+      
+      // Initial status check
+      updateOfflineStatus();
+      
+      // Service worker installation feedback
+      if ('serviceWorker' in navigator) {
+        const swLoading = document.getElementById('sw-loading');
+        
+        // Show loading during service worker registration
+        swLoading.classList.add('visible');
+        
+        navigator.serviceWorker.register('./src/sw.js')
+          .then((registration) => {
+            console.log('SW registered from HTML:', registration.scope);
+            swLoading.classList.remove('visible');
+            
+            // Listen for service worker updates
+            if (registration.waiting) {
+              // New service worker is waiting
+              showUpdateAvailable();
+            }
+            
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    showUpdateAvailable();
+                  }
+                });
+              }
+            });
+          })
+          .catch((error) => {
+            console.error('SW registration failed from HTML:', error);
+            swLoading.classList.remove('visible');
+          });
+      }
+      
+      function showUpdateAvailable() {
+        const updateBanner = document.createElement('div');
+        updateBanner.innerHTML = `
+          <div style="
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2563eb;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9998;
+          ">
+            <p style="margin: 0 0 8px 0;">🚀 New version available!</p>
+            <button onclick="window.location.reload()" style="
+              background: white;
+              color: #2563eb;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 4px;
+              cursor: pointer;
+              font-weight: 600;
+            ">Update Now</button>
+          </div>
+        `;
+        document.body.appendChild(updateBanner);
+      }
+    </script>
+  </body>
 </html>

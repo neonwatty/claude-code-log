@@ -3,8 +3,8 @@
 export interface ITodoItem {
   id: string;
   content: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  priority: 'high' | 'medium' | 'low';
+  status: "pending" | "in_progress" | "completed";
+  priority: "high" | "medium" | "low";
 }
 
 export interface IUsageInfo {
@@ -18,58 +18,58 @@ export interface IUsageInfo {
 
 // Content types matching Python ContentItem union
 export interface ITextContent {
-  type: 'text';
+  type: "text";
   text: string;
 }
 
 export interface IToolUseContent {
-  type: 'tool_use';
+  type: "tool_use";
   id: string;
   name: string;
   input: Record<string, any>;
 }
 
 export interface IToolResultContent {
-  type: 'tool_result';
+  type: "tool_result";
   tool_use_id: string;
   content: string | Array<Record<string, any>>;
   is_error?: boolean;
 }
 
 export interface IThinkingContent {
-  type: 'thinking';
+  type: "thinking";
   thinking: string;
   signature?: string;
 }
 
 export interface IImageSource {
-  type: 'base64';
+  type: "base64";
   media_type: string;
   data: string;
 }
 
 export interface IImageContent {
-  type: 'image';
+  type: "image";
   source: IImageSource;
 }
 
-export type IContentItem = 
-  | ITextContent 
-  | IToolUseContent 
-  | IToolResultContent 
-  | IThinkingContent 
+export type IContentItem =
+  | ITextContent
+  | IToolUseContent
+  | IToolResultContent
+  | IThinkingContent
   | IImageContent;
 
 // Message interfaces
 export interface IUserMessage {
-  role: 'user';
+  role: "user";
   content: string | IContentItem[];
 }
 
 export interface IAssistantMessage {
   id: string;
-  type: 'message';
-  role: 'assistant';
+  type: "message";
+  role: "assistant";
   model: string;
   content: IContentItem[];
   stop_reason?: string;
@@ -87,7 +87,7 @@ export interface IFileInfo {
 }
 
 export interface IFileReadResult {
-  type: 'text';
+  type: "text";
   file: IFileInfo;
 }
 
@@ -112,13 +112,13 @@ export interface IEditResult {
   userModified?: boolean;
 }
 
-export type IToolUseResult = 
-  | string 
-  | ITodoItem[] 
-  | IFileReadResult 
-  | ICommandResult 
-  | ITodoResult 
-  | IEditResult 
+export type IToolUseResult =
+  | string
+  | ITodoItem[]
+  | IFileReadResult
+  | ICommandResult
+  | ITodoResult
+  | IEditResult
   | IContentItem[];
 
 // Base transcript entry
@@ -136,34 +136,34 @@ export interface IBaseTranscriptEntry {
 
 // Transcript entry types
 export interface IUserTranscriptEntry extends IBaseTranscriptEntry {
-  type: 'user';
+  type: "user";
   message: IUserMessage;
   toolUseResult?: IToolUseResult;
 }
 
 export interface IAssistantTranscriptEntry extends IBaseTranscriptEntry {
-  type: 'assistant';
+  type: "assistant";
   message: IAssistantMessage;
   requestId?: string;
 }
 
 export interface ISummaryTranscriptEntry {
-  type: 'summary';
+  type: "summary";
   summary: string;
   leafUuid: string;
   cwd?: string;
 }
 
 export interface ISystemTranscriptEntry extends IBaseTranscriptEntry {
-  type: 'system';
+  type: "system";
   content: string;
   level?: string; // 'warning', 'info', 'error'
 }
 
-export type ITranscriptEntry = 
-  | IUserTranscriptEntry 
-  | IAssistantTranscriptEntry 
-  | ISummaryTranscriptEntry 
+export type ITranscriptEntry =
+  | IUserTranscriptEntry
+  | IAssistantTranscriptEntry
+  | ISummaryTranscriptEntry
   | ISystemTranscriptEntry;
 
 // Session management interfaces
@@ -193,13 +193,95 @@ export interface User {
   createdAt: string;
 }
 
-// Log entry interface for frontend demo data  
+// Log entry interface for frontend demo data
 export interface LogEntry {
   id: string;
   userId?: string;
   message: string;
   timestamp: string;
-  level: 'info' | 'warning' | 'error' | 'debug';
+  level: "info" | "warning" | "error" | "debug";
+}
+
+// Export interfaces matching Zod schemas
+export type ExportFormat = "html" | "markdown" | "json" | "pdf";
+
+export interface IExportOptions {
+  format: ExportFormat;
+  includeMetadata?: boolean;
+  includeThinking?: boolean;
+  includeToolUse?: boolean;
+  includeImages?: boolean;
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  messageTypes?: Array<"user" | "assistant" | "summary" | "system">;
+  customTemplate?: string;
+  compressionLevel?: number;
+}
+
+export interface IExportRequest {
+  sessionId?: string;
+  sessionIds?: string[];
+  messageIds?: string[];
+  projectName?: string;
+  options: IExportOptions;
+}
+
+export interface IExportProgress {
+  stage: "preparing" | "processing" | "generating" | "streaming" | "completed" | "error";
+  progress: number;
+  currentItem?: string;
+  totalItems?: number;
+  processedItems?: number;
+  message?: string;
+  bytesProcessed?: number;
+  estimatedSize?: number;
+}
+
+export interface IExportMetadata {
+  sessionCount: number;
+  messageCount: number;
+  generatedAt: string;
+  processingTime: number;
+  options: IExportOptions;
+}
+
+export interface IExportResult {
+  success: boolean;
+  exportId: string;
+  format: ExportFormat;
+  filename: string;
+  size: number;
+  url?: string;
+  downloadToken?: string;
+  expiresAt?: string;
+  metadata: IExportMetadata;
+  error?: string;
+}
+
+export interface IExportStatus {
+  exportId: string;
+  status: "pending" | "processing" | "completed" | "failed" | "expired";
+  progress: IExportProgress;
+  result?: IExportResult;
+  createdAt: string;
+  completedAt?: string;
+  error?: string;
+}
+
+export interface IExportMetrics {
+  totalExports: number;
+  successfulExports: number;
+  failedExports: number;
+  averageProcessingTime: number;
+  totalDataExported: number;
+  activeExports: number;
+}
+
+export interface IDownloadRequest {
+  exportId: string;
+  token: string;
 }
 
 // API response interface (already exists but included for completeness)

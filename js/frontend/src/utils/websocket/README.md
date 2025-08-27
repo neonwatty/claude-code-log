@@ -12,9 +12,9 @@ All WebSocket messages follow this base structure:
 
 ```typescript
 interface BaseMessage {
-  type: MessageType;        // Message type identifier
-  timestamp: string;        // ISO 8601 timestamp
-  id: string;              // Unique message ID (UUID)
+  type: MessageType; // Message type identifier
+  timestamp: string; // ISO 8601 timestamp
+  id: string; // Unique message ID (UUID)
 }
 ```
 
@@ -23,11 +23,12 @@ interface BaseMessage {
 The protocol defines four core message types for session management:
 
 #### 1. SESSION_CREATED
+
 Sent when a new session is created.
 
 ```typescript
 interface SessionCreatedMessage {
-  type: 'SESSION_CREATED';
+  type: "SESSION_CREATED";
   timestamp: string;
   id: string;
   payload: {
@@ -44,17 +45,18 @@ interface SessionCreatedMessage {
 ```
 
 #### 2. SESSION_UPDATED
+
 Sent when an existing session is modified.
 
 ```typescript
 interface SessionUpdatedMessage {
-  type: 'SESSION_UPDATED';
+  type: "SESSION_UPDATED";
   timestamp: string;
   id: string;
   payload: {
     session: SessionData;
     changes: {
-      fields: string[];                    // List of changed fields
+      fields: string[]; // List of changed fields
       previousValues?: Partial<SessionData>; // Previous values for tracking
     };
   };
@@ -62,11 +64,12 @@ interface SessionUpdatedMessage {
 ```
 
 #### 3. SESSION_DELETED
+
 Sent when a session is removed.
 
 ```typescript
 interface SessionDeletedMessage {
-  type: 'SESSION_DELETED';
+  type: "SESSION_DELETED";
   timestamp: string;
   id: string;
   payload: {
@@ -77,16 +80,17 @@ interface SessionDeletedMessage {
 ```
 
 #### 4. CACHE_INVALIDATED
+
 Sent when caches need to be invalidated.
 
 ```typescript
 interface CacheInvalidatedMessage {
-  type: 'CACHE_INVALIDATED';
+  type: "CACHE_INVALIDATED";
   timestamp: string;
   id: string;
   payload: {
-    scope: 'all' | 'session' | 'specific';
-    sessionIds?: string[];  // For specific invalidation
+    scope: "all" | "session" | "specific";
+    sessionIds?: string[]; // For specific invalidation
     reason: string;
   };
 }
@@ -105,12 +109,14 @@ When sending messages from the backend, ensure:
 
 ```typescript
 // Example backend message creation
-function createSessionCreatedMessage(session: SessionData): SessionCreatedMessage {
+function createSessionCreatedMessage(
+  session: SessionData,
+): SessionCreatedMessage {
   return {
-    type: 'SESSION_CREATED',
+    type: "SESSION_CREATED",
     timestamp: new Date().toISOString(),
     id: crypto.randomUUID(),
-    payload: { session }
+    payload: { session },
   };
 }
 ```
@@ -144,16 +150,16 @@ When message processing fails:
 try {
   await processMessage(message);
 } catch (error) {
-  console.error('Message processing failed:', {
+  console.error("Message processing failed:", {
     messageId: message.id,
     messageType: message.type,
-    error: error.message
+    error: error.message,
   });
-  
+
   // Optionally send error response
   sendErrorResponse(clientId, {
     originalMessageId: message.id,
-    error: 'Processing failed'
+    error: "Processing failed",
   });
 }
 ```
@@ -165,10 +171,10 @@ try {
 For Lit components, use the `WebSocketController` for reactive property updates:
 
 ```typescript
-import { WebSocketController } from './utils/websocket/websocket-controller';
-import { BaseComponent } from '../components/base/base-component';
+import { WebSocketController } from "./utils/websocket/websocket-controller";
+import { BaseComponent } from "../components/base/base-component";
 
-@customElement('my-component')
+@customElement("my-component")
 export class MyComponent extends BaseComponent {
   @property({ type: Array })
   sessions: SessionData[] = [];
@@ -180,9 +186,9 @@ export class MyComponent extends BaseComponent {
     this.webSocketController = new WebSocketController(this, undefined, {
       debug: true,
       debounceMs: 250,
-      optimisticUpdates: true
+      optimisticUpdates: true,
     });
-    
+
     // Subscribe to session updates
     this.webSocketController.onSessionCreated((session) => {
       this.sessions = [...this.sessions, session];
@@ -196,20 +202,20 @@ export class MyComponent extends BaseComponent {
 Use the Higher Order Component pattern for simpler integration:
 
 ```typescript
-import { withWebSocket } from './utils/websocket/websocket-controller';
+import { withWebSocket } from "./utils/websocket/websocket-controller";
 
 const WebSocketEnabledComponent = withWebSocket(BaseComponent, {
   debug: true,
-  optimisticUpdates: true
+  optimisticUpdates: true,
 });
 
-@customElement('enhanced-component')
+@customElement("enhanced-component")
 export class EnhancedComponent extends WebSocketEnabledComponent {
   // Automatic WebSocket integration with this.webSocketController
-  
+
   protected override firstUpdated() {
     this.webSocketController.onSessionCreated((session) => {
-      this.updateFromWebSocket('sessions', [...this.sessions, session]);
+      this.updateFromWebSocket("sessions", [...this.sessions, session]);
     });
   }
 }
@@ -220,12 +226,12 @@ export class EnhancedComponent extends WebSocketEnabledComponent {
 For custom WebSocket handling, use the message utilities:
 
 ```typescript
-import { 
-  deserializeMessage, 
-  isValidMessage, 
+import {
+  deserializeMessage,
+  isValidMessage,
   MessageHandlerRegistry,
-  isSessionCreatedMessage 
-} from './utils/websocket/message-handlers';
+  isSessionCreatedMessage,
+} from "./utils/websocket/message-handlers";
 
 // Create handler registry
 const registry = new MessageHandlerRegistry();
@@ -245,7 +251,7 @@ websocket.onmessage = (event) => {
       registry.processMessage(message);
     }
   } catch (error) {
-    console.error('Failed to process message:', error);
+    console.error("Failed to process message:", error);
   }
 };
 ```
@@ -260,10 +266,10 @@ Perform optimistic UI updates that can be rolled back on failure:
 
 ```typescript
 // Perform optimistic update
-this.webSocketController.optimisticUpdate('sessions', newSessionsArray, 5000);
+this.webSocketController.optimisticUpdate("sessions", newSessionsArray, 5000);
 
 // Confirm the update (prevents rollback)
-this.webSocketController.confirmOptimisticUpdate('sessions');
+this.webSocketController.confirmOptimisticUpdate("sessions");
 
 // Or let it rollback automatically after timeout
 ```
@@ -274,7 +280,7 @@ Prevent UI thrashing from rapid WebSocket messages:
 
 ```typescript
 const controller = new WebSocketController(this, undefined, {
-  debounceMs: 250 // Debounce updates for 250ms
+  debounceMs: 250, // Debounce updates for 250ms
 });
 ```
 
@@ -288,7 +294,7 @@ const connectionState = this.webSocketController.getConnectionState();
 
 // Render connection status
 html`
-  <div class="status ${isConnected ? 'connected' : 'disconnected'}">
+  <div class="status ${isConnected ? "connected" : "disconnected"}">
     ${connectionState}
   </div>
 `;
@@ -303,20 +309,20 @@ The controller automatically triggers Lit's reactive update cycle only when nece
 Use type guards for runtime type checking:
 
 ```typescript
-import { 
+import {
   isSessionCreatedMessage,
   isSessionUpdatedMessage,
   isSessionDeletedMessage,
-  isCacheInvalidatedMessage 
-} from './utils/websocket/message-handlers';
+  isCacheInvalidatedMessage,
+} from "./utils/websocket/message-handlers";
 
 function handleMessage(message: WebSocketMessage) {
   if (isSessionCreatedMessage(message)) {
     // TypeScript knows this is SessionCreatedMessage
-    console.log('New session:', message.payload.session.sessionId);
+    console.log("New session:", message.payload.session.sessionId);
   } else if (isSessionUpdatedMessage(message)) {
     // TypeScript knows this is SessionUpdatedMessage
-    console.log('Updated fields:', message.payload.changes.fields);
+    console.log("Updated fields:", message.payload.changes.fields);
   }
   // ... etc
 }
@@ -346,11 +352,11 @@ Existing message types are preserved for backward compatibility:
 All messages are validated at runtime using:
 
 ```typescript
-import { validateMessage } from './utils/websocket/message-handlers';
+import { validateMessage } from "./utils/websocket/message-handlers";
 
 const error = validateMessage(incomingData);
 if (error) {
-  console.error('Invalid message:', error);
+  console.error("Invalid message:", error);
   return;
 }
 ```
@@ -386,12 +392,12 @@ Each message type has a defined schema in `MESSAGE_SCHEMAS` for:
 Test message creation, validation, and handling:
 
 ```typescript
-import { createBaseMessage, validateMessage } from './message-handlers';
+import { createBaseMessage, validateMessage } from "./message-handlers";
 
-describe('Message Protocol', () => {
-  it('should create valid base message', () => {
+describe("Message Protocol", () => {
+  it("should create valid base message", () => {
     const message = createBaseMessage(MessageType.SESSION_CREATED);
-    expect(message.type).toBe('SESSION_CREATED');
+    expect(message.type).toBe("SESSION_CREATED");
     expect(message.timestamp).toBeDefined();
     expect(message.id).toBeDefined();
   });
@@ -408,12 +414,13 @@ Enable debug logging by setting `debug: true` in WebSocket configuration:
 
 ```typescript
 const config = {
-  url: 'ws://localhost:8080',
-  debug: true  // Enables detailed logging
+  url: "ws://localhost:8080",
+  debug: true, // Enables detailed logging
 };
 ```
 
 Debug information includes:
+
 - Message serialization/deserialization
 - Validation results
 - Handler execution timing

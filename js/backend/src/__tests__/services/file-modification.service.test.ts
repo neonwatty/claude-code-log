@@ -1,16 +1,16 @@
-import { FileModificationService } from '../../services/file-modification.service';
-import * as fs from 'fs/promises';
-import * as fsSync from 'fs';
-import * as path from 'path';
+import { FileModificationService } from "../../services/file-modification.service";
+import * as fs from "fs/promises";
+import * as fsSync from "fs";
+import * as path from "path";
 
 // Mock dependencies
-vi.mock('fs/promises');
-vi.mock('fs');
+vi.mock("fs/promises");
+vi.mock("fs");
 
 const mockFs = vi.mocked(fs);
 const mockFsSync = vi.mocked(fsSync);
 
-describe('FileModificationService', () => {
+describe("FileModificationService", () => {
   let service: FileModificationService;
 
   beforeEach(() => {
@@ -22,20 +22,20 @@ describe('FileModificationService', () => {
     await service.shutdown();
   });
 
-  describe('Singleton Pattern', () => {
-    it('should return the same instance', () => {
+  describe("Singleton Pattern", () => {
+    it("should return the same instance", () => {
       const instance1 = FileModificationService.getInstance();
       const instance2 = FileModificationService.getInstance();
       expect(instance1).toBe(instance2);
     });
   });
 
-  describe('File Tracking', () => {
-    it('should track a single file', async () => {
-      const filePath = '/test/file.jsonl';
+  describe("File Tracking", () => {
+    it("should track a single file", async () => {
+      const filePath = "/test/file.jsonl";
       const mockStats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       mockFs.stat.mockResolvedValue(mockStats as any);
@@ -48,10 +48,10 @@ describe('FileModificationService', () => {
       expect(result.exists).toBe(true);
     });
 
-    it('should handle non-existent files', async () => {
-      const filePath = '/test/missing.jsonl';
+    it("should handle non-existent files", async () => {
+      const filePath = "/test/missing.jsonl";
 
-      mockFs.stat.mockRejectedValue(new Error('File not found'));
+      mockFs.stat.mockRejectedValue(new Error("File not found"));
 
       const result = await service.trackFile(filePath);
 
@@ -60,35 +60,35 @@ describe('FileModificationService', () => {
       expect(result.mtime).toBe(0);
     });
 
-    it('should emit file_deleted event for missing files', async () => {
-      const filePath = '/test/missing.jsonl';
+    it("should emit file_deleted event for missing files", async () => {
+      const filePath = "/test/missing.jsonl";
       const eventSpy = vi.fn();
 
-      service.on('fileModificationEvent', eventSpy);
-      mockFs.stat.mockRejectedValue(new Error('File not found'));
+      service.on("fileModificationEvent", eventSpy);
+      mockFs.stat.mockRejectedValue(new Error("File not found"));
 
       await service.trackFile(filePath);
 
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'file_deleted',
-          filePath: path.resolve(filePath)
-        })
+          type: "file_deleted",
+          filePath: path.resolve(filePath),
+        }),
       );
     });
   });
 
-  describe('Directory Tracking', () => {
-    it('should track files in a directory', async () => {
-      const dirPath = '/test/dir';
+  describe("Directory Tracking", () => {
+    it("should track files in a directory", async () => {
+      const dirPath = "/test/dir";
       const mockEntries = [
-        { name: 'file1.jsonl', isFile: () => true, isDirectory: () => false },
-        { name: 'file2.jsonl', isFile: () => true, isDirectory: () => false },
-        { name: 'subdir', isFile: () => false, isDirectory: () => true }
+        { name: "file1.jsonl", isFile: () => true, isDirectory: () => false },
+        { name: "file2.jsonl", isFile: () => true, isDirectory: () => false },
+        { name: "subdir", isFile: () => false, isDirectory: () => true },
       ];
       const mockStats = {
         size: 512,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       mockFs.readdir.mockResolvedValue(mockEntries as any);
@@ -98,20 +98,20 @@ describe('FileModificationService', () => {
       const files = await service.trackDirectory(dirPath, options);
 
       expect(files).toHaveLength(2);
-      expect(files).toContain(path.join(dirPath, 'file1.jsonl'));
-      expect(files).toContain(path.join(dirPath, 'file2.jsonl'));
+      expect(files).toContain(path.join(dirPath, "file1.jsonl"));
+      expect(files).toContain(path.join(dirPath, "file2.jsonl"));
     });
 
-    it('should respect ignore patterns', async () => {
-      const dirPath = '/test/dir';
+    it("should respect ignore patterns", async () => {
+      const dirPath = "/test/dir";
       const mockEntries = [
-        { name: 'file1.jsonl', isFile: () => true, isDirectory: () => false },
-        { name: 'temp.jsonl', isFile: () => true, isDirectory: () => false },
-        { name: 'backup.jsonl', isFile: () => true, isDirectory: () => false }
+        { name: "file1.jsonl", isFile: () => true, isDirectory: () => false },
+        { name: "temp.jsonl", isFile: () => true, isDirectory: () => false },
+        { name: "backup.jsonl", isFile: () => true, isDirectory: () => false },
       ];
       const mockStats = {
         size: 512,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       mockFs.readdir.mockResolvedValue(mockEntries as any);
@@ -120,26 +120,26 @@ describe('FileModificationService', () => {
       const options = {
         recursive: false,
         pattern: /\.jsonl$/,
-        ignorePatterns: [/temp/, /backup/]
+        ignorePatterns: [/temp/, /backup/],
       };
       const files = await service.trackDirectory(dirPath, options);
 
       expect(files).toHaveLength(1);
-      expect(files).toContain(path.join(dirPath, 'file1.jsonl'));
+      expect(files).toContain(path.join(dirPath, "file1.jsonl"));
     });
 
-    it('should handle recursive directory traversal', async () => {
-      const dirPath = '/test/dir';
+    it("should handle recursive directory traversal", async () => {
+      const dirPath = "/test/dir";
       const rootEntries = [
-        { name: 'file1.jsonl', isFile: () => true, isDirectory: () => false },
-        { name: 'subdir', isFile: () => false, isDirectory: () => true }
+        { name: "file1.jsonl", isFile: () => true, isDirectory: () => false },
+        { name: "subdir", isFile: () => false, isDirectory: () => true },
       ];
       const subEntries = [
-        { name: 'file2.jsonl', isFile: () => true, isDirectory: () => false }
+        { name: "file2.jsonl", isFile: () => true, isDirectory: () => false },
       ];
       const mockStats = {
         size: 512,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       mockFs.readdir
@@ -151,21 +151,21 @@ describe('FileModificationService', () => {
       const files = await service.trackDirectory(dirPath, options);
 
       expect(files).toHaveLength(2);
-      expect(files).toContain(path.join(dirPath, 'file1.jsonl'));
-      expect(files).toContain(path.join(dirPath, 'subdir', 'file2.jsonl'));
+      expect(files).toContain(path.join(dirPath, "file1.jsonl"));
+      expect(files).toContain(path.join(dirPath, "subdir", "file2.jsonl"));
     });
   });
 
-  describe('File Modification Detection', () => {
-    it('should detect when file is modified', async () => {
-      const filePath = '/test/file.jsonl';
+  describe("File Modification Detection", () => {
+    it("should detect when file is modified", async () => {
+      const filePath = "/test/file.jsonl";
       const oldStats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
       const newStats = {
         size: 2048,
-        mtime: new Date('2023-01-01T11:00:00Z')
+        mtime: new Date("2023-01-01T11:00:00Z"),
       };
 
       // First call - track the file
@@ -177,15 +177,15 @@ describe('FileModificationService', () => {
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(true);
-      expect(result.changeType).toBe('modified');
+      expect(result.changeType).toBe("modified");
       expect(result.currentStats?.size).toBe(2048);
     });
 
-    it('should detect when file is created', async () => {
-      const filePath = '/test/newfile.jsonl';
+    it("should detect when file is created", async () => {
+      const filePath = "/test/newfile.jsonl";
       const newStats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       mockFs.stat.mockResolvedValue(newStats as any);
@@ -193,14 +193,14 @@ describe('FileModificationService', () => {
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(true);
-      expect(result.changeType).toBe('created');
+      expect(result.changeType).toBe("created");
     });
 
-    it('should detect when file is deleted', async () => {
-      const filePath = '/test/file.jsonl';
+    it("should detect when file is deleted", async () => {
+      const filePath = "/test/file.jsonl";
       const oldStats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       // First call - track the file
@@ -208,18 +208,18 @@ describe('FileModificationService', () => {
       await service.trackFile(filePath);
 
       // Second call - file no longer exists
-      mockFs.stat.mockRejectedValueOnce(new Error('File not found'));
+      mockFs.stat.mockRejectedValueOnce(new Error("File not found"));
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(true);
-      expect(result.changeType).toBe('deleted');
+      expect(result.changeType).toBe("deleted");
     });
 
-    it('should return unchanged for identical files', async () => {
-      const filePath = '/test/file.jsonl';
+    it("should return unchanged for identical files", async () => {
+      const filePath = "/test/file.jsonl";
       const stats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
 
       // Track the file twice with same stats
@@ -229,22 +229,22 @@ describe('FileModificationService', () => {
       const result = await service.checkFileModification(filePath);
 
       expect(result.hasChanged).toBe(false);
-      expect(result.changeType).toBe('unchanged');
+      expect(result.changeType).toBe("unchanged");
     });
 
-    it('should emit file modification events', async () => {
-      const filePath = '/test/file.jsonl';
+    it("should emit file modification events", async () => {
+      const filePath = "/test/file.jsonl";
       const eventSpy = vi.fn();
       const oldStats = {
         size: 1024,
-        mtime: new Date('2023-01-01T10:00:00Z')
+        mtime: new Date("2023-01-01T10:00:00Z"),
       };
       const newStats = {
         size: 2048,
-        mtime: new Date('2023-01-01T11:00:00Z')
+        mtime: new Date("2023-01-01T11:00:00Z"),
       };
 
-      service.on('fileModificationEvent', eventSpy);
+      service.on("fileModificationEvent", eventSpy);
 
       // Track the file
       mockFs.stat.mockResolvedValueOnce(oldStats as any);
@@ -256,19 +256,23 @@ describe('FileModificationService', () => {
 
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'file_changed',
-          filePath: path.resolve(filePath)
-        })
+          type: "file_changed",
+          filePath: path.resolve(filePath),
+        }),
       );
     });
   });
 
-  describe('Batch File Checking', () => {
-    it('should check multiple files in batch', async () => {
-      const filePaths = ['/test/file1.jsonl', '/test/file2.jsonl', '/test/file3.jsonl'];
-      const stats1 = { size: 1024, mtime: new Date('2023-01-01T10:00:00Z') };
-      const stats2 = { size: 2048, mtime: new Date('2023-01-01T11:00:00Z') };
-      const stats3 = { size: 512, mtime: new Date('2023-01-01T12:00:00Z') };
+  describe("Batch File Checking", () => {
+    it("should check multiple files in batch", async () => {
+      const filePaths = [
+        "/test/file1.jsonl",
+        "/test/file2.jsonl",
+        "/test/file3.jsonl",
+      ];
+      const stats1 = { size: 1024, mtime: new Date("2023-01-01T10:00:00Z") };
+      const stats2 = { size: 2048, mtime: new Date("2023-01-01T11:00:00Z") };
+      const stats3 = { size: 512, mtime: new Date("2023-01-01T12:00:00Z") };
 
       // Track files first
       mockFs.stat
@@ -281,7 +285,7 @@ describe('FileModificationService', () => {
       }
 
       // Modify file2
-      const newStats2 = { size: 4096, mtime: new Date('2023-01-01T13:00:00Z') };
+      const newStats2 = { size: 4096, mtime: new Date("2023-01-01T13:00:00Z") };
       mockFs.stat
         .mockResolvedValueOnce(stats1 as any) // file1 unchanged
         .mockResolvedValueOnce(newStats2 as any) // file2 changed
@@ -295,9 +299,9 @@ describe('FileModificationService', () => {
       expect(result.changedFiles[0]).toBe(filePaths[1]);
     });
 
-    it('should handle batch check with Promise.allSettled', async () => {
-      const filePaths = ['/test/file1.jsonl', '/test/error.jsonl'];
-      const stats1 = { size: 1024, mtime: new Date('2023-01-01T10:00:00Z') };
+    it("should handle batch check with Promise.allSettled", async () => {
+      const filePaths = ["/test/file1.jsonl", "/test/error.jsonl"];
+      const stats1 = { size: 1024, mtime: new Date("2023-01-01T10:00:00Z") };
 
       // Track first file successfully
       mockFs.stat.mockResolvedValueOnce(stats1 as any);
@@ -307,7 +311,7 @@ describe('FileModificationService', () => {
       mockFs.stat.mockReset();
       mockFs.stat
         .mockResolvedValueOnce(stats1 as any) // For file1.jsonl - should be unchanged (same stats)
-        .mockRejectedValueOnce(new Error('Permission denied')); // For error.jsonl
+        .mockRejectedValueOnce(new Error("Permission denied")); // For error.jsonl
 
       const result = await service.batchCheckFiles(filePaths);
 
@@ -315,12 +319,12 @@ describe('FileModificationService', () => {
       expect(result.unchangedFiles).toContain(filePaths[0]);
     });
 
-    it('should emit batch_complete event', async () => {
-      const filePaths = ['/test/file1.jsonl'];
+    it("should emit batch_complete event", async () => {
+      const filePaths = ["/test/file1.jsonl"];
       const eventSpy = vi.fn();
-      const stats = { size: 1024, mtime: new Date('2023-01-01T10:00:00Z') };
+      const stats = { size: 1024, mtime: new Date("2023-01-01T10:00:00Z") };
 
-      service.on('fileModificationEvent', eventSpy);
+      service.on("fileModificationEvent", eventSpy);
 
       mockFs.stat.mockResolvedValue(stats as any);
       await service.trackFile(filePaths[0]);
@@ -329,16 +333,16 @@ describe('FileModificationService', () => {
 
       expect(eventSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'batch_complete',
-          batchResult: result
-        })
+          type: "batch_complete",
+          batchResult: result,
+        }),
       );
     });
   });
 
-  describe('Synchronous Batch Checking', () => {
-    it('should perform synchronous batch check', () => {
-      const filePaths = ['/test/file1.jsonl', '/test/file2.jsonl'];
+  describe("Synchronous Batch Checking", () => {
+    it("should perform synchronous batch check", () => {
+      const filePaths = ["/test/file1.jsonl", "/test/file2.jsonl"];
       const stats1 = { size: 1024, mtime: { getTime: () => 1640995200000 } };
       const stats2 = { size: 2048, mtime: { getTime: () => 1640995300000 } };
 
@@ -354,14 +358,14 @@ describe('FileModificationService', () => {
       expect(result.checkDurationMs).toBeGreaterThanOrEqual(0);
     });
 
-    it('should handle sync errors gracefully', () => {
-      const filePaths = ['/test/file1.jsonl', '/test/error.jsonl'];
+    it("should handle sync errors gracefully", () => {
+      const filePaths = ["/test/file1.jsonl", "/test/error.jsonl"];
       const stats1 = { size: 1024, mtime: { getTime: () => 1640995200000 } };
 
       mockFsSync.statSync
         .mockReturnValueOnce(stats1 as any)
         .mockImplementationOnce(() => {
-          throw new Error('Permission denied');
+          throw new Error("Permission denied");
         });
 
       const result = service.batchCheckFilesSync(filePaths);
@@ -371,44 +375,50 @@ describe('FileModificationService', () => {
     });
   });
 
-  describe('Cache Invalidation Support', () => {
-    it('should determine if cache invalidation is needed', () => {
-      const filePath = '/test/file.jsonl';
+  describe("Cache Invalidation Support", () => {
+    it("should determine if cache invalidation is needed", () => {
+      const filePath = "/test/file.jsonl";
       const currentMtime = 1640995200000;
       const cachedMtime = 1640995100000; // Earlier
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime: currentMtime,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
 
-      const needsInvalidation = service.needsCacheInvalidation(filePath, cachedMtime);
+      const needsInvalidation = service.needsCacheInvalidation(
+        filePath,
+        cachedMtime,
+      );
 
       expect(needsInvalidation).toBe(true);
     });
 
-    it('should return true for non-existent files', () => {
-      const filePath = '/test/missing.jsonl';
+    it("should return true for non-existent files", () => {
+      const filePath = "/test/missing.jsonl";
       const cachedMtime = 1640995200000;
 
-      const needsInvalidation = service.needsCacheInvalidation(filePath, cachedMtime);
+      const needsInvalidation = service.needsCacheInvalidation(
+        filePath,
+        cachedMtime,
+      );
 
       expect(needsInvalidation).toBe(true);
     });
 
-    it('should return false when mtimes match', () => {
-      const filePath = '/test/file.jsonl';
+    it("should return false when mtimes match", () => {
+      const filePath = "/test/file.jsonl";
       const mtime = 1640995200000;
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
 
       const needsInvalidation = service.needsCacheInvalidation(filePath, mtime);
@@ -416,16 +426,16 @@ describe('FileModificationService', () => {
       expect(needsInvalidation).toBe(false);
     });
 
-    it('should get file modification time', () => {
-      const filePath = '/test/file.jsonl';
+    it("should get file modification time", () => {
+      const filePath = "/test/file.jsonl";
       const mtime = 1640995200000;
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
 
       const retrievedMtime = service.getFileModificationTime(filePath);
@@ -433,8 +443,8 @@ describe('FileModificationService', () => {
       expect(retrievedMtime).toBe(mtime);
     });
 
-    it('should return null for non-tracked files', () => {
-      const filePath = '/test/unknown.jsonl';
+    it("should return null for non-tracked files", () => {
+      const filePath = "/test/unknown.jsonl";
 
       const retrievedMtime = service.getFileModificationTime(filePath);
 
@@ -442,16 +452,16 @@ describe('FileModificationService', () => {
     });
   });
 
-  describe('Tracking Management', () => {
-    it('should untrack files', () => {
-      const filePath = '/test/file.jsonl';
+  describe("Tracking Management", () => {
+    it("should untrack files", () => {
+      const filePath = "/test/file.jsonl";
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime: 1640995200000,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
 
       const removed = service.untrackFile(filePath);
@@ -460,47 +470,53 @@ describe('FileModificationService', () => {
       expect(service.getTrackedFiles()).not.toContain(path.resolve(filePath));
     });
 
-    it('should untrack directories', () => {
-      const dirPath = '/test/dir';
-      const filePath1 = path.join(dirPath, 'file1.jsonl');
-      const filePath2 = path.join(dirPath, 'file2.jsonl');
+    it("should untrack directories", () => {
+      const dirPath = "/test/dir";
+      const filePath1 = path.join(dirPath, "file1.jsonl");
+      const filePath2 = path.join(dirPath, "file2.jsonl");
 
-      service['trackedDirectories'].set(path.resolve(dirPath), { recursive: true });
-      service['fileStats'].set(path.resolve(filePath1), {
+      service["trackedDirectories"].set(path.resolve(dirPath), {
+        recursive: true,
+      });
+      service["fileStats"].set(path.resolve(filePath1), {
         filePath: path.resolve(filePath1),
         size: 1024,
         mtime: 1640995200000,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
-      service['fileStats'].set(path.resolve(filePath2), {
+      service["fileStats"].set(path.resolve(filePath2), {
         filePath: path.resolve(filePath2),
         size: 512,
         mtime: 1640995300000,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
 
       const removed = service.untrackDirectory(dirPath);
 
       expect(removed).toBe(true);
-      expect(service.getTrackedDirectories()).not.toContain(path.resolve(dirPath));
+      expect(service.getTrackedDirectories()).not.toContain(
+        path.resolve(dirPath),
+      );
       expect(service.getTrackedFiles()).not.toContain(path.resolve(filePath1));
       expect(service.getTrackedFiles()).not.toContain(path.resolve(filePath2));
     });
 
-    it('should get tracking statistics', () => {
-      const filePath = '/test/file.jsonl';
-      const dirPath = '/test/dir';
+    it("should get tracking statistics", () => {
+      const filePath = "/test/file.jsonl";
+      const dirPath = "/test/dir";
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime: 1640995200000,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
-      service['trackedDirectories'].set(path.resolve(dirPath), { recursive: true });
+      service["trackedDirectories"].set(path.resolve(dirPath), {
+        recursive: true,
+      });
 
       const stats = service.getTrackingStats();
 
@@ -508,18 +524,20 @@ describe('FileModificationService', () => {
       expect(stats.trackedDirectories).toBe(1);
     });
 
-    it('should clear all tracking data', () => {
-      const filePath = '/test/file.jsonl';
-      const dirPath = '/test/dir';
+    it("should clear all tracking data", () => {
+      const filePath = "/test/file.jsonl";
+      const dirPath = "/test/dir";
 
-      service['fileStats'].set(path.resolve(filePath), {
+      service["fileStats"].set(path.resolve(filePath), {
         filePath: path.resolve(filePath),
         size: 1024,
         mtime: 1640995200000,
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       });
-      service['trackedDirectories'].set(path.resolve(dirPath), { recursive: true });
+      service["trackedDirectories"].set(path.resolve(dirPath), {
+        recursive: true,
+      });
 
       service.clearAllTracking();
 

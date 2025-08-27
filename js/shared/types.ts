@@ -16,7 +16,7 @@ export interface LogEntry {
   id: string;
   userId: string;
   message: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: "info" | "warn" | "error" | "debug";
   timestamp: string;
   metadata?: Record<string, unknown>;
 }

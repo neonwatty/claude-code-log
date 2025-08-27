@@ -2,8 +2,8 @@
  * Zod schemas for message types - provides runtime validation for user and assistant messages.
  */
 
-import { z } from 'zod';
-import { ContentItemSchema } from './content';
+import { z } from "zod";
+import { ContentItemSchema } from "./content";
 
 // Custom validators
 export const timestampSchema = z.string().refine(
@@ -15,13 +15,15 @@ export const timestampSchema = z.string().refine(
       return false;
     }
   },
-  { message: 'Invalid timestamp format' }
+  { message: "Invalid timestamp format" },
 );
 
-export const uuidSchema = z.string().regex(
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-  'Invalid UUID format'
-);
+export const uuidSchema = z
+  .string()
+  .regex(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    "Invalid UUID format",
+  );
 
 // Usage info schema
 export const UsageInfoSchema = z.object({
@@ -37,20 +39,20 @@ export const UsageInfoSchema = z.object({
 export const TodoItemSchema = z.object({
   id: z.string(),
   content: z.string(),
-  status: z.enum(['pending', 'in_progress', 'completed']),
-  priority: z.enum(['high', 'medium', 'low']),
+  status: z.enum(["pending", "in_progress", "completed"]),
+  priority: z.enum(["high", "medium", "low"]),
 });
 
 // Message schemas
 export const UserMessageSchema = z.object({
-  role: z.literal('user'),
+  role: z.literal("user"),
   content: z.union([z.string(), z.array(ContentItemSchema)]),
 });
 
 export const AssistantMessageSchema = z.object({
   id: z.string(),
-  type: z.literal('message'),
-  role: z.literal('assistant'),
+  type: z.literal("message"),
+  role: z.literal("assistant"),
   model: z.string(),
   content: z.array(ContentItemSchema),
   stop_reason: z.string().optional(),
@@ -68,7 +70,7 @@ export const FileInfoSchema = z.object({
 });
 
 export const FileReadResultSchema = z.object({
-  type: z.literal('text'),
+  type: z.literal("text"),
   file: FileInfoSchema,
 });
 

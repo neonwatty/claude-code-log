@@ -1,7 +1,7 @@
-import { html, css, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { BaseComponent } from '../base/base-component.js';
-import type { ZodSession } from '../../../../shared/src/schemas/index.js';
+import { html, css, TemplateResult } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { BaseComponent } from "../base/base-component.js";
+import type { ZodSession } from "../../../../shared/src/schemas/index.js";
 
 export interface SessionFilter {
   searchTerm?: string;
@@ -11,11 +11,11 @@ export interface SessionFilter {
 }
 
 export interface SessionSort {
-  field: 'timestamp' | 'messageCount' | 'id' | 'tokenUsage';
-  direction: 'asc' | 'desc';
+  field: "timestamp" | "messageCount" | "id" | "tokenUsage";
+  direction: "asc" | "desc";
 }
 
-@customElement('session-list')
+@customElement("session-list")
 export class SessionList extends BaseComponent {
   @property({ type: Array })
   sessions: ZodSession[] = [];
@@ -24,7 +24,7 @@ export class SessionList extends BaseComponent {
   filter: SessionFilter = {};
 
   @property({ type: Object })
-  sort: SessionSort = { field: 'timestamp', direction: 'desc' };
+  sort: SessionSort = { field: "timestamp", direction: "desc" };
 
   @state()
   private filteredSessions: ZodSession[] = [];
@@ -45,7 +45,9 @@ export class SessionList extends BaseComponent {
         border-radius: var(--border-radius-md);
         padding: var(--spacing-md);
         margin-bottom: var(--spacing-lg);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border-left: var(--color-border-light) 1px solid;
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
@@ -85,7 +87,7 @@ export class SessionList extends BaseComponent {
       .filter-input:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px var(--color-primary)33;
+        box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
       .sort-select {
@@ -118,13 +120,15 @@ export class SessionList extends BaseComponent {
       .session-item:hover {
         background-color: var(--color-surface-hover);
         transform: translateY(-1px);
-        box-shadow: -3px -3px 5px var(--color-shadow-light), 3px 3px 5px var(--color-shadow-dark);
+        box-shadow:
+          -3px -3px 5px var(--color-shadow-light),
+          3px 3px 5px var(--color-shadow-dark);
       }
 
       .session-item.selected {
         background-color: var(--color-surface-active);
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px var(--color-primary)33;
+        box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
       .session-item-title {
@@ -159,7 +163,7 @@ export class SessionList extends BaseComponent {
       }
 
       .session-item-preview::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 0;
@@ -180,7 +184,7 @@ export class SessionList extends BaseComponent {
         font-size: 0.85em;
         color: var(--color-text-muted);
       }
-    `
+    `,
   ];
 
   protected override willUpdate(): void {
@@ -193,47 +197,54 @@ export class SessionList extends BaseComponent {
     // Apply filters
     if (this.filter.searchTerm) {
       const searchLower = this.filter.searchTerm.toLowerCase();
-      filtered = filtered.filter(session => 
-        session.id.toLowerCase().includes(searchLower) ||
-        session.summary?.toLowerCase().includes(searchLower) ||
-        session.cwd.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (session) =>
+          session.id.toLowerCase().includes(searchLower) ||
+          session.summary?.toLowerCase().includes(searchLower) ||
+          session.cwd.toLowerCase().includes(searchLower),
       );
     }
 
     if (this.filter.fromDate) {
-      filtered = filtered.filter(session => 
-        new Date(session.firstTimestamp) >= this.filter.fromDate!
+      filtered = filtered.filter(
+        (session) => new Date(session.firstTimestamp) >= this.filter.fromDate!,
       );
     }
 
     if (this.filter.toDate) {
-      filtered = filtered.filter(session => 
-        new Date(session.lastTimestamp) <= this.filter.toDate!
+      filtered = filtered.filter(
+        (session) => new Date(session.lastTimestamp) <= this.filter.toDate!,
       );
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (this.sort.field) {
-        case 'timestamp':
-          comparison = new Date(a.firstTimestamp).getTime() - new Date(b.firstTimestamp).getTime();
+        case "timestamp":
+          comparison =
+            new Date(a.firstTimestamp).getTime() -
+            new Date(b.firstTimestamp).getTime();
           break;
-        case 'messageCount':
+        case "messageCount":
           comparison = a.entries.length - b.entries.length;
           break;
-        case 'id':
+        case "id":
           comparison = a.id.localeCompare(b.id);
           break;
-        case 'tokenUsage':
-          const aTokens = (a.totalUsage.input_tokens || 0) + (a.totalUsage.output_tokens || 0);
-          const bTokens = (b.totalUsage.input_tokens || 0) + (b.totalUsage.output_tokens || 0);
+        case "tokenUsage":
+          const aTokens =
+            (a.totalUsage.input_tokens || 0) +
+            (a.totalUsage.output_tokens || 0);
+          const bTokens =
+            (b.totalUsage.input_tokens || 0) +
+            (b.totalUsage.output_tokens || 0);
           comparison = aTokens - bTokens;
           break;
       }
 
-      return this.sort.direction === 'desc' ? -comparison : comparison;
+      return this.sort.direction === "desc" ? -comparison : comparison;
     });
 
     return filtered;
@@ -241,7 +252,7 @@ export class SessionList extends BaseComponent {
 
   private handleSessionClick(session: ZodSession): void {
     this.selectedSessionId = session.id;
-    this.emitEvent('session-selected', { session });
+    this.emitEvent("session-selected", { session });
   }
 
   private handleSearchInput(event: Event): void {
@@ -251,32 +262,50 @@ export class SessionList extends BaseComponent {
 
   private handleSortChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
-    const [field, direction] = target.value.split(':');
-    this.sort = { 
-      field: field as SessionSort['field'], 
-      direction: direction as SessionSort['direction'] 
+    const [field, direction] = target.value.split(":");
+    this.sort = {
+      field: field as SessionSort["field"],
+      direction: direction as SessionSort["direction"],
     };
   }
 
   private formatTokenUsage(session: ZodSession): string {
-    const { input_tokens = 0, output_tokens = 0, cache_creation_input_tokens = 0, cache_read_input_tokens = 0 } = session.totalUsage;
+    const {
+      input_tokens = 0,
+      output_tokens = 0,
+      cache_creation_input_tokens = 0,
+      cache_read_input_tokens = 0,
+    } = session.totalUsage;
     const parts = [];
-    
-    if (input_tokens > 0) parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
-    if (output_tokens > 0) parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
-    if (cache_creation_input_tokens > 0) parts.push(`Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`);
-    if (cache_read_input_tokens > 0) parts.push(`Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`);
-    
-    return parts.join(' | ');
+
+    if (input_tokens > 0)
+      parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
+    if (output_tokens > 0)
+      parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
+    if (cache_creation_input_tokens > 0)
+      parts.push(
+        `Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`,
+      );
+    if (cache_read_input_tokens > 0)
+      parts.push(
+        `Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`,
+      );
+
+    return parts.join(" | ");
   }
 
   private getSessionPreview(session: ZodSession): string {
     // Find first user message for preview
-    const firstUserEntry = session.entries.find(entry => entry.type === 'user');
-    if (firstUserEntry?.type === 'user' && firstUserEntry.message.content?.[0]?.type === 'text') {
+    const firstUserEntry = session.entries.find(
+      (entry) => entry.type === "user",
+    );
+    if (
+      firstUserEntry?.type === "user" &&
+      firstUserEntry.message.content?.[0]?.type === "text"
+    ) {
       return this.truncateText(firstUserEntry.message.content[0].text, 200);
     }
-    return 'No preview available';
+    return "No preview available";
   }
 
   private renderSessionItem(session: ZodSession): TemplateResult {
@@ -287,13 +316,13 @@ export class SessionList extends BaseComponent {
     const preview = this.getSessionPreview(session);
 
     return html`
-      <div 
-        class="session-item ${isSelected ? 'selected' : ''}"
+      <div
+        class="session-item ${isSelected ? "selected" : ""}"
         @click=${() => this.handleSessionClick(session)}
         role="button"
         tabindex="0"
         @keydown=${(e: KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             this.handleSessionClick(session);
           }
@@ -304,12 +333,12 @@ export class SessionList extends BaseComponent {
         </div>
         <div class="session-item-meta">
           <span>${timestampRange}</span>
-          <span>${messageCount} message${messageCount === 1 ? '' : 's'}</span>
-          ${tokenUsage ? html`<span>${tokenUsage}</span>` : ''}
+          <span>${messageCount} message${messageCount === 1 ? "" : "s"}</span>
+          ${tokenUsage ? html`<span>${tokenUsage}</span>` : ""}
         </div>
-        ${preview ? html`
-          <div class="session-item-preview">${preview}</div>
-        ` : ''}
+        ${preview
+          ? html` <div class="session-item-preview">${preview}</div> `
+          : ""}
       </div>
     `;
   }
@@ -323,51 +352,87 @@ export class SessionList extends BaseComponent {
         <div class="session-list-header">
           <h2>Sessions</h2>
           <span class="session-count">
-            ${sessionCount}${sessionCount !== totalCount ? ` of ${totalCount}` : ''} session${sessionCount === 1 ? '' : 's'}
+            ${sessionCount}${sessionCount !== totalCount
+              ? ` of ${totalCount}`
+              : ""}
+            session${sessionCount === 1 ? "" : "s"}
           </span>
         </div>
 
         <div class="session-list-controls">
-          <input 
-            type="text" 
+          <input
+            type="text"
             class="filter-input"
             placeholder="Search sessions..."
             @input=${this.handleSearchInput}
-            .value=${this.filter.searchTerm || ''}
+            .value=${this.filter.searchTerm || ""}
           />
           <select class="sort-select" @change=${this.handleSortChange}>
-            <option value="timestamp:desc" ?selected=${this.sort.field === 'timestamp' && this.sort.direction === 'desc'}>
+            <option
+              value="timestamp:desc"
+              ?selected=${this.sort.field === "timestamp" &&
+              this.sort.direction === "desc"}
+            >
               Latest First
             </option>
-            <option value="timestamp:asc" ?selected=${this.sort.field === 'timestamp' && this.sort.direction === 'asc'}>
+            <option
+              value="timestamp:asc"
+              ?selected=${this.sort.field === "timestamp" &&
+              this.sort.direction === "asc"}
+            >
               Oldest First
             </option>
-            <option value="messageCount:desc" ?selected=${this.sort.field === 'messageCount' && this.sort.direction === 'desc'}>
+            <option
+              value="messageCount:desc"
+              ?selected=${this.sort.field === "messageCount" &&
+              this.sort.direction === "desc"}
+            >
               Most Messages
             </option>
-            <option value="messageCount:asc" ?selected=${this.sort.field === 'messageCount' && this.sort.direction === 'asc'}>
+            <option
+              value="messageCount:asc"
+              ?selected=${this.sort.field === "messageCount" &&
+              this.sort.direction === "asc"}
+            >
               Least Messages
             </option>
-            <option value="tokenUsage:desc" ?selected=${this.sort.field === 'tokenUsage' && this.sort.direction === 'desc'}>
+            <option
+              value="tokenUsage:desc"
+              ?selected=${this.sort.field === "tokenUsage" &&
+              this.sort.direction === "desc"}
+            >
               Most Tokens
             </option>
-            <option value="tokenUsage:asc" ?selected=${this.sort.field === 'tokenUsage' && this.sort.direction === 'asc'}>
+            <option
+              value="tokenUsage:asc"
+              ?selected=${this.sort.field === "tokenUsage" &&
+              this.sort.direction === "asc"}
+            >
               Least Tokens
             </option>
-            <option value="id:asc" ?selected=${this.sort.field === 'id' && this.sort.direction === 'asc'}>
+            <option
+              value="id:asc"
+              ?selected=${this.sort.field === "id" &&
+              this.sort.direction === "asc"}
+            >
               ID A-Z
             </option>
-            <option value="id:desc" ?selected=${this.sort.field === 'id' && this.sort.direction === 'desc'}>
+            <option
+              value="id:desc"
+              ?selected=${this.sort.field === "id" &&
+              this.sort.direction === "desc"}
+            >
               ID Z-A
             </option>
           </select>
         </div>
 
         <div class="sessions-grid">
-          ${this.filteredSessions.length > 0 
-            ? this.filteredSessions.map(session => this.renderSessionItem(session))
-            : html`<div class="empty-state">No sessions found</div>`
-          }
+          ${this.filteredSessions.length > 0
+            ? this.filteredSessions.map((session) =>
+                this.renderSessionItem(session),
+              )
+            : html`<div class="empty-state">No sessions found</div>`}
         </div>
       </div>
     `;
@@ -376,6 +441,6 @@ export class SessionList extends BaseComponent {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'session-list': SessionList;
+    "session-list": SessionList;
   }
 }

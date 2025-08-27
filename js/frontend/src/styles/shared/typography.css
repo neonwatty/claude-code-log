@@ -263,15 +263,15 @@
   .heading-primary {
     font-size: var(--font-size-xl);
   }
-  
+
   .heading-secondary {
     font-size: var(--font-size-lg);
   }
-  
+
   .session-link-title {
     font-size: var(--font-size-base);
   }
-  
+
   .session-link-meta {
     font-size: var(--font-size-xs);
   }
@@ -283,7 +283,7 @@
     background-color: #333333;
     color: var(--color-text);
   }
-  
+
   .code-block {
     background-color: #1a1a1a;
     color: var(--color-text);
@@ -296,7 +296,7 @@
   .code-block {
     border: 1px solid var(--color-border-dark);
   }
-  
+
   .link-base {
     text-decoration: underline;
   }
@@ -310,13 +310,13 @@
   .heading-quaternary {
     color: #000;
   }
-  
+
   .text-body,
   .text-small,
   .text-xsmall {
     color: #000;
   }
-  
+
   .link-base {
     color: #000;
     text-decoration: underline;

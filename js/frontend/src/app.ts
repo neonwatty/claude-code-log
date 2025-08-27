@@ -1,18 +1,21 @@
-import { html, css } from 'lit';
-import { property, state } from 'lit/decorators.js';
-import { BaseComponent } from './components/base/base-component.js';
-import { User, LogEntry } from '@shared/types';
+import { html, css } from "lit";
+import { property, state } from "lit/decorators.js";
+import { BaseComponent } from "./components/base/base-component.js";
+import { User, LogEntry } from "@shared/types";
 
 // Import connection management components
-import './components/connection-status/connection-status.js';
-import './components/toast-notifications/toast-notifications.js';
-import { ConnectionManager, getConnectionManager } from './services/connection-manager.js';
-import { getAccessibilityService } from './services/accessibility-service.js';
-import type { 
-  ConnectionStatistics, 
-  ConnectionDebugInfo 
-} from './utils/websocket/connection-state.js';
-import { ConnectionState } from './utils/websocket/connection-state.js';
+import "./components/connection-status/connection-status.js";
+import "./components/toast-notifications/toast-notifications.js";
+import {
+  ConnectionManager,
+  getConnectionManager,
+} from "./services/connection-manager.js";
+import { getAccessibilityService } from "./services/accessibility-service.js";
+import type {
+  ConnectionStatistics,
+  ConnectionDebugInfo,
+} from "./utils/websocket/connection-state.js";
+import { ConnectionState } from "./utils/websocket/connection-state.js";
 
 export class AppMain extends BaseComponent {
   @property({ type: Array })
@@ -36,14 +39,14 @@ export class AppMain extends BaseComponent {
     messagesReceived: 0,
     totalDataSent: 0,
     totalDataReceived: 0,
-    connectionQuality: 'unknown'
+    connectionQuality: "unknown",
   };
 
   @state()
   private connectionDebugInfo: ConnectionDebugInfo | null = null;
 
   private connectionManager: ConnectionManager | null = null;
-  private toastNotifications: any = null; // Will be set after first render
+  private toastNotifications: Element | null = null; // Will be set after first render
 
   static override styles = [
     ...BaseComponent.styles,
@@ -56,7 +59,7 @@ export class AppMain extends BaseComponent {
         max-width: 1200px;
         margin: 0 auto;
       }
-      
+
       .main-header {
         text-align: center;
         color: #2c3e50;
@@ -143,7 +146,7 @@ export class AppMain extends BaseComponent {
         opacity: 0.6;
         cursor: not-allowed;
       }
-    `
+    `,
   ];
 
   override render() {
@@ -167,16 +170,18 @@ export class AppMain extends BaseComponent {
             .debugInfo=${this.connectionDebugInfo}
             @debug-panel-toggled=${this.handleDebugPanelToggled}
           ></connection-status>
-          
-          <button 
+
+          <button
             class="connection-button"
             @click=${this.handleConnectClick}
             ?disabled=${this.connectionState === ConnectionState.CONNECTING}
           >
-            ${this.connectionState === ConnectionState.CONNECTED ? 'Disconnect' : 'Connect'}
+            ${this.connectionState === ConnectionState.CONNECTED
+              ? "Disconnect"
+              : "Connect"}
           </button>
-          
-          <button 
+
+          <button
             class="connection-button"
             @click=${this.handleReconnectClick}
             ?disabled=${this.connectionState === ConnectionState.CONNECTING}
@@ -185,77 +190,94 @@ export class AppMain extends BaseComponent {
           </button>
         </div>
       </div>
-      
+
       <div class="stats-card card">
         <div class="header">
           <span>Application Statistics</span>
           <span class="timestamp">${this.formatTimestamp(new Date())}</span>
         </div>
-        
+
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-value">${this.users.length}</div>
             <div class="stat-label">Users</div>
           </div>
-          
+
           <div class="stat-item">
             <div class="stat-value">${this.logs.length}</div>
             <div class="stat-label">Log Entries</div>
           </div>
-          
+
           <div class="stat-item">
-            <div class="stat-value">${this.darkMode ? '🌙' : '☀️'}</div>
+            <div class="stat-value">${this.darkMode ? "🌙" : "☀️"}</div>
             <div class="stat-label">Theme</div>
           </div>
-          
+
           <!-- Connection statistics -->
           <div class="stat-item">
-            <div class="stat-value">${this.connectionStatistics.messagesSent}</div>
+            <div class="stat-value">
+              ${this.connectionStatistics.messagesSent}
+            </div>
             <div class="stat-label">Messages Sent</div>
           </div>
-          
+
           <div class="stat-item">
-            <div class="stat-value">${this.connectionStatistics.messagesReceived}</div>
+            <div class="stat-value">
+              ${this.connectionStatistics.messagesReceived}
+            </div>
             <div class="stat-label">Messages Received</div>
           </div>
-          
+
           <div class="stat-item">
-            <div class="stat-value">${this.connectionStatistics.reconnectionCount}</div>
+            <div class="stat-value">
+              ${this.connectionStatistics.reconnectionCount}
+            </div>
             <div class="stat-label">Reconnections</div>
           </div>
         </div>
       </div>
 
-      ${this.isLoading ? html`
-        <div class="card loading">
-          <p>Loading application...</p>
-        </div>
-      ` : ''}
+      ${this.isLoading
+        ? html`
+            <div class="card loading">
+              <p>Loading application...</p>
+            </div>
+          `
+        : ""}
 
       <div class="welcome-text">
-        Welcome to Claude Code Log - Real-time session visualization and analysis
-        <br>
-        <small>Connection Status: ${this.connectionState} | Quality: ${this.connectionStatistics.connectionQuality}</small>
+        Welcome to Claude Code Log - Real-time session visualization and
+        analysis
+        <br />
+        <small
+          >Connection Status: ${this.connectionState} | Quality:
+          ${this.connectionStatistics.connectionQuality}</small
+        >
       </div>
 
       <!-- Toast notifications container -->
-      <toast-notifications @connection-retry-requested=${this.handleRetryFromToast}></toast-notifications>
+      <toast-notifications
+        @connection-retry-requested=${this.handleRetryFromToast}
+      ></toast-notifications>
     `;
   }
 
   override connectedCallback() {
     super.connectedCallback();
-    
+
+    // Register service worker for offline support
+    this.registerServiceWorker();
+
     // Initialize connection management
     this.initializeConnectionManagement();
-    
+
     // Demo data loading simulation
     this.loadDemoData();
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
-    
+
     // Clean up connection management
     if (this.connectionManager) {
       this.connectionManager.destroy();
@@ -265,14 +287,14 @@ export class AppMain extends BaseComponent {
   private async initializeConnectionManagement() {
     try {
       this.connectionManager = getConnectionManager();
-      
+
       // Initialize with demo WebSocket config (would normally come from environment)
       await this.connectionManager.initialize({
-        url: 'ws://localhost:8080', // Demo URL - would be environment specific
+        url: "ws://localhost:8080", // Demo URL - would be environment specific
         reconnectInterval: 1000,
         maxReconnectAttempts: 10,
         heartbeatInterval: 30000,
-        debug: true
+        debug: true,
       });
 
       // Set up event listeners
@@ -285,10 +307,9 @@ export class AppMain extends BaseComponent {
       setTimeout(() => {
         this.connectionManager?.connect();
       }, 1000);
-
     } catch (error) {
-      console.error('Failed to initialize connection management:', error);
-      this.setError('Failed to initialize connection management');
+      console.error("Failed to initialize connection management:", error);
+      this.setError("Failed to initialize connection management");
     }
   }
 
@@ -296,24 +317,24 @@ export class AppMain extends BaseComponent {
     if (!this.connectionManager) return;
 
     // Listen for connection state changes
-    this.connectionManager.on('state-changed', (event) => {
+    this.connectionManager.on("state-changed", (event) => {
       this.handleConnectionStateChange(event);
     });
 
     // Listen for statistics updates
-    this.connectionManager.on('statistics-updated', (statistics) => {
+    this.connectionManager.on("statistics-updated", (statistics) => {
       this.connectionStatistics = statistics;
     });
 
     // Listen for debug info updates
-    this.connectionManager.on('debug-info-updated', (debugInfo) => {
+    this.connectionManager.on("debug-info-updated", (debugInfo) => {
       this.connectionDebugInfo = debugInfo;
     });
   }
 
-  private handleConnectionStateChange(event: any) {
+  private handleConnectionStateChange(event: { currentState: ConnectionState; reason?: string }) {
     this.connectionState = event.currentState;
-    
+
     // Update accessibility announcements
     const a11yService = getAccessibilityService();
     a11yService.announceConnectionState(event.currentState, event.reason);
@@ -322,10 +343,12 @@ export class AppMain extends BaseComponent {
     this.showConnectionToast(event);
   }
 
-  private showConnectionToast(event: any) {
+  private showConnectionToast(event: { currentState: ConnectionState; reason?: string }) {
     // Get toast notifications component
     if (!this.toastNotifications) {
-      this.toastNotifications = this.shadowRoot?.querySelector('toast-notifications');
+      this.toastNotifications = this.shadowRoot?.querySelector(
+        "toast-notifications",
+      );
     }
 
     if (this.toastNotifications) {
@@ -362,46 +385,110 @@ export class AppMain extends BaseComponent {
   }
 
   private handleDebugPanelToggled(event: CustomEvent) {
-    console.log('Debug panel toggled:', event.detail.visible);
+    console.log("Debug panel toggled:", event.detail.visible);
+  }
+
+  private async registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('/src/sw.js', {
+          scope: '/'
+        });
+
+        console.log('Service Worker registered:', registration.scope);
+
+        // Listen for service worker updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Show update notification
+                this.showServiceWorkerUpdateToast();
+              }
+            });
+          }
+        });
+
+        // Listen for service worker messages
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          this.handleServiceWorkerMessage(event);
+        });
+
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    } else {
+      console.log('Service Workers are not supported in this browser');
+    }
+  }
+
+  private showServiceWorkerUpdateToast() {
+    if (this.toastNotifications) {
+      this.toastNotifications.showToast({
+        type: 'info',
+        message: 'A new version of the app is available.',
+        action: {
+          label: 'Refresh',
+          callback: () => window.location.reload()
+        },
+        persistent: true
+      });
+    }
+  }
+
+  private handleServiceWorkerMessage(event: MessageEvent) {
+    const { type, payload } = event.data;
+    
+    switch (type) {
+      case 'OFFLINE_STATUS':
+        console.log('Offline status updated:', payload);
+        break;
+      case 'CACHE_UPDATED':
+        console.log('Cache updated:', payload);
+        break;
+      default:
+        console.log('Unknown service worker message:', type, payload);
+    }
   }
 
   private async loadDemoData() {
     await this.handleAsyncOperation(async () => {
       // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Add some demo data
       this.users = [
         {
-          id: '1',
-          name: 'Demo User',
-          email: 'demo@example.com',
-          createdAt: new Date().toISOString()
-        }
+          id: "1",
+          name: "Demo User",
+          email: "demo@example.com",
+          createdAt: new Date().toISOString(),
+        },
       ];
-      
+
       this.logs = [
         {
-          id: '1',
-          userId: '1',
-          message: 'Application initialized',
+          id: "1",
+          userId: "1",
+          message: "Application initialized",
           timestamp: new Date().toISOString(),
-          level: 'info'
-        }
+          level: "info",
+        },
       ];
-    }, 'Failed to load demo data');
+    }, "Failed to load demo data");
   }
 }
 
 // Simple test to verify shared types import works
 const testUser: User = {
-  id: '1',
-  name: 'Test User',
-  email: 'test@example.com',
-  createdAt: new Date().toISOString()
+  id: "1",
+  name: "Test User",
+  email: "test@example.com",
+  createdAt: new Date().toISOString(),
 };
 
-console.log('Test user:', testUser);
+console.log("Test user:", testUser);
 
 // Register the custom element
-customElements.define('app-main', AppMain);
+customElements.define("app-main", AppMain);

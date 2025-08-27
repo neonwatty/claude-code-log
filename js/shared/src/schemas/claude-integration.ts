@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Claude Code CLI Integration Schema
@@ -7,23 +7,23 @@ import { z } from 'zod';
 
 // Claude Code Process State
 export const ClaudeProcessStateSchema = z.enum([
-  'idle',
-  'starting',
-  'running',
-  'stopping',
-  'stopped',
-  'error'
+  "idle",
+  "starting",
+  "running",
+  "stopping",
+  "stopped",
+  "error",
 ]);
 
 export type ClaudeProcessState = z.infer<typeof ClaudeProcessStateSchema>;
 
 // Allowed Claude Code commands (security whitelist)
 export const ALLOWED_CLAUDE_COMMANDS = [
-  '--continue-session',
-  '--help',
-  '--version',
-  'help',
-  'version',
+  "--continue-session",
+  "--help",
+  "--version",
+  "help",
+  "version",
 ] as const;
 
 // Claude Code Command
@@ -61,7 +61,9 @@ export const SessionContinuationRequestSchema = z.object({
   env: z.record(z.string(), z.string()).optional(),
 });
 
-export type SessionContinuationRequest = z.infer<typeof SessionContinuationRequestSchema>;
+export type SessionContinuationRequest = z.infer<
+  typeof SessionContinuationRequestSchema
+>;
 
 // Session Continuation Response
 export const SessionContinuationResponseSchema = z.object({
@@ -72,12 +74,14 @@ export const SessionContinuationResponseSchema = z.object({
   error: z.string().optional(),
 });
 
-export type SessionContinuationResponse = z.infer<typeof SessionContinuationResponseSchema>;
+export type SessionContinuationResponse = z.infer<
+  typeof SessionContinuationResponseSchema
+>;
 
 // Claude Code Output
 export const ClaudeOutputSchema = z.object({
   processId: z.string(),
-  type: z.enum(['stdout', 'stderr']),
+  type: z.enum(["stdout", "stderr"]),
   data: z.string(),
   timestamp: z.date(),
 });
@@ -87,7 +91,7 @@ export type ClaudeOutput = z.infer<typeof ClaudeOutputSchema>;
 // Process Event
 export const ClaudeProcessEventSchema = z.object({
   processId: z.string(),
-  event: z.enum(['start', 'data', 'error', 'exit', 'close']),
+  event: z.enum(["start", "data", "error", "exit", "close"]),
   data: z.any().optional(),
   timestamp: z.date(),
 });
@@ -96,33 +100,40 @@ export type ClaudeProcessEvent = z.infer<typeof ClaudeProcessEventSchema>;
 
 // Service Configuration
 export const ClaudeIntegrationConfigSchema = z.object({
-  claudeExecutablePath: z.string().default('claude'),
+  claudeExecutablePath: z.string().default("claude"),
   maxProcesses: z.number().positive().default(5),
   processTimeout: z.number().positive().default(300000), // 5 minutes default
-  outputBufferSize: z.number().positive().default(1024 * 1024), // 1MB default
+  outputBufferSize: z
+    .number()
+    .positive()
+    .default(1024 * 1024), // 1MB default
   cleanupInterval: z.number().positive().default(60000), // 1 minute default
 });
 
-export type ClaudeIntegrationConfig = z.infer<typeof ClaudeIntegrationConfigSchema>;
+export type ClaudeIntegrationConfig = z.infer<
+  typeof ClaudeIntegrationConfigSchema
+>;
 
 // Error Types
 export const ClaudeIntegrationErrorSchema = z.object({
   code: z.enum([
-    'PROCESS_START_FAILED',
-    'PROCESS_TIMEOUT',
-    'PROCESS_NOT_FOUND',
-    'INVALID_COMMAND',
-    'SESSION_NOT_FOUND',
-    'MAX_PROCESSES_REACHED',
-    'INVALID_WORKING_DIRECTORY',
-    'CLAUDE_NOT_INSTALLED'
+    "PROCESS_START_FAILED",
+    "PROCESS_TIMEOUT",
+    "PROCESS_NOT_FOUND",
+    "INVALID_COMMAND",
+    "SESSION_NOT_FOUND",
+    "MAX_PROCESSES_REACHED",
+    "INVALID_WORKING_DIRECTORY",
+    "CLAUDE_NOT_INSTALLED",
   ]),
   message: z.string(),
   processId: z.string().optional(),
   details: z.any().optional(),
 });
 
-export type ClaudeIntegrationError = z.infer<typeof ClaudeIntegrationErrorSchema>;
+export type ClaudeIntegrationError = z.infer<
+  typeof ClaudeIntegrationErrorSchema
+>;
 
 // Session Context Schemas
 
@@ -179,27 +190,32 @@ export const ContextPreparationResultSchema = z.object({
   error: z.string().optional(),
 });
 
-export type ContextPreparationResult = z.infer<typeof ContextPreparationResultSchema>;
+export type ContextPreparationResult = z.infer<
+  typeof ContextPreparationResultSchema
+>;
 
 // Context Transfer Data
 export const ContextTransferDataSchema = z.object({
   sessionId: z.string(),
   transferTime: z.string(),
   targetPath: z.string().optional(),
-  status: z.enum(['pending', 'completed', 'failed']),
+  status: z.enum(["pending", "completed", "failed"]),
   error: z.string().optional(),
 });
 
 export type ContextTransferData = z.infer<typeof ContextTransferDataSchema>;
 
 // Extended Session Continuation Request with context preparation
-export const SessionContinuationWithContextRequestSchema = SessionContinuationRequestSchema.extend({
-  prepareContext: z.boolean().optional().default(false),
-  contextConfig: ClaudeContextConfigSchema.optional(),
-  useExistingClaudeMd: z.boolean().optional().default(false),
-});
+export const SessionContinuationWithContextRequestSchema =
+  SessionContinuationRequestSchema.extend({
+    prepareContext: z.boolean().optional().default(false),
+    contextConfig: ClaudeContextConfigSchema.optional(),
+    useExistingClaudeMd: z.boolean().optional().default(false),
+  });
 
-export type SessionContinuationWithContextRequest = z.infer<typeof SessionContinuationWithContextRequestSchema>;
+export type SessionContinuationWithContextRequest = z.infer<
+  typeof SessionContinuationWithContextRequestSchema
+>;
 
 // Context Preparation Request
 export const ContextPreparationRequestSchema = z.object({
@@ -209,4 +225,6 @@ export const ContextPreparationRequestSchema = z.object({
   generateOnly: z.boolean().optional().default(false), // Only generate CLAUDE.md, don't start process
 });
 
-export type ContextPreparationRequest = z.infer<typeof ContextPreparationRequestSchema>;
+export type ContextPreparationRequest = z.infer<
+  typeof ContextPreparationRequestSchema
+>;

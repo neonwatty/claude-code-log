@@ -1,5 +1,5 @@
 // Export all custom types
-export * from './express';
+export * from "./express";
 
 // Re-export shared types for convenience
-export * from '@shared/types';
+export * from "@shared/types";

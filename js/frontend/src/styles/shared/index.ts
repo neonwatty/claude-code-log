@@ -1,4 +1,4 @@
-import { css, unsafeCSS } from 'lit';
+import { css, unsafeCSS } from "lit";
 
 /**
  * Shared styles ported from Python templates
@@ -6,18 +6,26 @@ import { css, unsafeCSS } from 'lit';
  */
 
 // Import CSS file content as strings (will be handled by bundler)
-import variablesCssText from './variables.css?inline';
-import typographyCssText from './typography.css?inline';
-import layoutCssText from './layout.css?inline';
-import utilitiesCssText from './utilities.css?inline';
+import variablesCssText from "./variables.css?inline";
+import typographyCssText from "./typography.css?inline";
+import layoutCssText from "./layout.css?inline";
+import utilitiesCssText from "./utilities.css?inline";
 
 /**
  * Shared styles as Lit CSSResults
  */
-export const variablesStyles = css`${unsafeCSS(variablesCssText)}`;
-export const typographyStyles = css`${unsafeCSS(typographyCssText)}`;
-export const layoutStyles = css`${unsafeCSS(layoutCssText)}`;
-export const utilitiesStyles = css`${unsafeCSS(utilitiesCssText)}`;
+export const variablesStyles = css`
+  ${unsafeCSS(variablesCssText)}
+`;
+export const typographyStyles = css`
+  ${unsafeCSS(typographyCssText)}
+`;
+export const layoutStyles = css`
+  ${unsafeCSS(layoutCssText)}
+`;
+export const utilitiesStyles = css`
+  ${unsafeCSS(utilitiesCssText)}
+`;
 
 /**
  * Combined shared styles for easy importing
@@ -46,5 +54,5 @@ export {
   variablesStyles as variables,
   typographyStyles as typography,
   layoutStyles as layout,
-  utilitiesStyles as utilities
+  utilitiesStyles as utilities,
 };

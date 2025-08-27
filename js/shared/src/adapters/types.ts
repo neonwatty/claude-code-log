@@ -1,17 +1,17 @@
 // Anthropic SDK compatible types - based on official SDK types
 
 export interface AnthropicMessageParam {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string | AnthropicContentBlockParam[];
 }
 
 export interface AnthropicMessage {
   id: string;
-  type: 'message';
-  role: 'assistant';
+  type: "message";
+  role: "assistant";
   model: string;
   content: AnthropicContentBlock[];
-  stop_reason?: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use';
+  stop_reason?: "end_turn" | "max_tokens" | "stop_sequence" | "tool_use";
   stop_sequence?: string;
   usage?: AnthropicUsage;
 }
@@ -26,37 +26,37 @@ export interface AnthropicUsage {
 
 // Content block types
 export interface AnthropicTextBlock {
-  type: 'text';
+  type: "text";
   text: string;
 }
 
 export interface AnthropicTextBlockParam {
-  type: 'text';
+  type: "text";
   text: string;
   cache_control?: AnthropicCacheControl;
 }
 
 export interface AnthropicImageBlockParam {
-  type: 'image';
+  type: "image";
   source: AnthropicImageSource;
   cache_control?: AnthropicCacheControl;
 }
 
 export interface AnthropicImageSource {
-  type: 'base64';
-  media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  type: "base64";
+  media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
   data: string;
 }
 
 export interface AnthropicToolUseBlock {
-  type: 'tool_use';
+  type: "tool_use";
   id: string;
   name: string;
   input: Record<string, any>;
 }
 
 export interface AnthropicToolUseBlockParam {
-  type: 'tool_use';
+  type: "tool_use";
   id: string;
   name: string;
   input: Record<string, any>;
@@ -64,7 +64,7 @@ export interface AnthropicToolUseBlockParam {
 }
 
 export interface AnthropicToolResultBlockParam {
-  type: 'tool_result';
+  type: "tool_result";
   tool_use_id: string;
   content?: string | Array<AnthropicContentBlockParam>;
   is_error?: boolean;
@@ -72,26 +72,26 @@ export interface AnthropicToolResultBlockParam {
 }
 
 export interface AnthropicThinkingBlock {
-  type: 'thinking';
+  type: "thinking";
   thinking: string;
 }
 
 export interface AnthropicThinkingBlockParam {
-  type: 'thinking';
+  type: "thinking";
   thinking: string;
   cache_control?: AnthropicCacheControl;
 }
 
 export interface AnthropicCacheControl {
-  type: 'ephemeral';
+  type: "ephemeral";
 }
 
-export type AnthropicContentBlock = 
+export type AnthropicContentBlock =
   | AnthropicTextBlock
   | AnthropicToolUseBlock
   | AnthropicThinkingBlock;
 
-export type AnthropicContentBlockParam = 
+export type AnthropicContentBlockParam =
   | AnthropicTextBlockParam
   | AnthropicImageBlockParam
   | AnthropicToolUseBlockParam
@@ -100,23 +100,23 @@ export type AnthropicContentBlockParam =
 
 // Tool choice types
 export interface AnthropicToolChoiceAuto {
-  type: 'auto';
+  type: "auto";
 }
 
 export interface AnthropicToolChoiceAny {
-  type: 'any';
+  type: "any";
 }
 
 export interface AnthropicToolChoiceNone {
-  type: 'none';
+  type: "none";
 }
 
 export interface AnthropicToolChoiceTool {
-  type: 'tool';
+  type: "tool";
   name: string;
 }
 
-export type AnthropicToolChoice = 
+export type AnthropicToolChoice =
   | AnthropicToolChoiceAuto
   | AnthropicToolChoiceAny
   | AnthropicToolChoiceNone

@@ -3,20 +3,18 @@
  * Provides both streaming and non-streaming parsers with error handling.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as readline from 'readline';
-import { createReadStream } from 'fs';
-import { createGunzip } from 'zlib';
-import { pipeline } from 'stream/promises';
-import { Readable } from 'stream';
+import * as fs from "fs";
+import * as path from "path";
+import * as readline from "readline";
+import { createReadStream } from "fs";
+import { createGunzip } from "zlib";
+import { Readable } from "stream";
 import {
   ITranscriptEntry,
   IContentItem,
   ITextContent,
-  IThinkingContent,
   ISummaryTranscriptEntry,
-} from '../../../shared/src/interfaces';
+} from "../../../shared/src/interfaces";
 
 export interface ParseResult {
   entries: ITranscriptEntry[];
@@ -39,27 +37,29 @@ export interface ParserOptions {
  * Extract text content from message content structure.
  * Handles both string and array content, filtering out thinking content.
  */
-export function extractTextContent(content: string | IContentItem[] | null | undefined): string {
+export function extractTextContent(
+  content: string | IContentItem[] | null | undefined,
+): string {
   if (!content) {
-    return '';
+    return "";
   }
 
-  if (typeof content === 'string') {
+  if (typeof content === "string") {
     return content;
   }
 
   if (Array.isArray(content)) {
     const textParts: string[] = [];
     for (const item of content) {
-      if (item.type === 'text') {
+      if (item.type === "text") {
         const textItem = item as ITextContent;
         textParts.push(textItem.text);
-      } else if (item.type === 'thinking') {
+      } else if (item.type === "thinking") {
         // Skip thinking content in main text extraction
         continue;
       }
     }
-    return textParts.join('\n');
+    return textParts.join("\n");
   }
 
   return String(content);
@@ -71,14 +71,14 @@ export function extractTextContent(content: string | IContentItem[] | null | und
 export function parseTimestamp(timestampStr: string): Date | null {
   try {
     // Handle both Z suffix and explicit timezone
-    const normalizedTimestamp = timestampStr.replace('Z', '+00:00');
+    const normalizedTimestamp = timestampStr.replace("Z", "+00:00");
     const date = new Date(normalizedTimestamp);
-    
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
       return null;
     }
-    
+
     return date;
   } catch {
     return null;
@@ -91,31 +91,38 @@ export function parseTimestamp(timestampStr: string): Date | null {
 export function parseTranscriptEntry(data: any): ITranscriptEntry {
   const entryType = data.type;
 
-  if (!entryType || !['user', 'assistant', 'summary', 'system'].includes(entryType)) {
+  if (
+    !entryType ||
+    !["user", "assistant", "summary", "system"].includes(entryType)
+  ) {
     throw new Error(`Unknown transcript entry type: ${entryType}`);
   }
 
   // Basic validation for required fields based on entry type
-  if (entryType === 'summary') {
+  if (entryType === "summary") {
     if (!data.summary || !data.leafUuid) {
-      throw new Error('Summary entry missing required fields: summary, leafUuid');
+      throw new Error(
+        "Summary entry missing required fields: summary, leafUuid",
+      );
     }
     return data as ISummaryTranscriptEntry;
   }
 
   if (!data.uuid || !data.timestamp || !data.sessionId) {
-    throw new Error(`Entry missing required fields: uuid, timestamp, sessionId`);
+    throw new Error(
+      `Entry missing required fields: uuid, timestamp, sessionId`,
+    );
   }
 
-  if (entryType === 'user' || entryType === 'assistant') {
+  if (entryType === "user" || entryType === "assistant") {
     if (!data.message) {
       throw new Error(`${entryType} entry missing message field`);
     }
   }
 
-  if (entryType === 'system') {
+  if (entryType === "system") {
     if (!data.content) {
-      throw new Error('System entry missing content field');
+      throw new Error("System entry missing content field");
     }
   }
 
@@ -125,16 +132,19 @@ export function parseTranscriptEntry(data: any): ITranscriptEntry {
 /**
  * Parse a single line of JSONL content.
  */
-export function parseJsonlLine(line: string, lineNumber: number): ITranscriptEntry | ParseError {
+export function parseJsonlLine(
+  line: string,
+  lineNumber: number,
+): ITranscriptEntry | ParseError {
   try {
     const trimmedLine = line.trim();
     if (!trimmedLine) {
-      throw new Error('Empty line');
+      throw new Error("Empty line");
     }
 
     const entryDict = JSON.parse(trimmedLine);
-    if (typeof entryDict !== 'object' || entryDict === null) {
-      throw new Error('Line is not a JSON object');
+    if (typeof entryDict !== "object" || entryDict === null) {
+      throw new Error("Line is not a JSON object");
     }
 
     return parseTranscriptEntry(entryDict);
@@ -142,7 +152,7 @@ export function parseJsonlLine(line: string, lineNumber: number): ITranscriptEnt
     return {
       lineNumber,
       error: error instanceof Error ? error.message : String(error),
-      line: line.substring(0, 200) + (line.length > 200 ? '...' : ''),
+      line: line.substring(0, 200) + (line.length > 200 ? "..." : ""),
     };
   }
 }
@@ -152,15 +162,15 @@ export function parseJsonlLine(line: string, lineNumber: number): ITranscriptEnt
  */
 export function loadTranscript(
   filePath: string,
-  options: ParserOptions = {}
+  options: ParserOptions = {},
 ): ParseResult {
   const { silent = false, maxErrors = 100, skipMalformed = true } = options;
   const entries: ITranscriptEntry[] = [];
   const errors: ParseError[] = [];
 
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
+    const content = fs.readFileSync(filePath, "utf-8");
+    const lines = content.split("\n");
 
     if (!silent) {
       console.log(`Processing ${filePath}...`);
@@ -171,14 +181,16 @@ export function loadTranscript(
       if (!line.trim()) continue;
 
       const result = parseJsonlLine(line, i + 1);
-      
-      if ('lineNumber' in result) {
+
+      if ("lineNumber" in result) {
         // It's a ParseError
         errors.push(result);
         if (!silent) {
-          console.error(`Line ${result.lineNumber} of ${filePath}: ${result.error}`);
+          console.error(
+            `Line ${result.lineNumber} of ${filePath}: ${result.error}`,
+          );
         }
-        
+
         if (!skipMalformed || errors.length >= maxErrors) {
           break;
         }
@@ -191,15 +203,14 @@ export function loadTranscript(
     if (!silent && errors.length > 0) {
       console.warn(`Parsed ${filePath} with ${errors.length} errors`);
     }
-
   } catch (error) {
     const parseError: ParseError = {
       lineNumber: 0,
       error: `File reading error: ${error instanceof Error ? error.message : String(error)}`,
-      line: '',
+      line: "",
     };
     errors.push(parseError);
-    
+
     if (!silent) {
       console.error(`Error reading ${filePath}: ${parseError.error}`);
     }
@@ -213,7 +224,7 @@ export function loadTranscript(
  */
 export async function loadTranscriptAsync(
   filePath: string,
-  options: ParserOptions = {}
+  options: ParserOptions = {},
 ): Promise<ParseResult> {
   const { silent = false, maxErrors = 100, skipMalformed = true } = options;
   const entries: ITranscriptEntry[] = [];
@@ -221,9 +232,9 @@ export async function loadTranscriptAsync(
 
   try {
     let fileStream: Readable = createReadStream(filePath);
-    
+
     // Handle compressed files
-    if (filePath.endsWith('.gz')) {
+    if (filePath.endsWith(".gz")) {
       fileStream = fileStream.pipe(createGunzip());
     }
 
@@ -239,18 +250,20 @@ export async function loadTranscriptAsync(
     let lineNumber = 0;
     for await (const line of rl) {
       lineNumber++;
-      
+
       if (!line.trim()) continue;
 
       const result = parseJsonlLine(line, lineNumber);
-      
-      if ('lineNumber' in result) {
+
+      if ("lineNumber" in result) {
         // It's a ParseError
         errors.push(result);
         if (!silent) {
-          console.error(`Line ${result.lineNumber} of ${filePath}: ${result.error}`);
+          console.error(
+            `Line ${result.lineNumber} of ${filePath}: ${result.error}`,
+          );
         }
-        
+
         if (!skipMalformed || errors.length >= maxErrors) {
           break;
         }
@@ -263,15 +276,14 @@ export async function loadTranscriptAsync(
     if (!silent && errors.length > 0) {
       console.warn(`Parsed ${filePath} with ${errors.length} errors`);
     }
-
   } catch (error) {
     const parseError: ParseError = {
       lineNumber: 0,
       error: `File reading error: ${error instanceof Error ? error.message : String(error)}`,
-      line: '',
+      line: "",
     };
     errors.push(parseError);
-    
+
     if (!silent) {
       console.error(`Error reading ${filePath}: ${parseError.error}`);
     }
@@ -287,8 +299,8 @@ export function findJsonlFiles(directoryPath: string): string[] {
   try {
     const files = fs.readdirSync(directoryPath);
     return files
-      .filter(file => file.endsWith('.jsonl') || file.endsWith('.jsonl.gz'))
-      .map(file => path.join(directoryPath, file))
+      .filter((file) => file.endsWith(".jsonl") || file.endsWith(".jsonl.gz"))
+      .map((file) => path.join(directoryPath, file))
       .sort();
   } catch (error) {
     console.error(`Error reading directory ${directoryPath}: ${error}`);
@@ -301,13 +313,13 @@ export function findJsonlFiles(directoryPath: string): string[] {
  */
 export async function loadDirectoryTranscripts(
   directoryPath: string,
-  options: ParserOptions = {}
+  options: ParserOptions = {},
 ): Promise<ParseResult> {
   const allEntries: ITranscriptEntry[] = [];
   const allErrors: ParseError[] = [];
 
   const jsonlFiles = findJsonlFiles(directoryPath);
-  
+
   for (const filePath of jsonlFiles) {
     const result = await loadTranscriptAsync(filePath, options);
     allEntries.push(...result.entries);
@@ -316,8 +328,8 @@ export async function loadDirectoryTranscripts(
 
   // Sort entries chronologically
   allEntries.sort((a, b) => {
-    const timestampA = 'timestamp' in a ? a.timestamp : '';
-    const timestampB = 'timestamp' in b ? b.timestamp : '';
+    const timestampA = "timestamp" in a ? a.timestamp : "";
+    const timestampB = "timestamp" in b ? b.timestamp : "";
     return timestampA.localeCompare(timestampB);
   });
 
@@ -341,7 +353,9 @@ export class JsonlWatcher {
   /**
    * Start watching the file for changes.
    */
-  public watch(callback: (entries: ITranscriptEntry[], errors: ParseError[]) => void): void {
+  public watch(
+    callback: (entries: ITranscriptEntry[], errors: ParseError[]) => void,
+  ): void {
     // Initialize position to end of file
     try {
       const stats = fs.statSync(this.filePath);
@@ -350,11 +364,15 @@ export class JsonlWatcher {
       this.lastPosition = 0;
     }
 
-    this.watcher = fs.watch(this.filePath, { persistent: false }, (eventType) => {
-      if (eventType === 'change') {
-        this.processNewContent(callback);
-      }
-    });
+    this.watcher = fs.watch(
+      this.filePath,
+      { persistent: false },
+      (eventType) => {
+        if (eventType === "change") {
+          this.processNewContent(callback);
+        }
+      },
+    );
   }
 
   /**
@@ -367,7 +385,9 @@ export class JsonlWatcher {
     }
   }
 
-  private processNewContent(callback: (entries: ITranscriptEntry[], errors: ParseError[]) => void): void {
+  private processNewContent(
+    callback: (entries: ITranscriptEntry[], errors: ParseError[]) => void,
+  ): void {
     try {
       const stats = fs.statSync(this.filePath);
       if (stats.size <= this.lastPosition) {
@@ -376,25 +396,25 @@ export class JsonlWatcher {
 
       const stream = fs.createReadStream(this.filePath, {
         start: this.lastPosition,
-        encoding: 'utf-8',
+        encoding: "utf-8",
       });
 
-      let buffer = '';
+      let buffer = "";
       const entries: ITranscriptEntry[] = [];
       const errors: ParseError[] = [];
       let lineNumber = 0;
 
-      stream.on('data', (chunk: string | Buffer) => {
+      stream.on("data", (chunk: string | Buffer) => {
         buffer += chunk.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
         for (const line of lines) {
           lineNumber++;
           if (!line.trim()) continue;
 
           const result = parseJsonlLine(line, lineNumber);
-          if ('lineNumber' in result) {
+          if ("lineNumber" in result) {
             errors.push(result);
           } else {
             entries.push(result);
@@ -402,12 +422,12 @@ export class JsonlWatcher {
         }
       });
 
-      stream.on('end', () => {
+      stream.on("end", () => {
         // Process any remaining content in buffer
         if (buffer.trim()) {
           lineNumber++;
           const result = parseJsonlLine(buffer, lineNumber);
-          if ('lineNumber' in result) {
+          if ("lineNumber" in result) {
             errors.push(result);
           } else {
             entries.push(result);
@@ -418,20 +438,19 @@ export class JsonlWatcher {
         callback(entries, errors);
       });
 
-      stream.on('error', (error) => {
+      stream.on("error", (error) => {
         const parseError: ParseError = {
           lineNumber: 0,
           error: `File watch error: ${error.message}`,
-          line: '',
+          line: "",
         };
         callback([], [parseError]);
       });
-
     } catch (error) {
       const parseError: ParseError = {
         lineNumber: 0,
         error: `File watch error: ${error instanceof Error ? error.message : String(error)}`,
-        line: '',
+        line: "",
       };
       callback([], [parseError]);
     }

@@ -2,43 +2,64 @@
  * Cache services index file for easier imports and testing
  */
 
-export { CacheDirectoryService, getCacheDirectoryService } from './cache-directory.service';
-export { FileModificationService, getFileModificationService } from './file-modification.service';
-export { CacheValidationService, getCacheValidationService } from './cache-validation.service';
-export { JsonlCacheBuilderService, getJsonlCacheBuilderService } from './jsonl-cache-builder.service';
-export { CacheInvalidationService, getCacheInvalidationService } from './cache-invalidation.service';
-export { CacheAggregationService, getCacheAggregationService } from './cache-aggregation.service';
+export {
+  CacheDirectoryService,
+  getCacheDirectoryService,
+} from "./cache-directory.service";
+export {
+  FileModificationService,
+  getFileModificationService,
+} from "./file-modification.service";
+export {
+  CacheValidationService,
+  getCacheValidationService,
+} from "./cache-validation.service";
+export {
+  JsonlCacheBuilderService,
+  getJsonlCacheBuilderService,
+} from "./jsonl-cache-builder.service";
+export {
+  CacheInvalidationService,
+  getCacheInvalidationService,
+} from "./cache-invalidation.service";
+export {
+  CacheAggregationService,
+  getCacheAggregationService,
+} from "./cache-aggregation.service";
 
 // Re-export existing services
-export { getFileMonitor, createFileMonitor, FileMonitor } from './fileMonitor';
+export { getFileMonitor, createFileMonitor, FileMonitor } from "./fileMonitor";
+
+// Analytics services
+export { AnalyticsService, analyticsService } from "./analytics.service";
 
 // Types and interfaces
 export type {
   CacheDirectoryInfo,
-  CacheDirectoryEvent
-} from './cache-directory.service';
+  CacheDirectoryEvent,
+} from "./cache-directory.service";
 
 export type {
   FileStats,
   FileModificationResult,
   BatchCheckResult,
   DirectoryTrackingOptions,
-  FileModificationEvent
-} from './file-modification.service';
+  FileModificationEvent,
+} from "./file-modification.service";
 
 export type {
   ValidationOptions,
   ValidationEvent,
   MigrationResult,
-  ChecksumValidationResult
-} from './cache-validation.service';
+  ChecksumValidationResult,
+} from "./cache-validation.service";
 
 export type {
   CacheBuildOptions,
   CacheBuildResult,
   CacheBuildEvent,
-  StreamingBuildProgress
-} from './jsonl-cache-builder.service';
+  StreamingBuildProgress,
+} from "./jsonl-cache-builder.service";
 
 export type {
   InvalidationRule,
@@ -46,8 +67,8 @@ export type {
   CacheUpdateResult,
   DependencyMap,
   CacheWarmingStrategy,
-  ExpirationPolicy
-} from './cache-invalidation.service';
+  ExpirationPolicy,
+} from "./cache-invalidation.service";
 
 export type {
   AggregatedStats,
@@ -56,5 +77,14 @@ export type {
   TimeBasedAggregation,
   QueryOptions,
   AggregationEvent,
-  CachePerformanceMetrics
-} from './cache-aggregation.service';
+  CachePerformanceMetrics,
+} from "./cache-aggregation.service";
+
+export type {
+  TokenConsumptionPattern,
+  UsageInsights,
+  RealTimeMetrics,
+  TokenUsageAnalytics,
+  AnalyticsEventType,
+  AnalyticsEvent,
+} from "./analytics.service";

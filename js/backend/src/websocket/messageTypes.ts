@@ -9,24 +9,30 @@ export interface IWebSocketMessage {
 // Message types
 export enum WebSocketMessageType {
   // Connection management
-  CONNECT = 'connect',
-  DISCONNECT = 'disconnect',
-  HEARTBEAT = 'heartbeat',
-  PONG = 'pong',
-  
+  CONNECT = "connect",
+  DISCONNECT = "disconnect",
+  HEARTBEAT = "heartbeat",
+  PONG = "pong",
+
   // Session events
-  SESSION_CREATED = 'session_created',
-  SESSION_UPDATED = 'session_updated',
-  SESSION_DELETED = 'session_deleted',
-  
+  SESSION_CREATED = "session_created",
+  SESSION_UPDATED = "session_updated",
+  SESSION_DELETED = "session_deleted",
+
   // Project events
-  PROJECT_UPDATED = 'project_updated',
-  
+  PROJECT_UPDATED = "project_updated",
+
   // File system events
-  FILE_CHANGED = 'file_changed',
-  
+  FILE_CHANGED = "file_changed",
+
+  // Analytics events
+  ANALYTICS_TOKEN_UPDATE = "analytics_token_update",
+  ANALYTICS_INSIGHTS_UPDATE = "analytics_insights_update",
+  ANALYTICS_PERFORMANCE_UPDATE = "analytics_performance_update",
+  ANALYTICS_REAL_TIME_METRICS = "analytics_real_time_metrics",
+
   // Error events
-  ERROR = 'error'
+  ERROR = "error",
 }
 
 // Specific message interfaces
@@ -77,7 +83,7 @@ export interface IFileChangedMessage extends IWebSocketMessage {
   type: WebSocketMessageType.FILE_CHANGED;
   data: {
     filePath: string;
-    changeType: 'created' | 'modified' | 'deleted';
+    changeType: "created" | "modified" | "deleted";
   };
 }
 
@@ -98,7 +104,70 @@ export interface IConnectMessage extends IWebSocketMessage {
   };
 }
 
-export type WebSocketEventMessage = 
+// Analytics message interfaces
+export interface IAnalyticsTokenUpdateMessage extends IWebSocketMessage {
+  type: WebSocketMessageType.ANALYTICS_TOKEN_UPDATE;
+  data: {
+    totalTokens: number;
+    inputTokens: number;
+    outputTokens: number;
+    sessionsAnalyzed: number;
+    timeRange: {
+      start: string;
+      end: string;
+    };
+    patterns: Array<{
+      timestamp: string;
+      inputTokens: number;
+      outputTokens: number;
+      totalTokens: number;
+      sessionId: string;
+      messageType: "user" | "assistant";
+    }>;
+  };
+}
+
+export interface IAnalyticsInsightsUpdateMessage extends IWebSocketMessage {
+  type: WebSocketMessageType.ANALYTICS_INSIGHTS_UPDATE;
+  data: {
+    totalTokensUsed: number;
+    averageTokensPerSession: number;
+    tokenEfficiencyScore: number;
+    recommendations: Array<{
+      type: "optimization" | "usage" | "performance";
+      priority: "high" | "medium" | "low";
+      title: string;
+      description: string;
+      impact: string;
+    }>;
+  };
+}
+
+export interface IAnalyticsPerformanceUpdateMessage extends IWebSocketMessage {
+  type: WebSocketMessageType.ANALYTICS_PERFORMANCE_UPDATE;
+  data: {
+    averageResponseTime: number;
+    cacheHitRate: number;
+    errorRate: number;
+    systemLoad: {
+      cpu: number;
+      memory: number;
+      disk: number;
+    };
+  };
+}
+
+export interface IAnalyticsRealTimeMetricsMessage extends IWebSocketMessage {
+  type: WebSocketMessageType.ANALYTICS_REAL_TIME_METRICS;
+  data: {
+    currentSessionCount: number;
+    activeConnections: number;
+    tokensPerMinute: number;
+    averageResponseTime: number;
+  };
+}
+
+export type WebSocketEventMessage =
   | IHeartbeatMessage
   | IPongMessage
   | ISessionCreatedMessage
@@ -107,4 +176,8 @@ export type WebSocketEventMessage =
   | IProjectUpdatedMessage
   | IFileChangedMessage
   | IErrorMessage
-  | IConnectMessage;
+  | IConnectMessage
+  | IAnalyticsTokenUpdateMessage
+  | IAnalyticsInsightsUpdateMessage
+  | IAnalyticsPerformanceUpdateMessage
+  | IAnalyticsRealTimeMetricsMessage;

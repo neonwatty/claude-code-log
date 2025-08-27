@@ -1,13 +1,13 @@
-import { html, css, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { BaseComponent } from '../base/base-component.js';
-import type { ZodSession } from '../../../../shared/src/schemas/index.js';
-import type { 
-  SessionContinuationRequest, 
-  SessionContinuationResponse, 
+import { html, css, TemplateResult } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { BaseComponent } from "../base/base-component.js";
+import type { ZodSession } from "../../../../shared/src/schemas/index.js";
+import type {
+  SessionContinuationRequest,
+  SessionContinuationResponse,
   ClaudeProcessStatus,
-  ClaudeProcessState 
-} from '../../../../shared/src/schemas/claude-integration.js';
+  ClaudeProcessState,
+} from "../../../../shared/src/schemas/claude-integration.js";
 
 export interface SessionContinuationState {
   selectedSession: ZodSession | null;
@@ -26,24 +26,24 @@ export interface SessionContinuationOptions {
   useExistingClaudeMd?: boolean;
 }
 
-@customElement('session-continuation')
+@customElement("session-continuation")
 export class SessionContinuation extends BaseComponent {
   @property({ type: Object })
   session: ZodSession | null = null;
 
-  @property({ type: String, attribute: 'api-base-url' })
-  apiBaseUrl = '/api';
+  @property({ type: String, attribute: "api-base-url" })
+  apiBaseUrl = "/api";
 
-  @property({ type: Boolean, attribute: 'auto-prepare-context' })
+  @property({ type: Boolean, attribute: "auto-prepare-context" })
   autoPrepareContext = true;
 
-  @property({ type: Boolean, attribute: 'show-advanced-options' })
+  @property({ type: Boolean, attribute: "show-advanced-options" })
   showAdvancedOptions = false;
 
   @state()
   private continuationState: SessionContinuationState = {
     selectedSession: null,
-    continuationStatus: 'idle',
+    continuationStatus: "idle",
     processId: null,
     claudeProcessUrl: null,
     errorMessage: null,
@@ -53,8 +53,8 @@ export class SessionContinuation extends BaseComponent {
 
   @state()
   private continuationOptions: SessionContinuationOptions = {
-    workingDirectory: '',
-    command: '',
+    workingDirectory: "",
+    command: "",
     prepareContext: this.autoPrepareContext,
     useExistingClaudeMd: false,
   };
@@ -80,7 +80,9 @@ export class SessionContinuation extends BaseComponent {
         background-color: var(--color-surface);
         border-radius: var(--border-radius-md);
         padding: var(--spacing-lg);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border: 1px solid var(--color-border-light);
       }
 
@@ -182,8 +184,13 @@ export class SessionContinuation extends BaseComponent {
       }
 
       @keyframes pulse {
-        0%, 100% { opacity: 0.7; }
-        50% { opacity: 1; }
+        0%,
+        100% {
+          opacity: 0.7;
+        }
+        50% {
+          opacity: 1;
+        }
       }
 
       .status-details {
@@ -394,44 +401,44 @@ export class SessionContinuation extends BaseComponent {
         .session-continuation-container {
           padding: var(--spacing-md);
         }
-        
+
         .session-info-grid {
           grid-template-columns: 1fr;
         }
-        
+
         .info-item {
           flex-direction: column;
           gap: var(--spacing-xs);
         }
-        
+
         .info-value {
           text-align: left;
         }
-        
+
         .action-buttons {
           flex-direction: column;
         }
-        
+
         .btn {
           justify-content: center;
         }
       }
-    `
+    `,
   ];
 
   protected override firstUpdated(): void {
     this.initializeWebSocket();
     this.validateForm();
-    
+
     // Update selected session when session prop changes
     if (this.session) {
       this.continuationState = {
         ...this.continuationState,
-        selectedSession: this.session
+        selectedSession: this.session,
       };
       this.continuationOptions = {
         ...this.continuationOptions,
-        workingDirectory: this.session.cwd || ''
+        workingDirectory: this.session.cwd || "",
       };
     }
   }
@@ -443,7 +450,7 @@ export class SessionContinuation extends BaseComponent {
 
   private initializeWebSocket(): void {
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       this.websocket = new WebSocket(`${protocol}//${host}/ws`);
 
@@ -465,7 +472,7 @@ export class SessionContinuation extends BaseComponent {
         this.handleWebSocketMessage(JSON.parse(event.data));
       };
     } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
+      console.error("Failed to initialize WebSocket:", error);
     }
   }
 
@@ -480,10 +487,12 @@ export class SessionContinuation extends BaseComponent {
   private startHeartbeat(): void {
     this.heartbeatInterval = window.setInterval(() => {
       if (this.websocket?.readyState === WebSocket.OPEN) {
-        this.websocket.send(JSON.stringify({
-          type: 'heartbeat',
-          timestamp: new Date().toISOString()
-        }));
+        this.websocket.send(
+          JSON.stringify({
+            type: "heartbeat",
+            timestamp: new Date().toISOString(),
+          }),
+        );
       }
     }, 30000); // 30 seconds
   }
@@ -497,13 +506,13 @@ export class SessionContinuation extends BaseComponent {
 
   private handleWebSocketMessage(message: any): void {
     switch (message.type) {
-      case 'claude_process_status':
+      case "claude_process_status":
         this.handleProcessStatusUpdate(message.data);
         break;
-      case 'claude_process_output':
+      case "claude_process_output":
         this.handleProcessOutput(message.data);
         break;
-      case 'claude_process_error':
+      case "claude_process_error":
         this.handleProcessError(message.data);
         break;
     }
@@ -516,29 +525,31 @@ export class SessionContinuation extends BaseComponent {
       processId: status.processId,
     };
 
-    if (status.state === 'error' && status.error) {
+    if (status.state === "error" && status.error) {
       this.continuationState.errorMessage = status.error;
     }
   }
 
   private handleProcessOutput(output: any): void {
     // Handle real-time output from Claude process
-    console.log('Claude process output:', output);
+    console.log("Claude process output:", output);
   }
 
   private handleProcessError(error: any): void {
     this.continuationState = {
       ...this.continuationState,
-      continuationStatus: 'error',
-      errorMessage: error.message || 'An error occurred during session continuation'
+      continuationStatus: "error",
+      errorMessage:
+        error.message || "An error occurred during session continuation",
     };
   }
 
   private validateForm(): void {
-    const isValid = !!this.session && this.continuationState.continuationStatus === 'idle';
+    const isValid =
+      !!this.session && this.continuationState.continuationStatus === "idle";
     this.continuationState = {
       ...this.continuationState,
-      isFormValid: isValid
+      isFormValid: isValid,
     };
   }
 
@@ -552,14 +563,15 @@ export class SessionContinuation extends BaseComponent {
       const request: SessionContinuationRequest = {
         sessionId: this.session.id,
         sessionPath: this.session.projectPath,
-        workingDirectory: this.continuationOptions.workingDirectory || this.session.cwd,
+        workingDirectory:
+          this.continuationOptions.workingDirectory || this.session.cwd,
         command: this.continuationOptions.command || undefined,
       };
 
       const response = await fetch(`${this.apiBaseUrl}/sessions/continue`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
       });
@@ -573,20 +585,21 @@ export class SessionContinuation extends BaseComponent {
       if (result.success) {
         this.continuationState = {
           ...this.continuationState,
-          continuationStatus: 'starting',
+          continuationStatus: "starting",
           processId: result.processId,
           claudeProcessUrl: result.claudeProcessUrl || null,
           successMessage: result.message,
-          errorMessage: null
+          errorMessage: null,
         };
       } else {
-        throw new Error(result.error || 'Session continuation failed');
+        throw new Error(result.error || "Session continuation failed");
       }
     } catch (error) {
       this.continuationState = {
         ...this.continuationState,
-        continuationStatus: 'error',
-        errorMessage: error instanceof Error ? error.message : 'Unknown error occurred'
+        continuationStatus: "error",
+        errorMessage:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     } finally {
       this.setLoading(false);
@@ -597,7 +610,7 @@ export class SessionContinuation extends BaseComponent {
     this.continuationState = {
       ...this.continuationState,
       successMessage: null,
-      errorMessage: null
+      errorMessage: null,
     };
   }
 
@@ -609,7 +622,7 @@ export class SessionContinuation extends BaseComponent {
     const input = event.target as HTMLInputElement;
     this.continuationOptions = {
       ...this.continuationOptions,
-      workingDirectory: input.value
+      workingDirectory: input.value,
     };
     this.validateForm();
   }
@@ -618,7 +631,7 @@ export class SessionContinuation extends BaseComponent {
     const input = event.target as HTMLInputElement;
     this.continuationOptions = {
       ...this.continuationOptions,
-      command: input.value
+      command: input.value,
     };
   }
 
@@ -626,7 +639,7 @@ export class SessionContinuation extends BaseComponent {
     const checkbox = event.target as HTMLInputElement;
     this.continuationOptions = {
       ...this.continuationOptions,
-      prepareContext: checkbox.checked
+      prepareContext: checkbox.checked,
     };
   }
 
@@ -634,49 +647,58 @@ export class SessionContinuation extends BaseComponent {
     const checkbox = event.target as HTMLInputElement;
     this.continuationOptions = {
       ...this.continuationOptions,
-      useExistingClaudeMd: checkbox.checked
+      useExistingClaudeMd: checkbox.checked,
     };
   }
 
   private renderStatusSection(): TemplateResult {
-    const { continuationStatus, processId, claudeProcessUrl, errorMessage, successMessage } = this.continuationState;
-    
+    const {
+      continuationStatus,
+      processId,
+      claudeProcessUrl,
+      errorMessage,
+      successMessage,
+    } = this.continuationState;
+
     const statusLabels = {
-      idle: '⚪ Ready',
-      starting: '🟡 Starting Claude...',
-      running: '🟢 Claude Running',
-      stopping: '🟡 Stopping...',
-      stopped: '⚫ Stopped',
-      error: '🔴 Error'
+      idle: "⚪ Ready",
+      starting: "🟡 Starting Claude...",
+      running: "🟢 Claude Running",
+      stopping: "🟡 Stopping...",
+      stopped: "⚫ Stopped",
+      error: "🔴 Error",
     };
 
     return html`
       <div class="status-section">
         <div class="status-indicator">
           <div class="status-icon ${continuationStatus}"></div>
-          <span>${statusLabels[continuationStatus] || '❓ Unknown'}</span>
+          <span>${statusLabels[continuationStatus] || "❓ Unknown"}</span>
         </div>
-        
-        ${processId ? html`
-          <div class="status-details">Process ID: ${processId}</div>
-        ` : ''}
-        
-        ${claudeProcessUrl ? html`
-          <div class="status-details">
-            <a href="${claudeProcessUrl}" target="_blank" class="claude-url-link">
-              🚀 Open Claude Code
-              <span>↗</span>
-            </a>
-          </div>
-        ` : ''}
-        
-        ${successMessage ? html`
-          <div class="message success">${successMessage}</div>
-        ` : ''}
-        
-        ${errorMessage ? html`
-          <div class="message error">${errorMessage}</div>
-        ` : ''}
+
+        ${processId
+          ? html` <div class="status-details">Process ID: ${processId}</div> `
+          : ""}
+        ${claudeProcessUrl
+          ? html`
+              <div class="status-details">
+                <a
+                  href="${claudeProcessUrl}"
+                  target="_blank"
+                  class="claude-url-link"
+                >
+                  🚀 Open Claude Code
+                  <span>↗</span>
+                </a>
+              </div>
+            `
+          : ""}
+        ${successMessage
+          ? html` <div class="message success">${successMessage}</div> `
+          : ""}
+        ${errorMessage
+          ? html` <div class="message error">${errorMessage}</div> `
+          : ""}
       </div>
     `;
   }
@@ -685,7 +707,8 @@ export class SessionContinuation extends BaseComponent {
     if (!this.session) return html``;
 
     const tokenUsage = this.session.totalUsage;
-    const totalTokens = (tokenUsage.input_tokens || 0) + (tokenUsage.output_tokens || 0);
+    const totalTokens =
+      (tokenUsage.input_tokens || 0) + (tokenUsage.output_tokens || 0);
 
     return html`
       <div class="session-info">
@@ -704,11 +727,15 @@ export class SessionContinuation extends BaseComponent {
           </div>
           <div class="info-item">
             <span class="info-label">Total Tokens:</span>
-            <span class="info-value">${this.formatTokenCount(totalTokens)}</span>
+            <span class="info-value"
+              >${this.formatTokenCount(totalTokens)}</span
+            >
           </div>
           <div class="info-item">
             <span class="info-label">Last Activity:</span>
-            <span class="info-value">${this.formatRelativeTime(this.session.lastTimestamp)}</span>
+            <span class="info-value"
+              >${this.formatRelativeTime(this.session.lastTimestamp)}</span
+            >
           </div>
         </div>
       </div>
@@ -716,75 +743,81 @@ export class SessionContinuation extends BaseComponent {
   }
 
   private renderContinuationForm(): TemplateResult {
-    const isDisabled = this.continuationState.continuationStatus !== 'idle' || this.isLoading;
+    const isDisabled =
+      this.continuationState.continuationStatus !== "idle" || this.isLoading;
 
     return html`
       <div class="continuation-form">
         <div class="form-group">
-          <label class="form-label" for="working-directory">Working Directory</label>
+          <label class="form-label" for="working-directory"
+            >Working Directory</label
+          >
           <input
             id="working-directory"
             type="text"
             class="form-input"
-            .value=${this.continuationOptions.workingDirectory || ''}
+            .value=${this.continuationOptions.workingDirectory || ""}
             @input=${this.handleWorkingDirectoryChange}
             ?disabled=${isDisabled}
             placeholder="Override session working directory (optional)"
           />
         </div>
 
-        <button 
-          class="advanced-toggle" 
+        <button
+          class="advanced-toggle"
           @click=${this.toggleAdvancedOptions}
           type="button"
         >
-          ${this.showAdvancedOptions ? '▼' : '▶'} Advanced Options
+          ${this.showAdvancedOptions ? "▼" : "▶"} Advanced Options
         </button>
 
-        ${this.showAdvancedOptions ? html`
-          <div class="advanced-options">
-            <div class="form-group">
-              <label class="form-label" for="command">Custom Command</label>
-              <input
-                id="command"
-                type="text"
-                class="form-input"
-                .value=${this.continuationOptions.command || ''}
-                @input=${this.handleCommandChange}
-                ?disabled=${isDisabled}
-                placeholder="Custom Claude Code command (optional)"
-              />
-            </div>
+        ${this.showAdvancedOptions
+          ? html`
+              <div class="advanced-options">
+                <div class="form-group">
+                  <label class="form-label" for="command">Custom Command</label>
+                  <input
+                    id="command"
+                    type="text"
+                    class="form-input"
+                    .value=${this.continuationOptions.command || ""}
+                    @input=${this.handleCommandChange}
+                    ?disabled=${isDisabled}
+                    placeholder="Custom Claude Code command (optional)"
+                  />
+                </div>
 
-            <div class="checkbox-group">
-              <input
-                type="checkbox"
-                id="prepare-context"
-                class="checkbox"
-                .checked=${this.continuationOptions.prepareContext || false}
-                @change=${this.handlePrepareContextChange}
-                ?disabled=${isDisabled}
-              />
-              <label for="prepare-context" class="checkbox-label">
-                Prepare context automatically
-              </label>
-            </div>
+                <div class="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="prepare-context"
+                    class="checkbox"
+                    .checked=${this.continuationOptions.prepareContext || false}
+                    @change=${this.handlePrepareContextChange}
+                    ?disabled=${isDisabled}
+                  />
+                  <label for="prepare-context" class="checkbox-label">
+                    Prepare context automatically
+                  </label>
+                </div>
 
-            <div class="checkbox-group">
-              <input
-                type="checkbox"
-                id="use-existing-claude-md"
-                class="checkbox"
-                .checked=${this.continuationOptions.useExistingClaudeMd || false}
-                @change=${this.handleUseExistingClaudeMdChange}
-                ?disabled=${isDisabled}
-              />
-              <label for="use-existing-claude-md" class="checkbox-label">
-                Use existing CLAUDE.md file
-              </label>
-            </div>
-          </div>
-        ` : ''}
+                <div class="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="use-existing-claude-md"
+                    class="checkbox"
+                    .checked=${this.continuationOptions.useExistingClaudeMd ||
+                    false}
+                    @change=${this.handleUseExistingClaudeMdChange}
+                    ?disabled=${isDisabled}
+                  />
+                  <label for="use-existing-claude-md" class="checkbox-label">
+                    Use existing CLAUDE.md file
+                  </label>
+                </div>
+              </div>
+            `
+          : ""}
 
         <div class="action-buttons">
           <button
@@ -792,17 +825,16 @@ export class SessionContinuation extends BaseComponent {
             @click=${this.continueSession}
             ?disabled=${!this.continuationState.isFormValid || isDisabled}
           >
-            ${this.isLoading ? '🔄' : '🚀'} Continue Session
+            ${this.isLoading ? "🔄" : "🚀"} Continue Session
           </button>
-          
-          ${this.continuationState.continuationStatus === 'running' ? html`
-            <button
-              class="btn danger"
-              @click=${this.stopSession}
-            >
-              🛑 Stop Session
-            </button>
-          ` : ''}
+
+          ${this.continuationState.continuationStatus === "running"
+            ? html`
+                <button class="btn danger" @click=${this.stopSession}>
+                  🛑 Stop Session
+                </button>
+              `
+            : ""}
         </div>
       </div>
     `;
@@ -812,9 +844,12 @@ export class SessionContinuation extends BaseComponent {
     if (!this.continuationState.processId) return;
 
     try {
-      const response = await fetch(`${this.apiBaseUrl}/sessions/stop/${this.continuationState.processId}`, {
-        method: 'POST'
-      });
+      const response = await fetch(
+        `${this.apiBaseUrl}/sessions/stop/${this.continuationState.processId}`,
+        {
+          method: "POST",
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to stop session: ${response.statusText}`);
@@ -822,12 +857,13 @@ export class SessionContinuation extends BaseComponent {
 
       this.continuationState = {
         ...this.continuationState,
-        continuationStatus: 'stopping'
+        continuationStatus: "stopping",
       };
     } catch (error) {
       this.continuationState = {
         ...this.continuationState,
-        errorMessage: error instanceof Error ? error.message : 'Failed to stop session'
+        errorMessage:
+          error instanceof Error ? error.message : "Failed to stop session",
       };
     }
   }
@@ -854,8 +890,7 @@ export class SessionContinuation extends BaseComponent {
           <span class="header-title">Continue Session in Claude Code</span>
         </div>
 
-        ${this.renderSessionInfo()}
-        ${this.renderStatusSection()}
+        ${this.renderSessionInfo()} ${this.renderStatusSection()}
         ${this.renderContinuationForm()}
       </div>
     `;
@@ -864,6 +899,6 @@ export class SessionContinuation extends BaseComponent {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'session-continuation': SessionContinuation;
+    "session-continuation": SessionContinuation;
   }
 }

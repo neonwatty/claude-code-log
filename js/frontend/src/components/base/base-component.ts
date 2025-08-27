@@ -1,6 +1,6 @@
-import { LitElement, CSSResult, css } from 'lit';
-import { property, state } from 'lit/decorators.js';
-import { baseStyles } from '../../styles/shared/index.js';
+import { LitElement, CSSResult, css } from "lit";
+import { property, state } from "lit/decorators.js";
+import { baseStyles } from "../../styles/shared/index.js";
 
 /**
  * Base component that all application components inherit from
@@ -22,7 +22,7 @@ export abstract class BaseComponent extends LitElement {
   /**
    * Dark mode preference
    */
-  @property({ type: Boolean, reflect: true, attribute: 'dark-mode' })
+  @property({ type: Boolean, reflect: true, attribute: "dark-mode" })
   darkMode = false;
 
   /**
@@ -57,7 +57,7 @@ export abstract class BaseComponent extends LitElement {
       .hidden {
         display: none !important;
       }
-    `
+    `,
   ];
 
   /**
@@ -86,7 +86,7 @@ export abstract class BaseComponent extends LitElement {
    */
   protected async handleAsyncOperation<T>(
     operation: () => Promise<T>,
-    errorMessage = 'An error occurred'
+    errorMessage = "An error occurred",
   ): Promise<T | null> {
     this.setLoading(true);
     this.clearError();
@@ -112,7 +112,7 @@ export abstract class BaseComponent extends LitElement {
         detail,
         bubbles: true,
         composed: true,
-      })
+      }),
     );
   }
 
@@ -120,7 +120,8 @@ export abstract class BaseComponent extends LitElement {
    * Format timestamp for display
    */
   protected formatTimestamp(timestamp: string | Date): string {
-    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
     return date.toLocaleString();
   }
 
@@ -128,17 +129,20 @@ export abstract class BaseComponent extends LitElement {
    * Format relative time (e.g., "2 hours ago")
    */
   protected formatRelativeTime(timestamp: string | Date): string {
-    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60)
+      return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
     return this.formatTimestamp(date);
   }
 
@@ -154,6 +158,6 @@ export abstract class BaseComponent extends LitElement {
    */
   protected truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength - 3) + '...';
+    return text.slice(0, maxLength - 3) + "...";
   }
 }

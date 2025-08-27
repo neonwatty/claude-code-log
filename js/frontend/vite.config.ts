@@ -1,19 +1,19 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from "vite";
+import { resolve } from "path";
 
 export default defineConfig({
-  root: 'src',
+  root: "src",
   build: {
-    outDir: '../dist',
-    emptyOutDir: true
+    outDir: "../dist",
+    emptyOutDir: true,
   },
   resolve: {
     alias: {
-      '@shared': resolve(__dirname, '../shared')
-    }
+      "@shared": resolve(__dirname, "../shared"),
+    },
   },
   server: {
     port: 5173,
-    host: '0.0.0.0'
-  }
+    host: "0.0.0.0",
+  },
 });

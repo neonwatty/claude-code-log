@@ -4,33 +4,33 @@
  * statistics tracking, and UI integration
  */
 
-import { EventEmitter } from '../utils/event-emitter';
-import { WebSocketService } from './websocket-service';
-import type { IWebSocketConfig } from '../types/websocket';
-import { WebSocketConnectionState } from '../types/websocket';
-import { 
+import { EventEmitter } from "../utils/event-emitter";
+import { WebSocketService } from "./websocket-service";
+import type { IWebSocketConfig } from "../types/websocket";
+import { WebSocketConnectionState } from "../types/websocket";
+import {
   ConnectionState,
-  calculateConnectionQuality
-} from '../utils/websocket/connection-state';
-import type { 
-  ConnectionStatistics, 
-  ConnectionStateEvent, 
-  ConnectionDebugInfo
-} from '../utils/websocket/connection-state';
+  calculateConnectionQuality,
+} from "../utils/websocket/connection-state";
+import type {
+  ConnectionStatistics,
+  ConnectionStateEvent,
+  ConnectionDebugInfo,
+} from "../utils/websocket/connection-state";
 
 export interface ConnectionManagerEvents {
-  'state-changed': ConnectionStateEvent;
-  'statistics-updated': ConnectionStatistics;
-  'debug-info-updated': ConnectionDebugInfo;
+  "state-changed": ConnectionStateEvent;
+  "statistics-updated": ConnectionStatistics;
+  "debug-info-updated": ConnectionDebugInfo;
 }
 
 export class ConnectionManager {
   private static instance: ConnectionManager | null = null;
-  
+
   private websocketService: WebSocketService | null = null;
   private eventEmitter = new EventEmitter<ConnectionManagerEvents>();
   private config: IWebSocketConfig | null = null;
-  
+
   // Statistics tracking
   private statistics: ConnectionStatistics = {
     uptime: 0,
@@ -42,9 +42,9 @@ export class ConnectionManager {
     messagesReceived: 0,
     totalDataSent: 0,
     totalDataReceived: 0,
-    connectionQuality: 'unknown'
+    connectionQuality: "unknown",
   };
-  
+
   // State tracking
   private currentState: ConnectionState = ConnectionState.DISCONNECTED;
   private stateHistory: ConnectionStateEvent[] = [];
@@ -52,7 +52,7 @@ export class ConnectionManager {
   private lastHeartbeatTime: number | null = null;
   private lastPongTime: number | null = null;
   private latencyMeasurements: number[] = [];
-  
+
   // Timers
   private statisticsUpdateTimer: number | null = null;
   private uptimeTimer: number | null = null;
@@ -79,7 +79,7 @@ export class ConnectionManager {
     this.config = config;
     this.websocketService = WebSocketService.getInstance(config);
     this.setupWebSocketEventHandlers();
-    
+
     // Reset statistics on new initialization
     this.resetStatistics();
   }
@@ -89,7 +89,9 @@ export class ConnectionManager {
    */
   public connect(): void {
     if (!this.websocketService) {
-      throw new Error('ConnectionManager not initialized. Call initialize() first.');
+      throw new Error(
+        "ConnectionManager not initialized. Call initialize() first.",
+      );
     }
 
     this.connectStartTime = Date.now();
@@ -142,23 +144,25 @@ export class ConnectionManager {
     if (wsState === WebSocketConnectionState.CONNECTING) readyState = 0;
     if (wsState === WebSocketConnectionState.CONNECTED) readyState = 1;
 
-    const url = this.config?.url 
-      ? (typeof this.config.url === 'function' ? this.config.url() : this.config.url)
-      : 'WebSocket URL';
+    const url = this.config?.url
+      ? typeof this.config.url === "function"
+        ? this.config.url()
+        : this.config.url
+      : "WebSocket URL";
 
     return {
       url,
       protocols: [],
       readyState,
       bufferedAmount: 0,
-      extensions: '',
-      protocol: '',
-      binaryType: 'blob',
+      extensions: "",
+      protocol: "",
+      binaryType: "blob",
       statistics: this.statistics,
       lastHeartbeat: this.lastHeartbeatTime,
       lastPong: this.lastPongTime,
       reconnectionAttempts: reconnectionInfo.attempt,
-      maxReconnectionAttempts: reconnectionInfo.maxAttempts
+      maxReconnectionAttempts: reconnectionInfo.maxAttempts,
     };
   }
 
@@ -167,7 +171,7 @@ export class ConnectionManager {
    */
   public on<K extends keyof ConnectionManagerEvents>(
     event: K,
-    handler: (data: ConnectionManagerEvents[K]) => void
+    handler: (data: ConnectionManagerEvents[K]) => void,
   ): () => void {
     return this.eventEmitter.on(event, handler);
   }
@@ -177,7 +181,7 @@ export class ConnectionManager {
    */
   public off<K extends keyof ConnectionManagerEvents>(
     event: K,
-    handler?: (data: ConnectionManagerEvents[K]) => void
+    handler?: (data: ConnectionManagerEvents[K]) => void,
   ): void {
     this.eventEmitter.off(event, handler);
   }
@@ -201,57 +205,60 @@ export class ConnectionManager {
     if (!this.websocketService) return;
 
     // Connection state changes
-    this.websocketService.on('state:changed', (event) => {
+    this.websocketService.on("state:changed", (event) => {
       this.handleStateChange(event.newState, event.oldState);
     });
 
     // Connection events
-    this.websocketService.on('connection:open', () => {
+    this.websocketService.on("connection:open", () => {
       this.handleConnectionOpen();
     });
 
-    this.websocketService.on('connection:close', (event) => {
+    this.websocketService.on("connection:close", (event) => {
       this.handleConnectionClose(event);
     });
 
-    this.websocketService.on('connection:error', (event) => {
+    this.websocketService.on("connection:error", (event) => {
       this.handleConnectionError(event);
     });
 
-    this.websocketService.on('connection:reconnecting', (event) => {
+    this.websocketService.on("connection:reconnecting", (event) => {
       this.handleReconnecting(event);
     });
 
     // Message events
-    this.websocketService.on('message', (message) => {
+    this.websocketService.on("message", (message) => {
       this.handleMessage(message);
     });
   }
 
-  private handleStateChange(newState: WebSocketConnectionState, oldState: WebSocketConnectionState): void {
+  private handleStateChange(
+    newState: WebSocketConnectionState,
+    oldState: WebSocketConnectionState,
+  ): void {
     const previousConnectionState = this.currentState;
     this.currentState = this.mapWebSocketState(newState);
 
     const stateEvent: ConnectionStateEvent = {
       previousState: previousConnectionState,
       currentState: this.currentState,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.stateHistory.push(stateEvent);
-    
+
     // Keep only last 50 state changes
     if (this.stateHistory.length > 50) {
       this.stateHistory = this.stateHistory.slice(-50);
     }
 
-    this.eventEmitter.emit('state-changed', stateEvent);
+    this.eventEmitter.emit("state-changed", stateEvent);
   }
 
   private handleConnectionOpen(): void {
     this.statistics.lastConnectTime = Date.now();
     this.startUptimeTimer();
-    
+
     if (this.connectStartTime) {
       const connectDuration = Date.now() - this.connectStartTime;
       this.addLatencyMeasurement(connectDuration);
@@ -278,11 +285,11 @@ export class ConnectionManager {
     this.statistics.totalDataReceived += JSON.stringify(message).length;
 
     // Track heartbeat/pong for latency measurement
-    if (message.type === 'heartbeat') {
+    if (message.type === "heartbeat") {
       this.lastHeartbeatTime = Date.now();
-    } else if (message.type === 'pong') {
+    } else if (message.type === "pong") {
       this.lastPongTime = Date.now();
-      
+
       if (this.lastHeartbeatTime) {
         const latency = this.lastPongTime - this.lastHeartbeatTime;
         this.addLatencyMeasurement(latency);
@@ -292,7 +299,9 @@ export class ConnectionManager {
     this.updateStatistics();
   }
 
-  private mapWebSocketState(wsState: WebSocketConnectionState): ConnectionState {
+  private mapWebSocketState(
+    wsState: WebSocketConnectionState,
+  ): ConnectionState {
     switch (wsState) {
       case WebSocketConnectionState.CONNECTING:
         return ConnectionState.CONNECTING;
@@ -311,7 +320,7 @@ export class ConnectionManager {
 
   private addLatencyMeasurement(latency: number): void {
     this.latencyMeasurements.push(latency);
-    
+
     // Keep only last 20 measurements for average calculation
     if (this.latencyMeasurements.length > 20) {
       this.latencyMeasurements = this.latencyMeasurements.slice(-20);
@@ -319,13 +328,15 @@ export class ConnectionManager {
 
     // Calculate average latency
     const sum = this.latencyMeasurements.reduce((acc, val) => acc + val, 0);
-    this.statistics.averageLatency = Math.round(sum / this.latencyMeasurements.length);
+    this.statistics.averageLatency = Math.round(
+      sum / this.latencyMeasurements.length,
+    );
   }
 
   private startUptimeTimer(): void {
     this.stopUptimeTimer();
     const startTime = Date.now();
-    
+
     this.uptimeTimer = window.setInterval(() => {
       if (this.currentState === ConnectionState.CONNECTED) {
         this.statistics.uptime = Date.now() - startTime;
@@ -349,15 +360,17 @@ export class ConnectionManager {
 
   private updateStatistics(): void {
     // Update connection quality
-    this.statistics.connectionQuality = calculateConnectionQuality(this.statistics);
-    
+    this.statistics.connectionQuality = calculateConnectionQuality(
+      this.statistics,
+    );
+
     // Emit updated statistics
-    this.eventEmitter.emit('statistics-updated', { ...this.statistics });
-    
+    this.eventEmitter.emit("statistics-updated", { ...this.statistics });
+
     // Emit updated debug info
     const debugInfo = this.getDebugInfo();
     if (debugInfo) {
-      this.eventEmitter.emit('debug-info-updated', debugInfo);
+      this.eventEmitter.emit("debug-info-updated", debugInfo);
     }
   }
 
@@ -372,9 +385,9 @@ export class ConnectionManager {
       messagesReceived: 0,
       totalDataSent: 0,
       totalDataReceived: 0,
-      connectionQuality: 'unknown'
+      connectionQuality: "unknown",
     };
-    
+
     this.stateHistory = [];
     this.latencyMeasurements = [];
     this.updateStatistics();
@@ -393,23 +406,23 @@ export class ConnectionManager {
   public simulateStateChange(newState: ConnectionState, reason?: string): void {
     const previousState = this.currentState;
     this.currentState = newState;
-    
+
     const stateEvent: ConnectionStateEvent = {
       currentState: newState,
       previousState,
       timestamp: Date.now(),
-      reason: reason || 'Simulated state change'
+      reason: reason || "Simulated state change",
     };
 
     this.stateHistory.push(stateEvent);
-    
+
     // Keep only last 50 state changes
     if (this.stateHistory.length > 50) {
       this.stateHistory = this.stateHistory.slice(-50);
     }
 
-    this.eventEmitter.emit('state-changed', stateEvent);
-    
+    this.eventEmitter.emit("state-changed", stateEvent);
+
     // Update statistics based on state change
     if (newState === ConnectionState.CONNECTED) {
       this.statistics.lastConnectTime = Date.now();
@@ -420,7 +433,7 @@ export class ConnectionManager {
     } else if (newState === ConnectionState.RECONNECTING) {
       this.statistics.reconnectionCount++;
     }
-    
+
     this.updateStatistics();
   }
 
@@ -438,7 +451,7 @@ export class ConnectionManager {
     if (this.statisticsUpdateTimer) {
       clearInterval(this.statisticsUpdateTimer);
     }
-    
+
     this.stopUptimeTimer();
 
     if (this.websocketService) {

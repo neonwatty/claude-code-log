@@ -3,13 +3,13 @@
  * Demonstrates real-time updates using the WebSocket controller
  */
 
-import { html, css, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { BaseComponent } from '../base/base-component.js';
-import { WebSocketController } from '../../utils/websocket/websocket-controller.js';
-import type { ZodSession } from '../../../../shared/src/schemas/index.js';
-import type { SessionData } from '../../utils/websocket/message-types.js';
-import { ConnectionState } from '../../utils/websocket/connection-state.js';
+import { html, css, TemplateResult } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { BaseComponent } from "../base/base-component.js";
+import { WebSocketController } from "../../utils/websocket/websocket-controller.js";
+import type { ZodSession } from "../../../../shared/src/schemas/index.js";
+import type { SessionData } from "../../utils/websocket/message-types.js";
+import { ConnectionState } from "../../utils/websocket/connection-state.js";
 
 export interface SessionFilter {
   searchTerm?: string;
@@ -19,11 +19,11 @@ export interface SessionFilter {
 }
 
 export interface SessionSort {
-  field: 'timestamp' | 'messageCount' | 'id' | 'tokenUsage';
-  direction: 'asc' | 'desc';
+  field: "timestamp" | "messageCount" | "id" | "tokenUsage";
+  direction: "asc" | "desc";
 }
 
-@customElement('session-list-websocket-enhanced')
+@customElement("session-list-websocket-enhanced")
 export class SessionListWebSocketEnhanced extends BaseComponent {
   @property({ type: Array })
   sessions: ZodSession[] = [];
@@ -32,7 +32,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
   filter: SessionFilter = {};
 
   @property({ type: Object })
-  sort: SessionSort = { field: 'timestamp', direction: 'desc' };
+  sort: SessionSort = { field: "timestamp", direction: "desc" };
 
   @property({ type: Boolean })
   enableRealtimeUpdates = true;
@@ -57,14 +57,19 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
 
   constructor() {
     super();
-    
+
     // Initialize WebSocket controller with configuration
     this.webSocketController = new WebSocketController(this, undefined, {
       debug: true,
       debounceMs: 250, // Debounce rapid updates
       optimisticUpdates: true,
       autoConnect: true,
-      messageTypes: ['SESSION_CREATED', 'SESSION_UPDATED', 'SESSION_DELETED', 'CACHE_INVALIDATED']
+      messageTypes: [
+        "SESSION_CREATED",
+        "SESSION_UPDATED",
+        "SESSION_DELETED",
+        "CACHE_INVALIDATED",
+      ],
     });
 
     this.setupWebSocketSubscriptions();
@@ -83,7 +88,9 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
         border-radius: var(--border-radius-md);
         padding: var(--spacing-md);
         margin-bottom: var(--spacing-lg);
-        box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+        box-shadow:
+          -7px -7px 10px var(--color-shadow-light),
+          7px 7px 10px var(--color-shadow-dark);
         border-left: var(--color-border-light) 1px solid;
         border-top: var(--color-border-light) 1px solid;
         border-bottom: var(--color-border-dark) 1px solid;
@@ -112,33 +119,38 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       }
 
       .realtime-status.connected {
-        background-color: var(--color-success)20;
+        background-color: var(--color-success) 20;
         border-color: var(--color-success);
         color: var(--color-success);
       }
 
       .realtime-status.connecting {
-        background-color: var(--color-warning)20;
+        background-color: var(--color-warning) 20;
         border-color: var(--color-warning);
         color: var(--color-warning);
       }
 
       .realtime-status.disconnected {
-        background-color: var(--color-error)20;
+        background-color: var(--color-error) 20;
         border-color: var(--color-error);
         color: var(--color-error);
       }
 
       .realtime-status.reconnecting {
-        background-color: var(--color-warning)20;
+        background-color: var(--color-warning) 20;
         border-color: var(--color-warning);
         color: var(--color-warning);
         animation: pulse 2s infinite;
       }
 
       @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
       }
 
       .connection-indicator {
@@ -170,7 +182,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       .filter-input:focus {
         outline: none;
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px var(--color-primary)33;
+        box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
       .sort-select {
@@ -204,13 +216,15 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       .session-item:hover {
         background-color: var(--color-surface-hover);
         transform: translateY(-1px);
-        box-shadow: -3px -3px 5px var(--color-shadow-light), 3px 3px 5px var(--color-shadow-dark);
+        box-shadow:
+          -3px -3px 5px var(--color-shadow-light),
+          3px 3px 5px var(--color-shadow-dark);
       }
 
       .session-item.selected {
         background-color: var(--color-surface-active);
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 2px var(--color-primary)33;
+        box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
       .session-item.updated {
@@ -227,16 +241,20 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       }
 
       @keyframes highlight {
-        0% { background-color: var(--color-primary)30; }
-        100% { background-color: transparent; }
+        0% {
+          background-color: var(--color-primary) 30;
+        }
+        100% {
+          background-color: transparent;
+        }
       }
 
       @keyframes slideIn {
-        0% { 
+        0% {
           opacity: 0;
           transform: translateY(-20px);
         }
-        100% { 
+        100% {
           opacity: 1;
           transform: translateY(0);
         }
@@ -274,7 +292,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       }
 
       .session-item-preview::after {
-        content: '';
+        content: "";
         position: absolute;
         bottom: 0;
         left: 0;
@@ -327,7 +345,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       .reconnect-button:hover {
         background-color: var(--color-primary-hover);
       }
-    `
+    `,
   ];
 
   /**
@@ -338,25 +356,29 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
 
     // Subscribe to session created messages
     this.webSocketController.onSessionCreated((session: SessionData) => {
-      this.log('Session created:', session);
+      this.log("Session created:", session);
       this.handleSessionCreated(session);
     });
 
     // Subscribe to session updated messages
-    this.webSocketController.onSessionUpdated((session: SessionData, changes) => {
-      this.log('Session updated:', session, changes);
-      this.handleSessionUpdated(session, changes);
-    });
+    this.webSocketController.onSessionUpdated(
+      (session: SessionData, changes) => {
+        this.log("Session updated:", session, changes);
+        this.handleSessionUpdated(session, changes);
+      },
+    );
 
     // Subscribe to session deleted messages
-    this.webSocketController.onSessionDeleted((sessionId: string, deletedAt: string) => {
-      this.log('Session deleted:', sessionId, deletedAt);
-      this.handleSessionDeleted(sessionId);
-    });
+    this.webSocketController.onSessionDeleted(
+      (sessionId: string, deletedAt: string) => {
+        this.log("Session deleted:", sessionId, deletedAt);
+        this.handleSessionDeleted(sessionId);
+      },
+    );
 
     // Subscribe to cache invalidated messages
     this.webSocketController.onCacheInvalidated((payload) => {
-      this.log('Cache invalidated:', payload);
+      this.log("Cache invalidated:", payload);
       this.handleCacheInvalidated(payload);
     });
   }
@@ -366,10 +388,15 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
    */
   private handleSessionCreated(sessionData: SessionData): void {
     // Check if this session already exists (avoid duplicates)
-    const existingSession = this.sessions.find(s => s.id === sessionData.sessionId);
+    const existingSession = this.sessions.find(
+      (s) => s.id === sessionData.sessionId,
+    );
     if (existingSession) {
-      this.log('Session already exists, updating instead');
-      this.handleSessionUpdated(sessionData, { fields: [], previousValues: {} });
+      this.log("Session already exists, updating instead");
+      this.handleSessionUpdated(sessionData, {
+        fields: [],
+        previousValues: {},
+      });
       return;
     }
 
@@ -377,23 +404,29 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     // Note: In a real implementation, you'd need more complete session data
     const newSession: Partial<ZodSession> = {
       id: sessionData.sessionId,
-      summary: sessionData.title || `Session ${sessionData.sessionId.slice(0, 8)}`,
+      summary:
+        sessionData.title || `Session ${sessionData.sessionId.slice(0, 8)}`,
       firstTimestamp: sessionData.createdAt || new Date().toISOString(),
       lastTimestamp: sessionData.updatedAt || new Date().toISOString(),
       entries: [], // Would be populated from API
       totalUsage: { input_tokens: 0, output_tokens: 0 }, // Would be populated from API
-      cwd: '/unknown' // Would be populated from API
+      cwd: "/unknown", // Would be populated from API
     };
 
     // Add temporary class for animation
     setTimeout(() => {
-      const sessionElement = this.shadowRoot?.querySelector(`[data-session-id="${sessionData.sessionId}"]`);
-      sessionElement?.classList.add('newly-created');
-      setTimeout(() => sessionElement?.classList.remove('newly-created'), 500);
+      const sessionElement = this.shadowRoot?.querySelector(
+        `[data-session-id="${sessionData.sessionId}"]`,
+      );
+      sessionElement?.classList.add("newly-created");
+      setTimeout(() => sessionElement?.classList.remove("newly-created"), 500);
     }, 100);
 
     // Emit event for parent components to handle
-    this.emitEvent('session-created', { session: newSession, source: 'websocket' });
+    this.emitEvent("session-created", {
+      session: newSession,
+      source: "websocket",
+    });
   }
 
   /**
@@ -402,28 +435,30 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
   private handleSessionUpdated(sessionData: SessionData, changes: any): void {
     // Store the realtime update for display
     this.realtimeSessionUpdates.set(sessionData.sessionId, sessionData);
-    
+
     // Confirm any pending optimistic updates
-    this.webSocketController.confirmOptimisticUpdate('sessions');
+    this.webSocketController.confirmOptimisticUpdate("sessions");
 
     // Add visual feedback
     setTimeout(() => {
-      const sessionElement = this.shadowRoot?.querySelector(`[data-session-id="${sessionData.sessionId}"]`);
-      sessionElement?.classList.add('updated');
-      sessionElement?.classList.add('has-realtime-update');
-      
+      const sessionElement = this.shadowRoot?.querySelector(
+        `[data-session-id="${sessionData.sessionId}"]`,
+      );
+      sessionElement?.classList.add("updated");
+      sessionElement?.classList.add("has-realtime-update");
+
       // Remove highlight after animation
       setTimeout(() => {
-        sessionElement?.classList.remove('updated');
-        sessionElement?.classList.remove('has-realtime-update');
+        sessionElement?.classList.remove("updated");
+        sessionElement?.classList.remove("has-realtime-update");
       }, 2000);
     }, 100);
 
     // Emit event for parent components to handle
-    this.emitEvent('session-updated', { 
-      sessionId: sessionData.sessionId, 
-      changes, 
-      source: 'websocket' 
+    this.emitEvent("session-updated", {
+      sessionId: sessionData.sessionId,
+      changes,
+      source: "websocket",
     });
 
     // Trigger re-render
@@ -439,19 +474,21 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     this.pendingOperations.delete(sessionId);
 
     // Confirm any pending optimistic updates
-    this.webSocketController.confirmOptimisticUpdate('sessions');
+    this.webSocketController.confirmOptimisticUpdate("sessions");
 
     // Add visual feedback before removal
-    const sessionElement = this.shadowRoot?.querySelector(`[data-session-id="${sessionId}"]`);
+    const sessionElement = this.shadowRoot?.querySelector(
+      `[data-session-id="${sessionId}"]`,
+    );
     if (sessionElement) {
-      sessionElement.classList.add('deleted');
+      sessionElement.classList.add("deleted");
       setTimeout(() => {
         // Emit event for parent components to handle removal
-        this.emitEvent('session-deleted', { sessionId, source: 'websocket' });
+        this.emitEvent("session-deleted", { sessionId, source: "websocket" });
       }, 300);
     } else {
       // Immediate emission if element not found
-      this.emitEvent('session-deleted', { sessionId, source: 'websocket' });
+      this.emitEvent("session-deleted", { sessionId, source: "websocket" });
     }
   }
 
@@ -459,27 +496,30 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
    * Handle cache invalidation
    */
   private handleCacheInvalidated(payload: any): void {
-    this.log('Handling cache invalidation:', payload);
-    
-    if (payload.scope === 'all' || payload.scope === 'session') {
+    this.log("Handling cache invalidation:", payload);
+
+    if (payload.scope === "all" || payload.scope === "session") {
       // Clear all realtime updates
       this.realtimeSessionUpdates.clear();
       this.pendingOperations.clear();
-      
+
       // Emit event for parent to refresh data
-      this.emitEvent('cache-invalidated', { scope: payload.scope, reason: payload.reason });
-    } else if (payload.scope === 'specific' && payload.sessionIds) {
+      this.emitEvent("cache-invalidated", {
+        scope: payload.scope,
+        reason: payload.reason,
+      });
+    } else if (payload.scope === "specific" && payload.sessionIds) {
       // Clear specific session updates
       payload.sessionIds.forEach((sessionId: string) => {
         this.realtimeSessionUpdates.delete(sessionId);
         this.pendingOperations.delete(sessionId);
       });
-      
+
       // Emit event for parent to refresh specific sessions
-      this.emitEvent('cache-invalidated', { 
-        scope: payload.scope, 
+      this.emitEvent("cache-invalidated", {
+        scope: payload.scope,
         sessionIds: payload.sessionIds,
-        reason: payload.reason 
+        reason: payload.reason,
       });
     }
 
@@ -489,38 +529,45 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
   /**
    * Perform optimistic update for UI responsiveness
    */
-  public performOptimisticUpdate(sessionId: string, updates: Partial<SessionData>): void {
+  public performOptimisticUpdate(
+    sessionId: string,
+    updates: Partial<SessionData>,
+  ): void {
     if (!this.enableRealtimeUpdates) return;
 
     this.pendingOperations.add(sessionId);
     this.realtimeSessionUpdates.set(sessionId, {
       ...this.realtimeSessionUpdates.get(sessionId),
-      ...updates
+      ...updates,
     });
 
     // Use WebSocket controller's optimistic update feature
-    this.webSocketController.optimisticUpdate('sessions', this.sessions, 5000);
-    
+    this.webSocketController.optimisticUpdate("sessions", this.sessions, 5000);
+
     this.requestUpdate();
   }
 
   /**
    * Get connection state for display
    */
-  private getConnectionStateInfo(): { label: string; className: string; icon: string } {
+  private getConnectionStateInfo(): {
+    label: string;
+    className: string;
+    icon: string;
+  } {
     this.connectionState = this.webSocketController.getConnectionState();
-    
+
     switch (this.connectionState) {
       case ConnectionState.CONNECTED:
-        return { label: 'Connected', className: 'connected', icon: '🟢' };
+        return { label: "Connected", className: "connected", icon: "🟢" };
       case ConnectionState.CONNECTING:
-        return { label: 'Connecting', className: 'connecting', icon: '🟡' };
+        return { label: "Connecting", className: "connecting", icon: "🟡" };
       case ConnectionState.RECONNECTING:
-        return { label: 'Reconnecting', className: 'reconnecting', icon: '🔄' };
+        return { label: "Reconnecting", className: "reconnecting", icon: "🔄" };
       case ConnectionState.ERROR:
-        return { label: 'Error', className: 'disconnected', icon: '❌' };
+        return { label: "Error", className: "disconnected", icon: "❌" };
       default:
-        return { label: 'Disconnected', className: 'disconnected', icon: '🔴' };
+        return { label: "Disconnected", className: "disconnected", icon: "🔴" };
     }
   }
 
@@ -541,47 +588,54 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     // Apply filters (same as original implementation)
     if (this.filter.searchTerm) {
       const searchLower = this.filter.searchTerm.toLowerCase();
-      filtered = filtered.filter(session => 
-        session.id.toLowerCase().includes(searchLower) ||
-        session.summary?.toLowerCase().includes(searchLower) ||
-        session.cwd.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (session) =>
+          session.id.toLowerCase().includes(searchLower) ||
+          session.summary?.toLowerCase().includes(searchLower) ||
+          session.cwd.toLowerCase().includes(searchLower),
       );
     }
 
     if (this.filter.fromDate) {
-      filtered = filtered.filter(session => 
-        new Date(session.firstTimestamp) >= this.filter.fromDate!
+      filtered = filtered.filter(
+        (session) => new Date(session.firstTimestamp) >= this.filter.fromDate!,
       );
     }
 
     if (this.filter.toDate) {
-      filtered = filtered.filter(session => 
-        new Date(session.lastTimestamp) <= this.filter.toDate!
+      filtered = filtered.filter(
+        (session) => new Date(session.lastTimestamp) <= this.filter.toDate!,
       );
     }
 
     // Apply sorting (same as original implementation)
     filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (this.sort.field) {
-        case 'timestamp':
-          comparison = new Date(a.firstTimestamp).getTime() - new Date(b.firstTimestamp).getTime();
+        case "timestamp":
+          comparison =
+            new Date(a.firstTimestamp).getTime() -
+            new Date(b.firstTimestamp).getTime();
           break;
-        case 'messageCount':
+        case "messageCount":
           comparison = a.entries.length - b.entries.length;
           break;
-        case 'id':
+        case "id":
           comparison = a.id.localeCompare(b.id);
           break;
-        case 'tokenUsage':
-          const aTokens = (a.totalUsage.input_tokens || 0) + (a.totalUsage.output_tokens || 0);
-          const bTokens = (b.totalUsage.input_tokens || 0) + (b.totalUsage.output_tokens || 0);
+        case "tokenUsage":
+          const aTokens =
+            (a.totalUsage.input_tokens || 0) +
+            (a.totalUsage.output_tokens || 0);
+          const bTokens =
+            (b.totalUsage.input_tokens || 0) +
+            (b.totalUsage.output_tokens || 0);
           comparison = aTokens - bTokens;
           break;
       }
 
-      return this.sort.direction === 'desc' ? -comparison : comparison;
+      return this.sort.direction === "desc" ? -comparison : comparison;
     });
 
     return filtered;
@@ -593,7 +647,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     this.selectedSessionId = session.id;
 
     // Emit event immediately for responsive UI
-    this.emitEvent('session-selected', { session });
+    this.emitEvent("session-selected", { session });
 
     // If the selection fails (rare), rollback
     // This would typically be handled by the parent component
@@ -610,23 +664,36 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
 
   private handleSortChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
-    const [field, direction] = target.value.split(':');
-    this.sort = { 
-      field: field as SessionSort['field'], 
-      direction: direction as SessionSort['direction'] 
+    const [field, direction] = target.value.split(":");
+    this.sort = {
+      field: field as SessionSort["field"],
+      direction: direction as SessionSort["direction"],
     };
   }
 
   private formatTokenUsage(session: ZodSession): string {
-    const { input_tokens = 0, output_tokens = 0, cache_creation_input_tokens = 0, cache_read_input_tokens = 0 } = session.totalUsage;
+    const {
+      input_tokens = 0,
+      output_tokens = 0,
+      cache_creation_input_tokens = 0,
+      cache_read_input_tokens = 0,
+    } = session.totalUsage;
     const parts = [];
-    
-    if (input_tokens > 0) parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
-    if (output_tokens > 0) parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
-    if (cache_creation_input_tokens > 0) parts.push(`Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`);
-    if (cache_read_input_tokens > 0) parts.push(`Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`);
-    
-    return parts.join(' | ');
+
+    if (input_tokens > 0)
+      parts.push(`Input: ${this.formatTokenCount(input_tokens)}`);
+    if (output_tokens > 0)
+      parts.push(`Output: ${this.formatTokenCount(output_tokens)}`);
+    if (cache_creation_input_tokens > 0)
+      parts.push(
+        `Cache Creation: ${this.formatTokenCount(cache_creation_input_tokens)}`,
+      );
+    if (cache_read_input_tokens > 0)
+      parts.push(
+        `Cache Read: ${this.formatTokenCount(cache_read_input_tokens)}`,
+      );
+
+    return parts.join(" | ");
   }
 
   private getSessionPreview(session: ZodSession): string {
@@ -637,11 +704,16 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     }
 
     // Fall back to existing logic
-    const firstUserEntry = session.entries.find(entry => entry.type === 'user');
-    if (firstUserEntry?.type === 'user' && firstUserEntry.message.content?.[0]?.type === 'text') {
+    const firstUserEntry = session.entries.find(
+      (entry) => entry.type === "user",
+    );
+    if (
+      firstUserEntry?.type === "user" &&
+      firstUserEntry.message.content?.[0]?.type === "text"
+    ) {
       return this.truncateText(firstUserEntry.message.content[0].text, 200);
     }
-    return 'No preview available';
+    return "No preview available";
   }
 
   private renderSessionItem(session: ZodSession): TemplateResult {
@@ -649,42 +721,49 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     const isPending = this.pendingOperations.has(session.id);
     const hasRealtimeUpdate = this.realtimeSessionUpdates.has(session.id);
     const realtimeUpdate = this.realtimeSessionUpdates.get(session.id);
-    
+
     // Use realtime data if available
     const displayData = {
       title: realtimeUpdate?.title || session.summary || session.id.slice(0, 8),
       messageCount: session.entries.length,
       timestampRange: `${this.formatTimestamp(session.firstTimestamp)} - ${this.formatTimestamp(session.lastTimestamp)}`,
       tokenUsage: this.formatTokenUsage(session),
-      preview: this.getSessionPreview(session)
+      preview: this.getSessionPreview(session),
     };
 
     return html`
-      <div 
-        class="session-item ${isSelected ? 'selected' : ''} ${isPending ? 'pending' : ''} ${hasRealtimeUpdate ? 'has-realtime-update' : ''}"
+      <div
+        class="session-item ${isSelected ? "selected" : ""} ${isPending
+          ? "pending"
+          : ""} ${hasRealtimeUpdate ? "has-realtime-update" : ""}"
         data-session-id="${session.id}"
         @click=${() => this.handleSessionClick(session)}
         role="button"
         tabindex="0"
         @keydown=${(e: KeyboardEvent) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             this.handleSessionClick(session);
           }
         }}
       >
         <div class="realtime-indicator"></div>
-        <div class="session-item-title">
-          ${displayData.title}
-        </div>
+        <div class="session-item-title">${displayData.title}</div>
         <div class="session-item-meta">
           <span>${displayData.timestampRange}</span>
-          <span>${displayData.messageCount} message${displayData.messageCount === 1 ? '' : 's'}</span>
-          ${displayData.tokenUsage ? html`<span>${displayData.tokenUsage}</span>` : ''}
+          <span
+            >${displayData.messageCount}
+            message${displayData.messageCount === 1 ? "" : "s"}</span
+          >
+          ${displayData.tokenUsage
+            ? html`<span>${displayData.tokenUsage}</span>`
+            : ""}
         </div>
-        ${displayData.preview ? html`
-          <div class="session-item-preview">${displayData.preview}</div>
-        ` : ''}
+        ${displayData.preview
+          ? html`
+              <div class="session-item-preview">${displayData.preview}</div>
+            `
+          : ""}
       </div>
     `;
   }
@@ -693,24 +772,29 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     if (!this.enableRealtimeUpdates) {
       return html`
         <div class="realtime-status disconnected">
-          <span class="connection-indicator" style="background-color: var(--color-text-muted);"></span>
+          <span
+            class="connection-indicator"
+            style="background-color: var(--color-text-muted);"
+          ></span>
           Real-time updates disabled
         </div>
       `;
     }
 
     const { label, className, icon } = this.getConnectionStateInfo();
-    const isDisconnected = className === 'disconnected';
+    const isDisconnected = className === "disconnected";
 
     return html`
       <div class="realtime-status ${className}">
         <span class="connection-indicator"></span>
         ${label}
-        ${isDisconnected ? html`
-          <button class="reconnect-button" @click=${this.handleReconnect}>
-            Reconnect
-          </button>
-        ` : ''}
+        ${isDisconnected
+          ? html`
+              <button class="reconnect-button" @click=${this.handleReconnect}>
+                Reconnect
+              </button>
+            `
+          : ""}
       </div>
     `;
   }
@@ -723,55 +807,93 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
       <div class="session-list-container">
         <div class="session-list-header">
           <h2>Sessions (Real-time)</h2>
-          <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+          <div
+            style="display: flex; gap: var(--spacing-sm); align-items: center;"
+          >
             ${this.renderRealtimeStatus()}
             <span class="session-count">
-              ${sessionCount}${sessionCount !== totalCount ? ` of ${totalCount}` : ''} session${sessionCount === 1 ? '' : 's'}
+              ${sessionCount}${sessionCount !== totalCount
+                ? ` of ${totalCount}`
+                : ""}
+              session${sessionCount === 1 ? "" : "s"}
             </span>
           </div>
         </div>
 
         <div class="session-list-controls">
-          <input 
-            type="text" 
+          <input
+            type="text"
             class="filter-input"
             placeholder="Search sessions..."
             @input=${this.handleSearchInput}
-            .value=${this.filter.searchTerm || ''}
+            .value=${this.filter.searchTerm || ""}
           />
           <select class="sort-select" @change=${this.handleSortChange}>
-            <option value="timestamp:desc" ?selected=${this.sort.field === 'timestamp' && this.sort.direction === 'desc'}>
+            <option
+              value="timestamp:desc"
+              ?selected=${this.sort.field === "timestamp" &&
+              this.sort.direction === "desc"}
+            >
               Latest First
             </option>
-            <option value="timestamp:asc" ?selected=${this.sort.field === 'timestamp' && this.sort.direction === 'asc'}>
+            <option
+              value="timestamp:asc"
+              ?selected=${this.sort.field === "timestamp" &&
+              this.sort.direction === "asc"}
+            >
               Oldest First
             </option>
-            <option value="messageCount:desc" ?selected=${this.sort.field === 'messageCount' && this.sort.direction === 'desc'}>
+            <option
+              value="messageCount:desc"
+              ?selected=${this.sort.field === "messageCount" &&
+              this.sort.direction === "desc"}
+            >
               Most Messages
             </option>
-            <option value="messageCount:asc" ?selected=${this.sort.field === 'messageCount' && this.sort.direction === 'asc'}>
+            <option
+              value="messageCount:asc"
+              ?selected=${this.sort.field === "messageCount" &&
+              this.sort.direction === "asc"}
+            >
               Least Messages
             </option>
-            <option value="tokenUsage:desc" ?selected=${this.sort.field === 'tokenUsage' && this.sort.direction === 'desc'}>
+            <option
+              value="tokenUsage:desc"
+              ?selected=${this.sort.field === "tokenUsage" &&
+              this.sort.direction === "desc"}
+            >
               Most Tokens
             </option>
-            <option value="tokenUsage:asc" ?selected=${this.sort.field === 'tokenUsage' && this.sort.direction === 'asc'}>
+            <option
+              value="tokenUsage:asc"
+              ?selected=${this.sort.field === "tokenUsage" &&
+              this.sort.direction === "asc"}
+            >
               Least Tokens
             </option>
-            <option value="id:asc" ?selected=${this.sort.field === 'id' && this.sort.direction === 'asc'}>
+            <option
+              value="id:asc"
+              ?selected=${this.sort.field === "id" &&
+              this.sort.direction === "asc"}
+            >
               ID A-Z
             </option>
-            <option value="id:desc" ?selected=${this.sort.field === 'id' && this.sort.direction === 'desc'}>
+            <option
+              value="id:desc"
+              ?selected=${this.sort.field === "id" &&
+              this.sort.direction === "desc"}
+            >
               ID Z-A
             </option>
           </select>
         </div>
 
         <div class="sessions-grid">
-          ${this.filteredSessions.length > 0 
-            ? this.filteredSessions.map(session => this.renderSessionItem(session))
-            : html`<div class="empty-state">No sessions found</div>`
-          }
+          ${this.filteredSessions.length > 0
+            ? this.filteredSessions.map((session) =>
+                this.renderSessionItem(session),
+              )
+            : html`<div class="empty-state">No sessions found</div>`}
         </div>
       </div>
     `;
@@ -789,6 +911,6 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'session-list-websocket-enhanced': SessionListWebSocketEnhanced;
+    "session-list-websocket-enhanced": SessionListWebSocketEnhanced;
   }
 }

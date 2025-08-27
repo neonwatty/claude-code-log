@@ -1,31 +1,25 @@
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
-import { EventEmitter } from 'events';
-import { Worker } from 'worker_threads';
-import { 
-  loadTranscriptAsync, 
-  findJsonlFiles, 
-  parseJsonlLine, 
+import fs from "fs/promises";
+import path from "path";
+import { EventEmitter } from "events";
+import {
+  loadTranscriptAsync,
+  findJsonlFiles,
   extractTextContent,
-  ParseResult,
-  ParserOptions 
-} from '../parsers/jsonl-parser';
-import { 
-  ITranscriptEntry, 
-  IUserTranscriptEntry, 
-  IAssistantTranscriptEntry, 
-  ISummaryTranscriptEntry,
-  IUsageInfo 
-} from '../../../shared/src/interfaces';
-import { 
-  ProjectCache, 
-  SessionCacheData, 
+  ParserOptions,
+} from "../parsers/jsonl-parser";
+import {
+  ITranscriptEntry,
+  IUserTranscriptEntry,
+  IAssistantTranscriptEntry,
+} from "../../../shared/src/interfaces";
+import {
+  ProjectCache,
+  SessionCacheData,
   CachedFileInfo,
-  CACHE_FORMAT_VERSION 
-} from '../utils/cache';
-import { getCacheDirectoryService } from './cache-directory.service';
-import { getFileModificationService } from './file-modification.service';
+  CACHE_FORMAT_VERSION,
+} from "../utils/cache";
+import { getCacheDirectoryService } from "./cache-directory.service";
+import { getFileModificationService } from "./file-modification.service";
 
 export interface CacheBuildOptions {
   forceRebuild?: boolean;
@@ -50,7 +44,12 @@ export interface CacheBuildResult {
 }
 
 export interface CacheBuildEvent {
-  type: 'build_started' | 'file_processing' | 'session_created' | 'build_completed' | 'build_error';
+  type:
+    | "build_started"
+    | "file_processing"
+    | "session_created"
+    | "build_completed"
+    | "build_error";
   projectPath: string;
   timestamp: string;
   metadata?: any;
@@ -87,10 +86,10 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   public async buildCache(
     projectPath: string,
-    options: CacheBuildOptions = {}
+    options: CacheBuildOptions = {},
   ): Promise<CacheBuildResult> {
     if (this.buildInProgress) {
-      throw new Error('Cache build already in progress');
+      throw new Error("Cache build already in progress");
     }
 
     this.buildInProgress = true;
@@ -105,27 +104,31 @@ export class JsonlCacheBuilderService extends EventEmitter {
       totalTokens: 0,
       buildTimeMs: 0,
       errors: [],
-      skippedFiles: []
+      skippedFiles: [],
     };
 
     try {
-      this.emit('cacheBuildEvent', {
-        type: 'build_started',
+      this.emit("cacheBuildEvent", {
+        type: "build_started",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { options }
+        metadata: { options },
       } as CacheBuildEvent);
 
       // Discover JSONL files
       const jsonlFiles = findJsonlFiles(projectPath);
       if (jsonlFiles.length === 0) {
-        result.errors.push('No JSONL files found in project directory');
+        result.errors.push("No JSONL files found in project directory");
         return result;
       }
 
       // Determine which files need processing
-      const filesToProcess = await this.getFilesToProcess(projectPath, jsonlFiles, options);
-      
+      const filesToProcess = await this.getFilesToProcess(
+        projectPath,
+        jsonlFiles,
+        options,
+      );
+
       // Create or ensure cache directory exists
       const cacheDirectoryService = getCacheDirectoryService();
       await cacheDirectoryService.createCacheDirectory(projectPath);
@@ -142,9 +145,19 @@ export class JsonlCacheBuilderService extends EventEmitter {
 
       // Process files
       if (options.parallelProcessing && filesToProcess.length > 1) {
-        await this.processFilesParallel(filesToProcess, projectCache, options, result);
+        await this.processFilesParallel(
+          filesToProcess,
+          projectCache,
+          options,
+          result,
+        );
       } else {
-        await this.processFilesSequential(filesToProcess, projectCache, options, result);
+        await this.processFilesSequential(
+          filesToProcess,
+          projectCache,
+          options,
+          result,
+        );
       }
 
       // Finalize cache data
@@ -153,32 +166,30 @@ export class JsonlCacheBuilderService extends EventEmitter {
       result.success = true;
       result.buildTimeMs = Date.now() - startTime;
 
-      this.emit('cacheBuildEvent', {
-        type: 'build_completed',
+      this.emit("cacheBuildEvent", {
+        type: "build_completed",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { 
+        metadata: {
           filesProcessed: result.filesProcessed,
           entriesProcessed: result.entriesProcessed,
           sessionsCreated: result.sessionsCreated,
-          buildTimeMs: result.buildTimeMs
-        }
+          buildTimeMs: result.buildTimeMs,
+        },
       } as CacheBuildEvent);
 
       return result;
-
     } catch (error) {
       result.errors.push(`Build error: ${error}`);
-      
-      this.emit('cacheBuildEvent', {
-        type: 'build_error',
+
+      this.emit("cacheBuildEvent", {
+        type: "build_error",
         projectPath,
         timestamp: new Date().toISOString(),
-        metadata: { error: String(error) }
+        metadata: { error: String(error) },
       } as CacheBuildEvent);
 
       return result;
-
     } finally {
       this.buildInProgress = false;
     }
@@ -190,7 +201,7 @@ export class JsonlCacheBuilderService extends EventEmitter {
   private async getFilesToProcess(
     projectPath: string,
     allFiles: string[],
-    options: CacheBuildOptions
+    options: CacheBuildOptions,
   ): Promise<string[]> {
     if (options.forceRebuild) {
       return allFiles;
@@ -207,21 +218,20 @@ export class JsonlCacheBuilderService extends EventEmitter {
         // Check if file needs processing
         const stats = await fs.stat(filePath);
         const relativePath = path.relative(projectPath, filePath);
-        
+
         // For incremental mode, check if file was modified
         if (options.incrementalMode) {
           const needsUpdate = fileModificationService.needsCacheInvalidation(
-            filePath, 
-            stats.mtime.getTime()
+            filePath,
+            stats.mtime.getTime(),
           );
-          
+
           if (needsUpdate) {
             filesToProcess.push(filePath);
           }
         } else {
           filesToProcess.push(filePath);
         }
-
       } catch (error) {
         console.warn(`Error checking file ${filePath}:`, error);
         filesToProcess.push(filePath); // Process it anyway to be safe
@@ -238,26 +248,31 @@ export class JsonlCacheBuilderService extends EventEmitter {
     filesToProcess: string[],
     projectCache: ProjectCache,
     options: CacheBuildOptions,
-    result: CacheBuildResult
+    result: CacheBuildResult,
   ): Promise<void> {
     for (let i = 0; i < filesToProcess.length; i++) {
       const filePath = filesToProcess[i];
-      
-      this.emit('cacheBuildEvent', {
-        type: 'file_processing',
+
+      this.emit("cacheBuildEvent", {
+        type: "file_processing",
         projectPath: projectCache.project_path,
         timestamp: new Date().toISOString(),
-        metadata: { 
-          filePath, 
-          progress: { 
-            current: i + 1, 
-            total: filesToProcess.length 
-          } 
-        }
+        metadata: {
+          filePath,
+          progress: {
+            current: i + 1,
+            total: filesToProcess.length,
+          },
+        },
       } as CacheBuildEvent);
 
       try {
-        await this.processFileStreaming(filePath, projectCache, options, result);
+        await this.processFileStreaming(
+          filePath,
+          projectCache,
+          options,
+          result,
+        );
         result.filesProcessed++;
       } catch (error) {
         result.errors.push(`Error processing ${filePath}: ${error}`);
@@ -280,15 +295,21 @@ export class JsonlCacheBuilderService extends EventEmitter {
     filesToProcess: string[],
     projectCache: ProjectCache,
     options: CacheBuildOptions,
-    result: CacheBuildResult
+    result: CacheBuildResult,
   ): Promise<void> {
-    const maxParallel = options.maxParallelFiles || Math.min(4, filesToProcess.length);
+    const maxParallel =
+      options.maxParallelFiles || Math.min(4, filesToProcess.length);
     const chunks = this.chunkArray(filesToProcess, maxParallel);
 
     for (const chunk of chunks) {
       const promises = chunk.map(async (filePath) => {
         try {
-          await this.processFileStreaming(filePath, projectCache, options, result);
+          await this.processFileStreaming(
+            filePath,
+            projectCache,
+            options,
+            result,
+          );
           result.filesProcessed++;
         } catch (error) {
           result.errors.push(`Error processing ${filePath}: ${error}`);
@@ -307,37 +328,42 @@ export class JsonlCacheBuilderService extends EventEmitter {
     filePath: string,
     projectCache: ProjectCache,
     options: CacheBuildOptions,
-    result: CacheBuildResult
+    result: CacheBuildResult,
   ): Promise<void> {
     const parserOptions: ParserOptions = {
       silent: true,
       skipMalformed: true,
-      maxErrors: 50
+      maxErrors: 50,
     };
 
     const parseResult = await loadTranscriptAsync(filePath, parserOptions);
-    
+
     if (parseResult.errors.length > 0) {
-      result.errors.push(`Parse errors in ${filePath}: ${parseResult.errors.length} errors`);
+      result.errors.push(
+        `Parse errors in ${filePath}: ${parseResult.errors.length} errors`,
+      );
     }
 
     // Update file info in cache
     const stats = await fs.stat(filePath);
     const relativePath = path.relative(projectCache.project_path, filePath);
-    
+
     const fileInfo: CachedFileInfo = {
       file_path: relativePath,
       source_mtime: stats.mtime.getTime(),
       cached_mtime: Date.now(),
       message_count: parseResult.entries.length,
-      session_ids: this.extractSessionIds(parseResult.entries)
+      session_ids: this.extractSessionIds(parseResult.entries),
     };
 
     projectCache.cached_files[relativePath] = fileInfo;
 
     // Process entries in chunks for memory efficiency
-    const chunks = this.chunkArray(parseResult.entries, options.chunkSize || this.DEFAULT_CHUNK_SIZE);
-    
+    const chunks = this.chunkArray(
+      parseResult.entries,
+      options.chunkSize || this.DEFAULT_CHUNK_SIZE,
+    );
+
     for (const chunk of chunks) {
       await this.processEntryChunk(chunk, projectCache, options, result);
     }
@@ -350,7 +376,7 @@ export class JsonlCacheBuilderService extends EventEmitter {
     entries: ITranscriptEntry[],
     projectCache: ProjectCache,
     options: CacheBuildOptions,
-    result: CacheBuildResult
+    result: CacheBuildResult,
   ): Promise<void> {
     const sessionsMap = new Map<string, SessionCacheData>();
 
@@ -358,19 +384,19 @@ export class JsonlCacheBuilderService extends EventEmitter {
       result.entriesProcessed++;
 
       // Skip system messages if not requested
-      if (entry.type === 'system' && !options.includeSystemMessages) {
+      if (entry.type === "system" && !options.includeSystemMessages) {
         continue;
       }
 
       // Skip summaries if not requested
-      if (entry.type === 'summary' && !options.includeSummaries) {
+      if (entry.type === "summary" && !options.includeSummaries) {
         continue;
       }
 
       // Process session data
-      if ('sessionId' in entry && entry.sessionId) {
+      if ("sessionId" in entry && entry.sessionId) {
         const sessionId = entry.sessionId;
-        
+
         if (!sessionsMap.has(sessionId)) {
           sessionsMap.set(sessionId, this.createSessionCacheData(sessionId));
         }
@@ -390,11 +416,11 @@ export class JsonlCacheBuilderService extends EventEmitter {
         projectCache.sessions[sessionId] = sessionData;
         result.sessionsCreated++;
 
-        this.emit('cacheBuildEvent', {
-          type: 'session_created',
+        this.emit("cacheBuildEvent", {
+          type: "session_created",
           projectPath: projectCache.project_path,
           timestamp: new Date().toISOString(),
-          metadata: { sessionId, entryCount: sessionData.message_count }
+          metadata: { sessionId, entryCount: sessionData.message_count },
         } as CacheBuildEvent);
       }
     }
@@ -405,64 +431,80 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   private createSessionCacheData(sessionId: string): SessionCacheData {
     const now = new Date().toISOString();
-    
+
     return {
       session_id: sessionId,
-      summary: '',
+      summary: "",
       first_timestamp: now,
       last_timestamp: now,
       message_count: 0,
-      first_user_message: '',
-      cwd: '',
+      first_user_message: "",
+      cwd: "",
       total_input_tokens: 0,
       total_output_tokens: 0,
       total_cache_creation_tokens: 0,
-      total_cache_read_tokens: 0
+      total_cache_read_tokens: 0,
     };
   }
 
   /**
    * Updates session data with a transcript entry
    */
-  private updateSessionWithEntry(sessionData: SessionCacheData, entry: ITranscriptEntry): void {
-    if ('timestamp' in entry && entry.timestamp) {
-      if (!sessionData.first_timestamp || entry.timestamp < sessionData.first_timestamp) {
+  private updateSessionWithEntry(
+    sessionData: SessionCacheData,
+    entry: ITranscriptEntry,
+  ): void {
+    if ("timestamp" in entry && entry.timestamp) {
+      if (
+        !sessionData.first_timestamp ||
+        entry.timestamp < sessionData.first_timestamp
+      ) {
         sessionData.first_timestamp = entry.timestamp;
       }
-      if (!sessionData.last_timestamp || entry.timestamp > sessionData.last_timestamp) {
+      if (
+        !sessionData.last_timestamp ||
+        entry.timestamp > sessionData.last_timestamp
+      ) {
         sessionData.last_timestamp = entry.timestamp;
       }
     }
 
-    if ('cwd' in entry && entry.cwd && !sessionData.cwd) {
+    if ("cwd" in entry && entry.cwd && !sessionData.cwd) {
       sessionData.cwd = entry.cwd;
     }
 
     sessionData.message_count++;
 
     // Extract token usage information
-    if (entry.type === 'assistant') {
+    if (entry.type === "assistant") {
       const assistantEntry = entry as IAssistantTranscriptEntry;
       if (assistantEntry.message.usage) {
         const usage = assistantEntry.message.usage;
         sessionData.total_input_tokens += usage.input_tokens || 0;
         sessionData.total_output_tokens += usage.output_tokens || 0;
-        sessionData.total_cache_creation_tokens += usage.cache_creation_input_tokens || 0;
-        sessionData.total_cache_read_tokens += usage.cache_read_input_tokens || 0;
+        sessionData.total_cache_creation_tokens +=
+          usage.cache_creation_input_tokens || 0;
+        sessionData.total_cache_read_tokens +=
+          usage.cache_read_input_tokens || 0;
       }
     }
 
     // Capture first user message for preview
-    if (entry.type === 'user' && !sessionData.first_user_message) {
+    if (entry.type === "user" && !sessionData.first_user_message) {
       const userEntry = entry as IUserTranscriptEntry;
-      sessionData.first_user_message = extractTextContent(userEntry.message.content);
+      sessionData.first_user_message = extractTextContent(
+        userEntry.message.content,
+      );
     }
   }
 
   /**
    * Merges two session cache data objects
    */
-  private mergeSessionData(existing: SessionCacheData, incoming: SessionCacheData): void {
+  private mergeSessionData(
+    existing: SessionCacheData,
+    incoming: SessionCacheData,
+  ): void {
     // Update timestamps
     if (incoming.first_timestamp < existing.first_timestamp) {
       existing.first_timestamp = incoming.first_timestamp;
@@ -475,7 +517,8 @@ export class JsonlCacheBuilderService extends EventEmitter {
     existing.message_count += incoming.message_count;
     existing.total_input_tokens += incoming.total_input_tokens;
     existing.total_output_tokens += incoming.total_output_tokens;
-    existing.total_cache_creation_tokens += incoming.total_cache_creation_tokens;
+    existing.total_cache_creation_tokens +=
+      incoming.total_cache_creation_tokens;
     existing.total_cache_read_tokens += incoming.total_cache_read_tokens;
 
     // Update first user message if not set
@@ -494,9 +537,9 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   private extractSessionIds(entries: ITranscriptEntry[]): string[] {
     const sessionIds = new Set<string>();
-    
+
     for (const entry of entries) {
-      if ('sessionId' in entry && entry.sessionId) {
+      if ("sessionId" in entry && entry.sessionId) {
         sessionIds.add(entry.sessionId);
       }
     }
@@ -509,13 +552,13 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   private async loadExistingCache(projectPath: string): Promise<ProjectCache> {
     try {
-      const cachePath = path.join(projectPath, '.cache', 'index.json');
-      const content = await fs.readFile(cachePath, 'utf-8');
+      const cachePath = path.join(projectPath, ".cache", "index.json");
+      const content = await fs.readFile(cachePath, "utf-8");
       const existingCache = JSON.parse(content) as ProjectCache;
-      
+
       // Update last_updated timestamp
       existingCache.last_updated = new Date().toISOString();
-      
+
       return existingCache;
     } catch (error) {
       // Cache doesn't exist or is invalid, create new one
@@ -528,7 +571,7 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   private createEmptyCache(projectPath: string): ProjectCache {
     const now = new Date().toISOString();
-    
+
     return {
       version: CACHE_FORMAT_VERSION,
       cache_created: now,
@@ -543,14 +586,17 @@ export class JsonlCacheBuilderService extends EventEmitter {
       sessions: {},
       working_directories: [projectPath],
       earliest_timestamp: now,
-      latest_timestamp: now
+      latest_timestamp: now,
     };
   }
 
   /**
    * Finalizes cache data and writes to disk
    */
-  private async finalizeCache(projectPath: string, projectCache: ProjectCache): Promise<void> {
+  private async finalizeCache(
+    projectPath: string,
+    projectCache: ProjectCache,
+  ): Promise<void> {
     // Calculate totals
     projectCache.total_message_count = 0;
     projectCache.total_input_tokens = 0;
@@ -565,8 +611,10 @@ export class JsonlCacheBuilderService extends EventEmitter {
       projectCache.total_message_count += sessionData.message_count;
       projectCache.total_input_tokens += sessionData.total_input_tokens;
       projectCache.total_output_tokens += sessionData.total_output_tokens;
-      projectCache.total_cache_creation_tokens += sessionData.total_cache_creation_tokens;
-      projectCache.total_cache_read_tokens += sessionData.total_cache_read_tokens;
+      projectCache.total_cache_creation_tokens +=
+        sessionData.total_cache_creation_tokens;
+      projectCache.total_cache_read_tokens +=
+        sessionData.total_cache_read_tokens;
 
       if (sessionData.first_timestamp < earliestTimestamp) {
         earliestTimestamp = sessionData.first_timestamp;
@@ -581,7 +629,7 @@ export class JsonlCacheBuilderService extends EventEmitter {
     projectCache.last_updated = new Date().toISOString();
 
     // Write cache to disk
-    const cachePath = path.join(projectPath, '.cache', 'index.json');
+    const cachePath = path.join(projectPath, ".cache", "index.json");
     await this.atomicWriteJson(cachePath, projectCache);
   }
 
@@ -590,9 +638,9 @@ export class JsonlCacheBuilderService extends EventEmitter {
    */
   private async atomicWriteJson(filePath: string, data: any): Promise<void> {
     const tempPath = `${filePath}.tmp`;
-    
+
     try {
-      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
       await fs.rename(tempPath, filePath);
     } catch (error) {
       try {
@@ -626,7 +674,7 @@ export class JsonlCacheBuilderService extends EventEmitter {
   public getBuildStatus(): { inProgress: boolean; memoryUsageMB: number } {
     return {
       inProgress: this.buildInProgress,
-      memoryUsageMB: this.getMemoryUsageMB()
+      memoryUsageMB: this.getMemoryUsageMB(),
     };
   }
 

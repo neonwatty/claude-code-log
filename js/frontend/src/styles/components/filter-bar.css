@@ -6,7 +6,9 @@
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
-  box-shadow: -7px -7px 10px var(--color-shadow-light), 7px 7px 10px var(--color-shadow-dark);
+  box-shadow:
+    -7px -7px 10px var(--color-shadow-light),
+    7px 7px 10px var(--color-shadow-dark);
   border-left: var(--color-border-light) 1px solid;
   border-top: var(--color-border-light) 1px solid;
   border-bottom: var(--color-border-dark) 1px solid;
@@ -73,7 +75,7 @@
 .filter-bar-search-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary)33;
+  box-shadow: 0 0 0 2px var(--color-primary) 33;
 }
 
 .filter-bar-search-input::placeholder {
@@ -268,7 +270,7 @@
 .filter-bar-date-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary)33;
+  box-shadow: 0 0 0 2px var(--color-primary) 33;
 }
 
 /* Token range inputs */
@@ -292,7 +294,7 @@
 .filter-bar-token-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary)33;
+  box-shadow: 0 0 0 2px var(--color-primary) 33;
 }
 
 /* Animation for advanced section */
@@ -371,7 +373,7 @@
 }
 
 .filter-bar-main-container.loading::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -385,8 +387,12 @@
 }
 
 @keyframes filter-bar-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty state */

@@ -221,7 +221,7 @@
 }
 
 .loading::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -236,8 +236,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Fade Animations */
@@ -250,13 +254,21 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 /* Slide Animations */
@@ -317,8 +329,12 @@
 }
 
 @keyframes highlight-fade {
-  0% { background-color: #fff3cd; }
-  100% { background-color: transparent; }
+  0% {
+    background-color: #fff3cd;
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 /* State Indicators */
@@ -402,16 +418,16 @@
   .mobile-hidden {
     display: none;
   }
-  
+
   .mobile-full-width {
     width: 100%;
   }
-  
+
   .mobile-stack {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .mobile-center {
     justify-content: center;
   }
@@ -432,13 +448,13 @@
   .highlighted {
     animation: none;
   }
-  
+
   .interactive:hover,
   .btn-base:hover,
   .filter-toggle:hover {
     transform: none;
   }
-  
+
   .loading::after {
     animation: none;
     border-top-color: var(--color-border-dark);
@@ -450,12 +466,12 @@
   .filter-toggle {
     border-width: 2px;
   }
-  
+
   .btn-active,
   .filter-toggle.active {
     border-width: 3px;
   }
-  
+
   .focus-ring:focus,
   .focus-ring:focus-visible {
     outline-width: 3px;
@@ -467,7 +483,7 @@
   .print-hidden {
     display: none;
   }
-  
+
   .btn-base,
   .filter-toggle,
   .interactive {

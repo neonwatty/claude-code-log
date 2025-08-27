@@ -25,15 +25,6 @@
       "@shared/types": ["../shared/types"]
     }
   },
-  "include": [
-    "src/**/*",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "../shared/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ]
+  "include": ["src/**/*", "src/**/*.ts", "src/**/*.tsx", "../shared/**/*"],
+  "exclude": ["node_modules", "dist", "build"]
 }

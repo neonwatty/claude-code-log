@@ -1,7 +1,7 @@
-import * as fs from 'fs/promises';
-import * as fsSync from 'fs';
-import * as path from 'path';
-import { EventEmitter } from 'events';
+import * as fs from "fs/promises";
+import * as fsSync from "fs";
+import * as path from "path";
+import { EventEmitter } from "events";
 
 export interface FileStats {
   filePath: string;
@@ -15,7 +15,7 @@ export interface FileModificationResult {
   hasChanged: boolean;
   previousStats?: FileStats;
   currentStats?: FileStats;
-  changeType: 'modified' | 'created' | 'deleted' | 'unchanged';
+  changeType: "modified" | "created" | "deleted" | "unchanged";
 }
 
 export interface BatchCheckResult {
@@ -35,7 +35,7 @@ export interface DirectoryTrackingOptions {
 }
 
 export interface FileModificationEvent {
-  type: 'file_changed' | 'file_deleted' | 'file_created' | 'batch_complete';
+  type: "file_changed" | "file_deleted" | "file_created" | "batch_complete";
   filePath?: string;
   batchResult?: BatchCheckResult;
   timestamp: string;
@@ -65,14 +65,14 @@ export class FileModificationService extends EventEmitter {
   public async trackFile(filePath: string): Promise<FileStats> {
     const absolutePath = path.resolve(filePath);
     const stats = await this.getFileStats(absolutePath);
-    
+
     this.fileStats.set(absolutePath, stats);
-    
+
     if (!stats.exists) {
-      this.emit('fileModificationEvent', {
-        type: 'file_deleted',
+      this.emit("fileModificationEvent", {
+        type: "file_deleted",
         filePath: absolutePath,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       } as FileModificationEvent);
     }
 
@@ -83,14 +83,14 @@ export class FileModificationService extends EventEmitter {
    * Tracks all files in a directory (optionally recursive)
    */
   public async trackDirectory(
-    dirPath: string, 
-    options: DirectoryTrackingOptions = { recursive: true }
+    dirPath: string,
+    options: DirectoryTrackingOptions = { recursive: true },
   ): Promise<string[]> {
     const absoluteDirPath = path.resolve(dirPath);
     this.trackedDirectories.set(absoluteDirPath, options);
 
     const files = await this.discoverFiles(absoluteDirPath, options);
-    
+
     for (const filePath of files) {
       await this.trackFile(filePath);
     }
@@ -102,12 +102,12 @@ export class FileModificationService extends EventEmitter {
    * Discovers files in a directory based on tracking options
    */
   private async discoverFiles(
-    dirPath: string, 
+    dirPath: string,
     options: DirectoryTrackingOptions,
-    currentDepth: number = 0
+    currentDepth: number = 0,
   ): Promise<string[]> {
     const files: string[] = [];
-    
+
     if (options.maxDepth && currentDepth >= options.maxDepth) {
       return files;
     }
@@ -125,18 +125,24 @@ export class FileModificationService extends EventEmitter {
           }
 
           // Apply ignore patterns
-          if (options.ignorePatterns?.some(pattern => pattern.test(entry.name))) {
+          if (
+            options.ignorePatterns?.some((pattern) => pattern.test(entry.name))
+          ) {
             continue;
           }
 
           files.push(fullPath);
         } else if (entry.isDirectory() && options.recursive) {
           // Skip hidden directories and common ignore patterns
-          if (entry.name.startsWith('.') && entry.name !== '.cache') {
+          if (entry.name.startsWith(".") && entry.name !== ".cache") {
             continue;
           }
 
-          const subFiles = await this.discoverFiles(fullPath, options, currentDepth + 1);
+          const subFiles = await this.discoverFiles(
+            fullPath,
+            options,
+            currentDepth + 1,
+          );
           files.push(...subFiles);
         }
       }
@@ -158,7 +164,7 @@ export class FileModificationService extends EventEmitter {
         size: stats.size,
         mtime: stats.mtime.getTime(),
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       };
     } catch (error) {
       return {
@@ -166,7 +172,7 @@ export class FileModificationService extends EventEmitter {
         size: 0,
         mtime: 0,
         exists: false,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       };
     }
   }
@@ -182,7 +188,7 @@ export class FileModificationService extends EventEmitter {
         size: stats.size,
         mtime: stats.mtime.getTime(),
         exists: true,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       };
     } catch (error) {
       return {
@@ -190,7 +196,7 @@ export class FileModificationService extends EventEmitter {
         size: 0,
         mtime: 0,
         exists: false,
-        lastChecked: Date.now()
+        lastChecked: Date.now(),
       };
     }
   }
@@ -198,7 +204,9 @@ export class FileModificationService extends EventEmitter {
   /**
    * Checks if a single file has been modified since last check
    */
-  public async checkFileModification(filePath: string): Promise<FileModificationResult> {
+  public async checkFileModification(
+    filePath: string,
+  ): Promise<FileModificationResult> {
     const absolutePath = path.resolve(filePath);
     const previousStats = this.fileStats.get(absolutePath);
     const currentStats = await this.getFileStats(absolutePath);
@@ -211,65 +219,65 @@ export class FileModificationService extends EventEmitter {
       return {
         hasChanged: currentStats.exists,
         currentStats,
-        changeType: currentStats.exists ? 'created' : 'deleted'
+        changeType: currentStats.exists ? "created" : "deleted",
       };
     }
 
     // File was deleted
     if (!currentStats.exists && previousStats.exists) {
-      this.emit('fileModificationEvent', {
-        type: 'file_deleted',
+      this.emit("fileModificationEvent", {
+        type: "file_deleted",
         filePath: absolutePath,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       } as FileModificationEvent);
 
       return {
         hasChanged: true,
         previousStats,
         currentStats,
-        changeType: 'deleted'
+        changeType: "deleted",
       };
     }
 
     // File was created
     if (currentStats.exists && !previousStats.exists) {
-      this.emit('fileModificationEvent', {
-        type: 'file_created',
+      this.emit("fileModificationEvent", {
+        type: "file_created",
         filePath: absolutePath,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       } as FileModificationEvent);
 
       return {
         hasChanged: true,
         previousStats,
         currentStats,
-        changeType: 'created'
+        changeType: "created",
       };
     }
 
     // File was modified
     if (currentStats.exists && previousStats.exists) {
-      const hasChanged = 
-        currentStats.mtime !== previousStats.mtime || 
+      const hasChanged =
+        currentStats.mtime !== previousStats.mtime ||
         currentStats.size !== previousStats.size;
 
       if (hasChanged) {
-        this.emit('fileModificationEvent', {
-          type: 'file_changed',
+        this.emit("fileModificationEvent", {
+          type: "file_changed",
           filePath: absolutePath,
           timestamp: new Date().toISOString(),
           metadata: {
             previousMtime: previousStats.mtime,
             currentMtime: currentStats.mtime,
-            sizeChange: currentStats.size - previousStats.size
-          }
+            sizeChange: currentStats.size - previousStats.size,
+          },
         } as FileModificationEvent);
 
         return {
           hasChanged: true,
           previousStats,
           currentStats,
-          changeType: 'modified'
+          changeType: "modified",
         };
       }
     }
@@ -278,7 +286,7 @@ export class FileModificationService extends EventEmitter {
       hasChanged: false,
       previousStats,
       currentStats,
-      changeType: 'unchanged'
+      changeType: "unchanged",
     };
   }
 
@@ -287,7 +295,7 @@ export class FileModificationService extends EventEmitter {
    */
   public async batchCheckFiles(filePaths: string[]): Promise<BatchCheckResult> {
     if (this.batchCheckInProgress) {
-      throw new Error('Batch check already in progress');
+      throw new Error("Batch check already in progress");
     }
 
     this.batchCheckInProgress = true;
@@ -299,12 +307,12 @@ export class FileModificationService extends EventEmitter {
       deletedFiles: [],
       newFiles: [],
       totalChecked: filePaths.length,
-      checkDurationMs: 0
+      checkDurationMs: 0,
     };
 
     try {
       // Use Promise.allSettled for concurrent file checking
-      const checkPromises = filePaths.map(async filePath => {
+      const checkPromises = filePaths.map(async (filePath) => {
         try {
           const modificationResult = await this.checkFileModification(filePath);
           return { filePath, modificationResult };
@@ -317,20 +325,23 @@ export class FileModificationService extends EventEmitter {
       const checkResults = await Promise.allSettled(checkPromises);
 
       for (const promiseResult of checkResults) {
-        if (promiseResult.status === 'fulfilled' && promiseResult.value.modificationResult) {
+        if (
+          promiseResult.status === "fulfilled" &&
+          promiseResult.value.modificationResult
+        ) {
           const { filePath, modificationResult } = promiseResult.value;
-          
+
           switch (modificationResult.changeType) {
-            case 'modified':
+            case "modified":
               result.changedFiles.push(filePath);
               break;
-            case 'created':
+            case "created":
               result.newFiles.push(filePath);
               break;
-            case 'deleted':
+            case "deleted":
               result.deletedFiles.push(filePath);
               break;
-            case 'unchanged':
+            case "unchanged":
               result.unchangedFiles.push(filePath);
               break;
           }
@@ -339,14 +350,13 @@ export class FileModificationService extends EventEmitter {
 
       result.checkDurationMs = Date.now() - startTime;
 
-      this.emit('fileModificationEvent', {
-        type: 'batch_complete',
+      this.emit("fileModificationEvent", {
+        type: "batch_complete",
         batchResult: result,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       } as FileModificationEvent);
 
       return result;
-
     } finally {
       this.batchCheckInProgress = false;
     }
@@ -364,7 +374,7 @@ export class FileModificationService extends EventEmitter {
       deletedFiles: [],
       newFiles: [],
       totalChecked: filePaths.length,
-      checkDurationMs: 0
+      checkDurationMs: 0,
     };
 
     for (const filePath of filePaths) {
@@ -397,8 +407,8 @@ export class FileModificationService extends EventEmitter {
 
         // File was modified
         if (currentStats.exists && previousStats.exists) {
-          const hasChanged = 
-            currentStats.mtime !== previousStats.mtime || 
+          const hasChanged =
+            currentStats.mtime !== previousStats.mtime ||
             currentStats.size !== previousStats.size;
 
           if (hasChanged) {
@@ -453,7 +463,10 @@ export class FileModificationService extends EventEmitter {
   /**
    * Checks if file needs cache invalidation based on cached mtime
    */
-  public needsCacheInvalidation(filePath: string, cachedMtime: number): boolean {
+  public needsCacheInvalidation(
+    filePath: string,
+    cachedMtime: number,
+  ): boolean {
     const currentMtime = this.getFileModificationTime(filePath);
     if (currentMtime === null) {
       return true; // File doesn't exist, invalidate cache
@@ -474,7 +487,7 @@ export class FileModificationService extends EventEmitter {
    */
   public untrackDirectory(dirPath: string): boolean {
     const absoluteDirPath = path.resolve(dirPath);
-    
+
     // Remove all files within this directory
     const toRemove: string[] = [];
     for (const [filePath] of this.fileStats) {
@@ -482,9 +495,9 @@ export class FileModificationService extends EventEmitter {
         toRemove.push(filePath);
       }
     }
-    
-    toRemove.forEach(filePath => this.fileStats.delete(filePath));
-    
+
+    toRemove.forEach((filePath) => this.fileStats.delete(filePath));
+
     return this.trackedDirectories.delete(absoluteDirPath);
   }
 
@@ -498,7 +511,7 @@ export class FileModificationService extends EventEmitter {
   } {
     return {
       trackedFiles: this.fileStats.size,
-      trackedDirectories: this.trackedDirectories.size
+      trackedDirectories: this.trackedDirectories.size,
     };
   }
 
