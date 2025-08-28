@@ -1,0 +1,54 @@
+{
+  "testName": "manual-testing-session",
+  "timestamp": "2025-08-27T22:42:34.101Z",
+  "metrics": [
+    {
+      "timestamp": 1756334548801,
+      "testName": "page-load",
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 72,
+      "firstContentfulPaint": 72,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334549462,
+      "testName": "connection-status-check",
+      "duration": 6,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334549534,
+      "testName": "connection-button-interaction",
+      "duration": 2078,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334551727,
+      "testName": "reconnection-test",
+      "duration": 2034,
+      "type": "interaction"
+    }
+  ],
+  "summary": {
+    "totalInteractions": 3,
+    "avgInteractionTime": 1372.6666666666667,
+    "slowestInteraction": {
+      "timestamp": 1756334549534,
+      "testName": "connection-button-interaction",
+      "duration": 2078,
+      "type": "interaction"
+    },
+    "pageLoadMetrics": [
+      {
+        "timestamp": 1756334548801,
+        "testName": "page-load",
+        "domContentLoaded": 0,
+        "loadComplete": 0,
+        "firstPaint": 72,
+        "firstContentfulPaint": 72,
+        "largestContentfulPaint": 0
+      }
+    ]
+  }
+}

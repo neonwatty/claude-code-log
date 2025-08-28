@@ -5,7 +5,7 @@ import {
   IProject,
   ITranscriptEntry,
   IUsageInfo,
-} from "../../../shared/src";
+} from "../../../shared/dist/src/index.js";
 
 // Base API response (already exists in shared, but extended here)
 export interface IApiResponse<T = any> {

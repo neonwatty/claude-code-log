@@ -1,7 +1,10 @@
 import { html, css, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { BaseComponent } from "../base/base-component.js";
+import { sessionListStyles } from "../../styles/components/index.js";
 import type { ZodSession } from "../../../../shared/src/schemas/index.js";
+import "../session-card/session-card.js";
+import type { SessionData } from "../session-card/session-card.js";
 
 export interface SessionFilter {
   searchTerm?: string;
@@ -34,13 +37,14 @@ export class SessionList extends BaseComponent {
 
   static override styles = [
     ...BaseComponent.styles,
+    sessionListStyles,
     css`
       :host {
         display: block;
         font-family: var(--font-family-mono);
       }
 
-      .session-list-container {
+      .session-list-navigation {
         background-color: var(--color-surface);
         border-radius: var(--border-radius-md);
         padding: var(--spacing-md);
@@ -54,18 +58,13 @@ export class SessionList extends BaseComponent {
         border-right: var(--color-border-dark) 1px solid;
       }
 
-      .session-list-header {
+      .session-list-navigation h2 {
         margin: 0 0 var(--spacing-sm) 0;
         font-size: 1.2em;
         color: var(--color-text);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: var(--spacing-sm);
       }
 
-      .session-list-controls {
+      .session-filter-controls {
         display: flex;
         gap: var(--spacing-sm);
         margin-bottom: var(--spacing-md);
@@ -73,7 +72,7 @@ export class SessionList extends BaseComponent {
         flex-wrap: wrap;
       }
 
-      .filter-input {
+      .session-search-input {
         padding: var(--spacing-xs) var(--spacing-sm);
         border: 1px solid var(--color-border-dark);
         border-radius: var(--border-radius-sm);
@@ -90,7 +89,7 @@ export class SessionList extends BaseComponent {
         box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
-      .sort-select {
+      .session-sort-select {
         padding: var(--spacing-xs) var(--spacing-sm);
         border: 1px solid var(--color-border-dark);
         border-radius: var(--border-radius-sm);
@@ -100,12 +99,13 @@ export class SessionList extends BaseComponent {
         font-size: 0.9em;
       }
 
-      .sessions-grid {
+      .session-nav {
         display: grid;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
       }
 
-      .session-item {
+      .session-link {
         padding: var(--spacing-sm) var(--spacing-md);
         background-color: var(--color-surface);
         border: 1px solid var(--color-border-dark);
@@ -117,7 +117,7 @@ export class SessionList extends BaseComponent {
         display: block;
       }
 
-      .session-item:hover {
+      .session-link:hover {
         background-color: var(--color-surface-hover);
         transform: translateY(-1px);
         box-shadow:
@@ -125,20 +125,20 @@ export class SessionList extends BaseComponent {
           3px 3px 5px var(--color-shadow-dark);
       }
 
-      .session-item.selected {
+      .session-link.selected {
         background-color: var(--color-surface-active);
         border-color: var(--color-primary);
         box-shadow: 0 0 0 2px var(--color-primary) 33;
       }
 
-      .session-item-title {
+      .session-link-title {
         font-weight: 600;
         font-size: 0.9em;
         margin-bottom: var(--spacing-xs);
         word-break: break-word;
       }
 
-      .session-item-meta {
+      .session-link-meta {
         font-size: 0.8em;
         color: var(--color-text-muted);
         margin-bottom: var(--spacing-xs);
@@ -147,7 +147,7 @@ export class SessionList extends BaseComponent {
         flex-wrap: wrap;
       }
 
-      .session-item-preview {
+      .session-preview {
         font-size: 0.75em;
         line-height: 1.3;
         color: var(--color-text-light);
@@ -162,7 +162,7 @@ export class SessionList extends BaseComponent {
         position: relative;
       }
 
-      .session-item-preview::after {
+      .session-preview::after {
         content: "";
         position: absolute;
         bottom: 0;
@@ -173,14 +173,14 @@ export class SessionList extends BaseComponent {
         pointer-events: none;
       }
 
-      .empty-state {
+      .session-list-empty {
         text-align: center;
         padding: var(--spacing-xl);
         color: var(--color-text-muted);
         font-style: italic;
       }
 
-      .session-count {
+      .session-count-indicator {
         font-size: 0.85em;
         color: var(--color-text-muted);
       }
@@ -252,7 +252,24 @@ export class SessionList extends BaseComponent {
 
   private handleSessionClick(session: ZodSession): void {
     this.selectedSessionId = session.id;
-    this.emitEvent("session-selected", { session });
+    this.emitEvent("session-selected", { sessionId: session.id, session });
+  }
+
+  private handleSessionCardSelected(event: CustomEvent): void {
+    const { sessionId } = event.detail;
+    const session = this.sessions.find(s => s.id === sessionId);
+    if (session) {
+      this.handleSessionClick(session);
+    }
+  }
+
+  private handlePreviewExpand(event: CustomEvent): void {
+    // Handle preview expansion - could show in modal or expand inline
+    const { sessionId, fullPreview } = event.detail;
+    console.log('Preview expand requested for session:', sessionId, fullPreview);
+    
+    // For now, just emit an event that parent can handle
+    this.emitEvent("preview-expand-requested", event.detail);
   }
 
   private handleSearchInput(event: Event): void {
@@ -308,38 +325,36 @@ export class SessionList extends BaseComponent {
     return "No preview available";
   }
 
+  private convertToSessionData(session: ZodSession): SessionData {
+    return {
+      id: session.id || 'unknown',
+      name: session.summary,
+      startTime: session.firstTimestamp,
+      endTime: session.lastTimestamp,
+      messageCount: session.entries.length,
+      tokenUsage: {
+        input: session.totalUsage.input_tokens || 0,
+        output: session.totalUsage.output_tokens || 0,
+        cacheCreation: session.totalUsage.cache_creation_input_tokens,
+        cacheRead: session.totalUsage.cache_read_input_tokens
+      },
+      preview: this.getSessionPreview(session),
+      workingDirectory: session.cwd
+    };
+  }
+
   private renderSessionItem(session: ZodSession): TemplateResult {
     const isSelected = this.selectedSessionId === session.id;
-    const messageCount = session.entries.length;
-    const timestampRange = `${this.formatTimestamp(session.firstTimestamp)} - ${this.formatTimestamp(session.lastTimestamp)}`;
-    const tokenUsage = this.formatTokenUsage(session);
-    const preview = this.getSessionPreview(session);
+    const sessionData = this.convertToSessionData(session);
 
     return html`
-      <div
-        class="session-item ${isSelected ? "selected" : ""}"
-        @click=${() => this.handleSessionClick(session)}
-        role="button"
-        tabindex="0"
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            this.handleSessionClick(session);
-          }
-        }}
-      >
-        <div class="session-item-title">
-          ${session.summary || session.id.slice(0, 8)}
-        </div>
-        <div class="session-item-meta">
-          <span>${timestampRange}</span>
-          <span>${messageCount} message${messageCount === 1 ? "" : "s"}</span>
-          ${tokenUsage ? html`<span>${tokenUsage}</span>` : ""}
-        </div>
-        ${preview
-          ? html` <div class="session-item-preview">${preview}</div> `
-          : ""}
-      </div>
+      <session-card
+        .session=${sessionData}
+        .isSelected=${isSelected}
+        .searchTerm=${this.filter.searchTerm || ''}
+        @session-selected=${this.handleSessionCardSelected}
+        @preview-expand-requested=${this.handlePreviewExpand}
+      ></session-card>
     `;
   }
 
@@ -348,10 +363,10 @@ export class SessionList extends BaseComponent {
     const totalCount = this.sessions.length;
 
     return html`
-      <div class="session-list-container">
+      <div class="session-list-navigation">
         <div class="session-list-header">
           <h2>Sessions</h2>
-          <span class="session-count">
+          <span class="session-count-indicator">
             ${sessionCount}${sessionCount !== totalCount
               ? ` of ${totalCount}`
               : ""}
@@ -359,15 +374,15 @@ export class SessionList extends BaseComponent {
           </span>
         </div>
 
-        <div class="session-list-controls">
+        <div class="session-filter-controls">
           <input
             type="text"
-            class="filter-input"
+            class="session-search-input"
             placeholder="Search sessions..."
             @input=${this.handleSearchInput}
             .value=${this.filter.searchTerm || ""}
           />
-          <select class="sort-select" @change=${this.handleSortChange}>
+          <select class="session-sort-select" @change=${this.handleSortChange}>
             <option
               value="timestamp:desc"
               ?selected=${this.sort.field === "timestamp" &&
@@ -427,12 +442,12 @@ export class SessionList extends BaseComponent {
           </select>
         </div>
 
-        <div class="sessions-grid">
+        <div class="session-nav">
           ${this.filteredSessions.length > 0
             ? this.filteredSessions.map((session) =>
                 this.renderSessionItem(session),
               )
-            : html`<div class="empty-state">No sessions found</div>`}
+            : html`<div class="session-list-empty">No sessions found</div>`}
         </div>
       </div>
     `;

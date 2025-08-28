@@ -5,7 +5,7 @@ import {
   getErrorResponse,
   InternalServerError,
 } from "../utils/errors";
-import { IApiResponse } from "../../../shared/src";
+import { IApiResponse } from "../../../shared/dist/src/index.js";
 import { getMonitoringService } from "../services/monitoring.service";
 
 // Global error handler middleware

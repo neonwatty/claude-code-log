@@ -1,10 +1,5 @@
 import { Router, Request, Response } from "express";
-import { IApiResponse, ISession } from "../../../shared/src";
-import {
-  SessionContinuationRequestSchema,
-  SessionContinuationWithContextRequestSchema,
-  ContextPreparationRequestSchema,
-} from "../../../shared/src/schemas/claude-integration.js";
+import { IApiResponse, ISession, SessionContinuationRequestSchema, SessionContinuationWithContextRequestSchema, ContextPreparationRequestSchema } from "../../../shared/dist/src/index.js";
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
@@ -13,7 +8,7 @@ import {
   paginationValidation,
   handleValidationErrors,
 } from "../middleware/validation";
-import { ClaudeIntegrationService } from "../services/claude-integration.service.js";
+import { ClaudeIntegrationService } from "../services/claude-integration.service";
 
 const router = Router();
 

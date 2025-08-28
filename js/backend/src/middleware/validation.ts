@@ -1,6 +1,6 @@
 import { body, param, query, validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
-import { IApiResponse } from "../../../shared/src";
+import { IApiResponse } from "../../../shared/dist/src/index.js";
 
 // Validation result handler
 export const handleValidationErrors = (

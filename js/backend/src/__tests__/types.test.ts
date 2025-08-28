@@ -1,4 +1,4 @@
-import { IApiResponse } from "../../../shared/src";
+import { IApiResponse } from "@shared";
 
 describe("Backend Type Safety", () => {
   describe("IApiResponse interface", () => {

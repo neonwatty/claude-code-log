@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- text: 📱 You're offline - Cached content is available
+- heading "Claude Code Log" [level=1]
+- 'button "Connection status: Reconnecting. Connection is reconnecting. Reconnection attempt 1. Connection quality: unknown"': "Reconnecting Attempt 1 Connection is reconnecting. Reconnection attempt 1. Connection quality: unknown"
+- button "Connect"
+- button "Reconnect"
+- text: "Application Statistics 8/27/2025, 3:39:58 PM 1 Users 1 Log Entries ☀️ Theme 0 Messages Sent 0 Messages Received 1 Reconnections Welcome to Claude Code Log - Real-time session visualization and analysis Connection Status: RECONNECTING | Quality: unknown"
+- alert "Connection Connecting":
+  - heading "Connection Connecting" [level=3]
+  - paragraph: WebSocket connection state changed to Connecting. Attempting to establish connection.
+  - button "Close notification": ✕
+- alert "Connection Connected":
+  - heading "Connection Connected" [level=3]
+  - paragraph: WebSocket connection state changed to Connected. Real-time updates are now available.
+  - button "Close notification": ✕
+- alert "Connection Disconnected":
+  - heading "Connection Disconnected" [level=3]
+  - paragraph: WebSocket connection state changed to Disconnected. Real-time updates are not available.
+  - button "Close notification": ✕
+  - button "Retry"
+- alert "Connection Reconnecting":
+  - heading "Connection Reconnecting" [level=3]
+  - paragraph: WebSocket connection state changed to Reconnecting. Attempting to restore connection.
+  - button "Close notification": ✕
+- alert "Connection Connecting":
+  - heading "Connection Connecting" [level=3]
+  - paragraph: WebSocket connection state changed to Connecting. Attempting to establish connection.
+  - button "Close notification": ✕
+- alert "Connection Connected":
+  - heading "Connection Connected" [level=3]
+  - paragraph: WebSocket connection state changed to Connected. Real-time updates are now available.
+  - button "Close notification": ✕
+- alert "Connection Disconnected":
+  - heading "Connection Disconnected" [level=3]
+  - paragraph: WebSocket connection state changed to Disconnected. Real-time updates are not available.
+  - button "Close notification": ✕
+  - button "Retry"
+- alert "Connection Reconnecting":
+  - heading "Connection Reconnecting" [level=3]
+  - paragraph: WebSocket connection state changed to Reconnecting. Attempting to restore connection.
+  - button "Close notification": ✕
+- alert "Connection Connecting":
+  - heading "Connection Connecting" [level=3]
+  - paragraph: WebSocket connection state changed to Connecting. Attempting to establish connection.
+  - button "Close notification": ✕
+- alert "Connection Connected":
+  - heading "Connection Connected" [level=3]
+  - paragraph: WebSocket connection state changed to Connected. Real-time updates are now available.
+  - button "Close notification": ✕
+- alert "Connection Disconnected":
+  - heading "Connection Disconnected" [level=3]
+  - paragraph: WebSocket connection state changed to Disconnected. Real-time updates are not available.
+  - button "Close notification": ✕
+  - button "Retry"
+- alert "Connection Reconnecting":
+  - heading "Connection Reconnecting" [level=3]
+  - paragraph: WebSocket connection state changed to Reconnecting. Attempting to restore connection.
+  - button "Close notification": ✕
+- text: "Connection Reconnecting. WebSocket connection state changed to Reconnecting. Attempting to restore connection. Connection status: RECONNECTING"
+```

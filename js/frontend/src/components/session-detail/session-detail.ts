@@ -1,6 +1,8 @@
 import { html, css, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { BaseComponent } from "../base/base-component.js";
+import { sessionDetailStyles } from "../../styles/components/index.js";
+import "../message-card/message-card.js";
 import type {
   ZodSession,
   ZodTranscriptEntry,
@@ -70,6 +72,7 @@ export class SessionDetail extends BaseComponent {
 
   static override styles = [
     ...BaseComponent.styles,
+    sessionDetailStyles,
     css`
       :host {
         display: block;
@@ -84,7 +87,7 @@ export class SessionDetail extends BaseComponent {
         background-color: var(--color-background);
       }
 
-      .session-header {
+      .session-detail-header {
         background-color: var(--color-surface);
         border-radius: var(--border-radius-md);
         padding: var(--spacing-md);
@@ -98,7 +101,7 @@ export class SessionDetail extends BaseComponent {
         border-right: var(--color-border-dark) 1px solid;
       }
 
-      .session-header-title {
+      .session-detail-title {
         font-size: 1.2em;
         margin-bottom: var(--spacing-sm);
         display: flex;
@@ -108,7 +111,7 @@ export class SessionDetail extends BaseComponent {
         gap: var(--spacing-sm);
       }
 
-      .session-metadata {
+      .session-detail-metadata {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: var(--spacing-sm);
@@ -116,16 +119,16 @@ export class SessionDetail extends BaseComponent {
         color: var(--color-text-muted);
       }
 
-      .metadata-item {
+      .session-metadata-item {
         display: flex;
         justify-content: space-between;
       }
 
-      .metadata-label {
+      .session-metadata-label {
         font-weight: 600;
       }
 
-      .filter-toolbar {
+      .session-detail-filter-toolbar {
         background-color: var(--color-surface);
         border-radius: var(--border-radius-sm);
         padding: var(--spacing-sm);
@@ -136,7 +139,7 @@ export class SessionDetail extends BaseComponent {
         align-items: center;
       }
 
-      .filter-toggle {
+      .session-detail-filter-toggle {
         padding: var(--spacing-xs) var(--spacing-sm);
         border: 1px solid var(--color-border-dark);
         border-radius: var(--border-radius-sm);
@@ -150,22 +153,22 @@ export class SessionDetail extends BaseComponent {
         gap: var(--spacing-xs);
       }
 
-      .filter-toggle.active {
+      .session-detail-filter-toggle.active {
         background-color: var(--color-primary);
         color: white;
         border-color: var(--color-primary);
       }
 
-      .filter-toggle:hover {
+      .session-detail-filter-toggle:hover {
         background-color: var(--color-surface-hover);
       }
 
-      .filter-toggle.active:hover {
+      .session-detail-filter-toggle.active:hover {
         background-color: var(--color-primary);
         opacity: 0.9;
       }
 
-      .message-container {
+      .session-messages-container {
         flex: 1;
         overflow-y: auto;
         padding: var(--spacing-sm);
@@ -173,20 +176,20 @@ export class SessionDetail extends BaseComponent {
         scrollbar-color: var(--color-border-dark) transparent;
       }
 
-      .message-container::-webkit-scrollbar {
+      .session-messages-container::-webkit-scrollbar {
         width: 8px;
       }
 
-      .message-container::-webkit-scrollbar-track {
+      .session-messages-container::-webkit-scrollbar-track {
         background: transparent;
       }
 
-      .message-container::-webkit-scrollbar-thumb {
+      .session-messages-container::-webkit-scrollbar-thumb {
         background-color: var(--color-border-dark);
         border-radius: 4px;
       }
 
-      .message {
+      .session-message {
         margin-bottom: 1em;
         padding: 1em;
         border-radius: var(--border-radius-md);
@@ -201,46 +204,46 @@ export class SessionDetail extends BaseComponent {
         transition: all var(--transition-fast);
       }
 
-      .message.filtered-hidden {
+      .session-message.filtered-hidden {
         display: none;
       }
 
-      .message.user {
+      .session-message.user {
         border-left-color: var(--color-primary);
       }
 
-      .message.assistant {
+      .session-message.assistant {
         border-left-color: var(--color-secondary);
       }
 
-      .message.system {
+      .session-message.system {
         border-left-color: var(--color-warning);
       }
 
-      .message.tool_use {
+      .session-message.tool_use {
         border-left-color: var(--color-tool-use);
       }
 
-      .message.tool_result {
+      .session-message.tool_result {
         border-left-color: var(--color-tool-result);
       }
 
-      .message.thinking {
+      .session-message.thinking {
         border-left-color: var(--color-thinking);
       }
 
-      .message.image {
+      .session-message.image {
         border-left-color: var(--color-image);
       }
 
-      .message.sidechain {
+      .session-message.sidechain {
         opacity: 0.85;
         background-color: var(--color-surface-hover);
         border-left-width: 2px;
         border-left-style: dashed;
       }
 
-      .message-header {
+      .session-message-header {
         font-weight: 600;
         margin-bottom: var(--spacing-sm);
         display: flex;
@@ -250,13 +253,13 @@ export class SessionDetail extends BaseComponent {
         gap: var(--spacing-sm);
       }
 
-      .message-type {
+      .session-message-type {
         display: flex;
         align-items: center;
         gap: var(--spacing-xs);
       }
 
-      .message-meta {
+      .session-message-meta {
         display: flex;
         flex-direction: column;
         align-items: flex-end;
@@ -265,12 +268,12 @@ export class SessionDetail extends BaseComponent {
         color: var(--color-text-muted);
       }
 
-      .message-content {
+      .session-message-content {
         word-wrap: break-word;
         line-height: var(--line-height);
       }
 
-      .message-content pre {
+      .session-message-content pre {
         background-color: var(--color-surface-hover);
         padding: var(--spacing-sm);
         border-radius: var(--border-radius-sm);
@@ -280,7 +283,7 @@ export class SessionDetail extends BaseComponent {
         word-break: break-word;
       }
 
-      .tool-content {
+      .session-tool-content {
         background-color: var(--color-surface-hover);
         border-radius: var(--border-radius-sm);
         padding: var(--spacing-sm);
@@ -288,7 +291,7 @@ export class SessionDetail extends BaseComponent {
         overflow-x: auto;
       }
 
-      .tool-input {
+      .session-tool-input {
         background-color: var(--color-surface-active);
         border-radius: var(--border-radius-sm);
         padding: var(--spacing-xs);
@@ -296,7 +299,7 @@ export class SessionDetail extends BaseComponent {
         font-size: 0.9em;
       }
 
-      .thinking-content {
+      .session-thinking-content {
         background-color: var(--color-surface-hover);
         border-radius: var(--border-radius-sm);
         padding: var(--spacing-sm);
@@ -353,21 +356,21 @@ export class SessionDetail extends BaseComponent {
       }
 
       @media (max-width: 768px) {
-        .session-metadata {
+        .session-detail-metadata {
           grid-template-columns: 1fr;
         }
 
-        .filter-toolbar {
+        .session-detail-filter-toolbar {
           flex-direction: column;
           align-items: stretch;
         }
 
-        .message-header {
+        .session-message-header {
           flex-direction: column;
           align-items: stretch;
         }
 
-        .message-meta {
+        .session-message-meta {
           align-items: flex-start;
         }
       }
@@ -376,7 +379,7 @@ export class SessionDetail extends BaseComponent {
 
   protected override firstUpdated(): void {
     this.scrollContainer = this.shadowRoot?.querySelector(
-      ".message-container",
+      ".session-messages-container",
     ) as HTMLElement;
   }
 
@@ -461,9 +464,9 @@ export class SessionDetail extends BaseComponent {
 
       case "tool_use":
         return html`
-          <div class="tool-content tool-use">
+          <div class="session-tool-content session-tool-use">
             <div class="tool-header">🛠️ ${content.name}</div>
-            <div class="tool-input">
+            <div class="session-tool-input">
               <pre>${JSON.stringify(content.input, null, 2)}</pre>
             </div>
           </div>
@@ -471,7 +474,7 @@ export class SessionDetail extends BaseComponent {
 
       case "tool_result":
         return html`
-          <div class="tool-content tool-result">
+          <div class="session-tool-content session-tool-result">
             <div class="tool-header">
               🧰 Tool Result ${content.is_error ? "(Error)" : ""}
             </div>
@@ -485,15 +488,15 @@ ${typeof content.content === "string"
 
       case "thinking":
         return html`
-          <div class="thinking-content">
+          <div class="session-thinking-content">
             <div>💭 Thinking</div>
-            <div class="thinking-text">${content.thinking}</div>
+            <div class="session-thinking-text">${content.thinking}</div>
           </div>
         `;
 
       case "image":
         return html`
-          <div class="image-content">
+          <div class="session-image-content">
             <div>🖼️ Image (${content.source.media_type})</div>
             <img
               src="data:${content.source.media_type};base64,${content.source
@@ -512,99 +515,22 @@ ${typeof content.content === "string"
   private renderMessage(entry: ZodTranscriptEntry): TemplateResult {
     const messageType = this.getMessageType(entry);
     const isVisible = this.shouldShowMessage(entry);
-    const icon =
-      this.messageTypeIcons[messageType as keyof MessageTypeIcons] || "❓";
 
-    if (entry.type === "summary") {
-      return html`
-        <div class="message summary ${isVisible ? "" : "filtered-hidden"}">
-          <div class="message-header">
-            <div class="message-type">📋 Summary</div>
-          </div>
-          <div class="message-content session-summary">${entry.summary}</div>
-        </div>
-      `;
+    if (!isVisible) {
+      return html``;
     }
 
-    if (entry.type === "system") {
-      return html`
-        <div class="message system ${isVisible ? "" : "filtered-hidden"}">
-          <div class="message-header">
-            <div class="message-type">${icon} System</div>
-            <div class="message-meta">
-              <span class="timestamp"
-                >${this.formatTimestamp(entry.timestamp)}</span
-              >
-            </div>
-          </div>
-          <div class="message-content">${entry.content}</div>
-        </div>
-      `;
-    }
-
-    if (entry.type === "user") {
-      const tokenUsage = entry.message.content?.length ? "" : ""; // User messages typically don't have token usage
-
-      return html`
-        <div
-          class="message user ${entry.isSidechain
-            ? "sidechain"
-            : ""} ${isVisible ? "" : "filtered-hidden"}"
-        >
-          ${entry.isSidechain
-            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
-            : ""}
-          <div class="message-header">
-            <div class="message-type">${icon} User</div>
-            <div class="message-meta">
-              <span class="timestamp"
-                >${this.formatTimestamp(entry.timestamp)}</span
-              >
-            </div>
-          </div>
-          <div class="message-content">
-            ${entry.message.content?.map((content) =>
-              this.renderContentItem(content),
-            )}
-          </div>
-        </div>
-      `;
-    }
-
-    if (entry.type === "assistant") {
-      const usage = entry.message.usage;
-      const tokenUsage = usage ? this.formatAssistantTokenUsage(usage) : "";
-
-      return html`
-        <div
-          class="message assistant ${entry.isSidechain
-            ? "sidechain"
-            : ""} ${isVisible ? "" : "filtered-hidden"}"
-        >
-          ${entry.isSidechain
-            ? html`<div class="sidechain-indicator">🔗 Sub-conversation</div>`
-            : ""}
-          <div class="message-header">
-            <div class="message-type">${icon} Assistant</div>
-            <div class="message-meta">
-              <span class="timestamp"
-                >${this.formatTimestamp(entry.timestamp)}</span
-              >
-              ${tokenUsage
-                ? html`<span class="token-usage">${tokenUsage}</span>`
-                : ""}
-            </div>
-          </div>
-          <div class="message-content">
-            ${entry.message.content?.map((content) =>
-              this.renderContentItem(content),
-            )}
-          </div>
-        </div>
-      `;
-    }
-
-    return html`<div class="message unknown">Unknown message type</div>`;
+    return html`
+      <message-card
+        .message=${entry}
+        .role=${messageType as any}
+        ?enable-copy=${true}
+        ?enable-markdown=${true}
+        ?enable-syntax-highlighting=${true}
+        ?show-timestamps=${true}
+        ?show-token-usage=${true}
+      ></message-card>
+    `;
   }
 
   private formatAssistantTokenUsage(usage: any): string {
@@ -639,14 +565,14 @@ ${typeof content.content === "string"
     ];
 
     return html`
-      <div class="filter-toolbar">
+      <div class="session-detail-filter-toolbar">
         <span style="font-weight: 600; margin-right: var(--spacing-sm);"
           >Filter:</span
         >
         ${messageTypes.map(
           (type) => html`
             <button
-              class="filter-toggle ${this.detailState.filteredMessageTypes.has(
+              class="session-detail-filter-toggle ${this.detailState.filteredMessageTypes.has(
                 type.key,
               )
                 ? "active"
@@ -671,8 +597,8 @@ ${typeof content.content === "string"
     const timeRange = `${this.formatTimestamp(this.session.firstTimestamp)} - ${this.formatTimestamp(this.session.lastTimestamp)}`;
 
     return html`
-      <div class="session-header">
-        <div class="session-header-title">
+      <div class="session-detail-header">
+        <div class="session-detail-title">
           <span
             >Session:
             ${this.session.summary || this.session.id.slice(0, 8)}</span
@@ -681,29 +607,29 @@ ${typeof content.content === "string"
             >${this.session.id}</span
           >
         </div>
-        <div class="session-metadata">
-          <div class="metadata-item">
-            <span class="metadata-label">Messages:</span>
+        <div class="session-detail-metadata">
+          <div class="session-metadata-item">
+            <span class="session-metadata-label">Messages:</span>
             <span>${messageCount}</span>
           </div>
-          <div class="metadata-item">
-            <span class="metadata-label">Duration:</span>
+          <div class="session-metadata-item">
+            <span class="session-metadata-label">Duration:</span>
             <span>${duration}</span>
           </div>
-          <div class="metadata-item">
-            <span class="metadata-label">Time Range:</span>
+          <div class="session-metadata-item">
+            <span class="session-metadata-label">Time Range:</span>
             <span>${timeRange}</span>
           </div>
           ${tokenUsage
             ? html`
-                <div class="metadata-item">
-                  <span class="metadata-label">Token Usage:</span>
+                <div class="session-metadata-item">
+                  <span class="session-metadata-label">Token Usage:</span>
                   <span>${tokenUsage}</span>
                 </div>
               `
             : ""}
-          <div class="metadata-item">
-            <span class="metadata-label">Working Directory:</span>
+          <div class="session-metadata-item">
+            <span class="session-metadata-label">Working Directory:</span>
             <span>${this.session.cwd}</span>
           </div>
         </div>
@@ -735,7 +661,7 @@ ${typeof content.content === "string"
       <div class="session-detail-container">
         ${this.renderSessionHeader()} ${this.renderFilterToolbar()}
 
-        <div class="message-container">
+        <div class="session-messages-container">
           ${sortedEntries.length > 0
             ? sortedEntries.map((entry) => this.renderMessage(entry))
             : html`

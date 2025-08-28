@@ -1,0 +1,96 @@
+{
+  "testName": "manual-testing-session",
+  "timestamp": "2025-08-27T22:43:11.165Z",
+  "metrics": [
+    {
+      "timestamp": 1756334584609,
+      "testName": "page-load",
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 60,
+      "firstContentfulPaint": 60,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334584719,
+      "testName": "page-load",
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 0,
+      "firstContentfulPaint": 0,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334584690,
+      "testName": "error-navigation-test",
+      "duration": 2028,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334586850,
+      "testName": "page-load",
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 0,
+      "firstContentfulPaint": 0,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334586814,
+      "testName": "error-recovery-test",
+      "duration": 48,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334586953,
+      "testName": "offline-test",
+      "duration": 2003,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334589042,
+      "testName": "online-recovery-test",
+      "duration": 2003,
+      "type": "interaction"
+    }
+  ],
+  "summary": {
+    "totalInteractions": 4,
+    "avgInteractionTime": 1520.5,
+    "slowestInteraction": {
+      "timestamp": 1756334584690,
+      "testName": "error-navigation-test",
+      "duration": 2028,
+      "type": "interaction"
+    },
+    "pageLoadMetrics": [
+      {
+        "timestamp": 1756334584609,
+        "testName": "page-load",
+        "domContentLoaded": 0,
+        "loadComplete": 0,
+        "firstPaint": 60,
+        "firstContentfulPaint": 60,
+        "largestContentfulPaint": 0
+      },
+      {
+        "timestamp": 1756334584719,
+        "testName": "page-load",
+        "domContentLoaded": 0,
+        "loadComplete": 0,
+        "firstPaint": 0,
+        "firstContentfulPaint": 0,
+        "largestContentfulPaint": 0
+      },
+      {
+        "timestamp": 1756334586850,
+        "testName": "page-load",
+        "domContentLoaded": 0,
+        "loadComplete": 0,
+        "firstPaint": 0,
+        "firstContentfulPaint": 0,
+        "largestContentfulPaint": 0
+      }
+    ]
+  }
+}

@@ -50,7 +50,7 @@ const mockServiceInstance = {
   killProcess: vi.fn(),
 };
 
-vi.mock("../../services/claude-integration.service.js", () => ({
+vi.mock("../../services/claude-integration.service.js",  () => ({
   ClaudeIntegrationService: vi
     .fn()
     .mockImplementation(() => mockServiceInstance),
@@ -77,7 +77,7 @@ vi.mock("../../middleware/validation.ts", () => ({
 }));
 
 // Mock the shared schemas
-vi.mock("../../../shared/src/schemas/claude-integration.js", () => ({
+vi.mock("../../../shared/src/schemas/claude-integration.js",  () => ({
   SessionContinuationRequestSchema: {
     safeParse: vi.fn().mockReturnValue({
       success: true,

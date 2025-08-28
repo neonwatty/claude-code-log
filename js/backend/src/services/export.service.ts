@@ -8,15 +8,13 @@ import {
   ISession,
   ITranscriptEntry,
   IApiResponse,
-} from "../../../shared/src";
-import {
   IExportRequest,
   IExportResult,
   IExportStatus,
   IExportProgress,
   IExportOptions,
   ExportFormat,
-} from "../../../shared/src";
+} from "../../../shared/dist/src/index.js";
 
 export interface ExportJobManager {
   jobs: Map<string, IExportStatus>;

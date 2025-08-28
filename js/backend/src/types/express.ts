@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { User } from "@shared/types";
+import { User } from "../../../shared/dist/src/types/index.js";
 
 // Extend Express Request interface to include user information
 declare global {

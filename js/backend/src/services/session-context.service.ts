@@ -3,13 +3,13 @@ import path from "path";
 import {
   ZodSession,
   ZodTranscriptEntry,
-} from "../../../shared/src/schemas/index.js";
+} from "../../../shared/dist/src/index.js";
 import {
   SessionContextData,
   ClaudeContextConfig,
   ContextPreparationResult,
   ContextTransferData,
-} from "../../../shared/src/schemas/claude-integration.js";
+} from "../../../shared/dist/src/index.js";
 
 /**
  * Session Context Service

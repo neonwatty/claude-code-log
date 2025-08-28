@@ -5,7 +5,12 @@ import { User, LogEntry } from "@shared/types";
 
 // Import connection management components
 import "./components/connection-status/connection-status.js";
+import "./components/connection-indicator/connection-indicator.js";
+import "./components/statistics-dashboard/statistics-dashboard.js";
+import "./components/session-card/session-card.js";
 import "./components/toast-notifications/toast-notifications.js";
+import "./components/session-list/session-list.js";
+import "./components/session-detail/session-detail.js";
 import {
   ConnectionManager,
   getConnectionManager,
@@ -23,6 +28,12 @@ export class AppMain extends BaseComponent {
 
   @property({ type: Array })
   logs: LogEntry[] = [];
+
+  @state()
+  private sessions: any[] = [];
+
+  @state()
+  private selectedSessionId: string | null = null;
 
   // Connection state management
   @state()
@@ -61,90 +72,206 @@ export class AppMain extends BaseComponent {
       }
 
       .main-header {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: var(--spacing-lg);
-        font-size: 1.8em;
-      }
-
-      .stats-card {
-        margin-bottom: var(--spacing-lg);
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: var(--spacing-md);
-        margin-bottom: var(--spacing-lg);
-      }
-
-      .stat-item {
-        text-align: center;
-        padding: var(--spacing-md);
-      }
-
-      .stat-value {
-        font-size: 2em;
-        font-weight: bold;
-        color: var(--color-primary);
-        margin-bottom: var(--spacing-xs);
-      }
-
-      .stat-label {
-        color: var(--color-text-muted);
-        font-size: 0.9em;
-      }
-
-      .welcome-text {
-        text-align: center;
-        color: var(--color-text-muted);
-        font-style: italic;
-        margin-top: var(--spacing-lg);
-      }
-
-      /* Connection status header */
-      .app-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: var(--spacing-md);
-        padding: var(--spacing-sm);
-        background: var(--color-background-secondary);
-        border-radius: var(--border-radius-sm);
-        border: 1px solid var(--color-border);
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-xl) var(--spacing-lg);
+        background: var(--color-surface);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-neumorphic);
+        border: 1px solid var(--color-border-light);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+        opacity: 0.8;
       }
 
       .app-title {
-        font-size: 1.2em;
-        font-weight: 600;
-        color: var(--color-text);
+        font-size: 2.2em;
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-header);
         margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        letter-spacing: -0.02em;
       }
 
-      .connection-controls {
+      .title-section {
         display: flex;
-        gap: var(--spacing-sm);
+        flex-direction: column;
+        gap: var(--spacing-xs);
+      }
+
+      .app-subtitle {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        font-weight: var(--font-weight-normal);
+        margin: 0;
+        font-family: var(--font-family-sans);
+      }
+
+      .header-controls {
+        display: flex;
+        gap: var(--spacing-md);
         align-items: center;
       }
 
-      .connection-button {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-sm);
-        background: var(--color-background);
+
+      /* Main content sections */
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xl);
+      }
+
+      .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--color-border-light), transparent);
+        margin: var(--spacing-lg) 0;
+        opacity: 0.5;
+      }
+
+      /* Loading and state styles */
+      .card.loading {
+        background: var(--color-surface);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        box-shadow: var(--shadow-neumorphic);
+        border: 1px solid var(--color-border-light);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card.loading::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: loading-shimmer 1.5s infinite;
+      }
+
+      @keyframes loading-shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+      }
+
+      .card.loading p {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-lg);
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Empty state styling */
+      .empty-state {
+        text-align: center;
+        padding: var(--spacing-xxl);
+        color: var(--color-text-muted);
+        font-style: italic;
+        background: var(--color-surface);
+        border-radius: var(--border-radius-lg);
+        border: 2px dashed var(--color-border-medium);
+      }
+
+      .empty-state-icon {
+        font-size: 3em;
+        margin-bottom: var(--spacing-md);
+        opacity: 0.5;
+      }
+
+      .action-button {
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid var(--color-border-medium);
+        border-radius: var(--border-radius-md);
+        background: var(--color-surface);
         color: var(--color-text);
         cursor: pointer;
-        font-size: 0.85em;
-        transition: all 0.2s ease;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
+        transition: all var(--transition-fast);
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
       }
 
-      .connection-button:hover {
-        background: var(--color-background-hover);
+      .action-button:hover {
+        background: var(--color-surface-hover);
+        transform: var(--transform-hover);
+        box-shadow: var(--shadow-md);
       }
 
-      .connection-button:disabled {
-        opacity: 0.6;
+      .action-button:disabled {
+        opacity: var(--opacity-disabled);
         cursor: not-allowed;
+        transform: none;
+      }
+
+      .action-button.primary {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+      }
+
+      .action-button.primary:hover:not(:disabled) {
+        background: var(--color-primary-hover);
+        border-color: var(--color-primary-hover);
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        :host {
+          padding: var(--spacing-sm);
+        }
+
+        .main-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--spacing-md);
+          padding: var(--spacing-lg);
+        }
+
+        .app-title {
+          font-size: 1.8em;
+        }
+
+        .header-controls {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-header {
+          padding: var(--spacing-md);
+        }
+
+        .app-title {
+          font-size: 1.6em;
+        }
+
+        .title-section {
+          width: 100%;
+        }
+
+        .header-controls {
+          justify-content: center;
+        }
       }
     `,
   ];
@@ -160,100 +287,68 @@ export class AppMain extends BaseComponent {
     }
 
     return html`
-      <!-- App header with connection status -->
-      <div class="app-header">
-        <h1 class="app-title">Claude Code Log</h1>
-        <div class="connection-controls">
-          <connection-status
+      <!-- Enhanced app header with integrated connection status -->
+      <header class="main-header">
+        <div class="title-section">
+          <h1 class="app-title">Claude Code Log</h1>
+          <p class="app-subtitle">Real-time session visualization and analysis</p>
+        </div>
+        <div class="header-controls">
+          <connection-indicator
             .connectionState=${this.connectionState}
             .statistics=${this.connectionStatistics}
-            .debugInfo=${this.connectionDebugInfo}
-            @debug-panel-toggled=${this.handleDebugPanelToggled}
-          ></connection-status>
-
-          <button
-            class="connection-button"
-            @click=${this.handleConnectClick}
-            ?disabled=${this.connectionState === ConnectionState.CONNECTING}
-          >
-            ${this.connectionState === ConnectionState.CONNECTED
-              ? "Disconnect"
-              : "Connect"}
-          </button>
-
-          <button
-            class="connection-button"
-            @click=${this.handleReconnectClick}
-            ?disabled=${this.connectionState === ConnectionState.CONNECTING}
-          >
-            Reconnect
-          </button>
+            @connection-action=${this.handleConnectionAction}
+          ></connection-indicator>
         </div>
-      </div>
+      </header>
 
-      <div class="stats-card card">
-        <div class="header">
-          <span>Application Statistics</span>
-          <span class="timestamp">${this.formatTimestamp(new Date())}</span>
-        </div>
+      <main class="main-content">
+        <!-- Enhanced statistics dashboard -->
+        <statistics-dashboard
+          .userCount=${this.users.length}
+          .logEntryCount=${this.logs.length}
+          .isDarkMode=${this.darkMode}
+          .connectionStats=${this.connectionStatistics}
+        ></statistics-dashboard>
 
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value">${this.users.length}</div>
-            <div class="stat-label">Users</div>
-          </div>
+        ${this.isLoading
+          ? html`
+              <div class="card loading">
+                <p>Loading application...</p>
+              </div>
+            `
+          : ""}
 
-          <div class="stat-item">
-            <div class="stat-value">${this.logs.length}</div>
-            <div class="stat-label">Log Entries</div>
-          </div>
+        <!-- Session List -->
+        ${this.sessions.length > 0
+          ? html`
+              <div class="section-divider"></div>
+              <session-list 
+                .sessions=${this.sessions}
+                @session-selected=${this.handleSessionSelected}
+              ></session-list>
+            `
+          : !this.isLoading ? html`
+              <div class="section-divider"></div>
+              <div class="empty-state">
+                <div class="empty-state-icon">📂</div>
+                <h3>No Sessions Found</h3>
+                <p>No Claude Code sessions have been loaded yet. Sessions will appear here when available.</p>
+              </div>
+            ` : ""}
 
-          <div class="stat-item">
-            <div class="stat-value">${this.darkMode ? "🌙" : "☀️"}</div>
-            <div class="stat-label">Theme</div>
-          </div>
+        <!-- Session Detail -->
+        ${this.selectedSessionId
+          ? html`
+              <div class="section-divider"></div>
+              <session-detail 
+                .sessionId=${this.selectedSessionId}
+                .session=${this.sessions.find(s => s.id === this.selectedSessionId)}
+              ></session-detail>
+            `
+          : ""}
+      </main>
 
-          <!-- Connection statistics -->
-          <div class="stat-item">
-            <div class="stat-value">
-              ${this.connectionStatistics.messagesSent}
-            </div>
-            <div class="stat-label">Messages Sent</div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-value">
-              ${this.connectionStatistics.messagesReceived}
-            </div>
-            <div class="stat-label">Messages Received</div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-value">
-              ${this.connectionStatistics.reconnectionCount}
-            </div>
-            <div class="stat-label">Reconnections</div>
-          </div>
-        </div>
-      </div>
-
-      ${this.isLoading
-        ? html`
-            <div class="card loading">
-              <p>Loading application...</p>
-            </div>
-          `
-        : ""}
-
-      <div class="welcome-text">
-        Welcome to Claude Code Log - Real-time session visualization and
-        analysis
-        <br />
-        <small
-          >Connection Status: ${this.connectionState} | Quality:
-          ${this.connectionStatistics.connectionQuality}</small
-        >
-      </div>
 
       <!-- Toast notifications container -->
       <toast-notifications
@@ -271,8 +366,8 @@ export class AppMain extends BaseComponent {
     // Initialize connection management
     this.initializeConnectionManagement();
 
-    // Demo data loading simulation
-    this.loadDemoData();
+    // Load real session data from API
+    this.loadSessionData();
   }
 
   override disconnectedCallback() {
@@ -290,7 +385,7 @@ export class AppMain extends BaseComponent {
 
       // Initialize with demo WebSocket config (would normally come from environment)
       await this.connectionManager.initialize({
-        url: "ws://localhost:8080", // Demo URL - would be environment specific
+        url: "ws://localhost:3002/ws", // Backend WebSocket server
         reconnectInterval: 1000,
         maxReconnectAttempts: 10,
         heartbeatInterval: 30000,
@@ -380,8 +475,31 @@ export class AppMain extends BaseComponent {
     }
   }
 
+  private handleConnectionAction(event: CustomEvent) {
+    const { action } = event.detail;
+    
+    switch (action) {
+      case 'connect':
+        this.handleConnectClick();
+        break;
+      case 'disconnect':
+        this.handleConnectClick(); // This toggles between connect/disconnect
+        break;
+      case 'reconnect':
+        this.handleReconnectClick();
+        break;
+      default:
+        console.warn('Unknown connection action:', action);
+    }
+  }
+
   private handleRetryFromToast() {
     this.handleReconnectClick();
+  }
+
+  private handleSessionSelected(event: CustomEvent) {
+    this.selectedSessionId = event.detail.sessionId;
+    console.log('Selected session:', event.detail.sessionId);
   }
 
   private handleDebugPanelToggled(event: CustomEvent) {
@@ -392,7 +510,7 @@ export class AppMain extends BaseComponent {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/src/sw.js', {
-          scope: '/'
+          scope: '/src/'
         });
 
         console.log('Service Worker registered:', registration.scope);
@@ -452,31 +570,74 @@ export class AppMain extends BaseComponent {
     }
   }
 
-  private async loadDemoData() {
+  private async loadSessionData() {
     await this.handleAsyncOperation(async () => {
-      // Simulate loading delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      try {
+        // Load real session data from backend API
+        const response = await fetch('http://localhost:3002/api/sessions');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sessions: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.success && result.data?.sessions) {
+          // Store sessions for session list component
+          this.sessions = result.data.sessions;
+          
+          // Convert session data to display format
+          const sessions = result.data.sessions;
+          
+          // Update user count based on unique session entries
+          this.users = [
+            {
+              id: "real_user",
+              name: "Claude Code User",
+              email: "user@claude.ai",
+              createdAt: new Date().toISOString(),
+            },
+          ];
 
-      // Add some demo data
-      this.users = [
-        {
-          id: "1",
-          name: "Demo User",
-          email: "demo@example.com",
-          createdAt: new Date().toISOString(),
-        },
-      ];
+          // Convert session entries to log entries for display
+          this.logs = sessions.flatMap((session: any) => 
+            session.entries?.map((entry: any, index: number) => ({
+              id: `${session.id}_${index}`,
+              userId: "real_user",
+              message: entry.type === 'user' ? entry.message?.content?.[0]?.text || 'User message' 
+                      : entry.message?.content?.[0]?.text || 'Assistant message',
+              timestamp: entry.timestamp,
+              level: entry.type === 'user' ? 'info' : 'response',
+              sessionId: session.id,
+              cwd: session.cwd
+            })) || []
+          );
 
-      this.logs = [
-        {
-          id: "1",
-          userId: "1",
-          message: "Application initialized",
-          timestamp: new Date().toISOString(),
-          level: "info",
-        },
-      ];
-    }, "Failed to load demo data");
+          console.log(`✅ Loaded ${sessions.length} sessions with ${this.logs.length} total entries`);
+        } else {
+          throw new Error('Invalid API response format');
+        }
+      } catch (error) {
+        console.error('Failed to load session data:', error);
+        // Fallback to demo data on error
+        this.users = [
+          {
+            id: "1",
+            name: "Demo User (Offline)",
+            email: "demo@example.com",
+            createdAt: new Date().toISOString(),
+          },
+        ];
+
+        this.logs = [
+          {
+            id: "1",
+            userId: "1",
+            message: "Failed to load real sessions - showing demo data",
+            timestamp: new Date().toISOString(),
+            level: "error",
+          },
+        ];
+      }
+    }, "Failed to load session data");
   }
 }
 

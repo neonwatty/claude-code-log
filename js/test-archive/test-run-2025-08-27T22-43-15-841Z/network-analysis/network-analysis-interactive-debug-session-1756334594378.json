@@ -1,0 +1,8 @@
+{
+  "totalRequests": 24,
+  "failedRequests": 0,
+  "apiCalls": 0,
+  "staticAssets": 2,
+  "avgResponseTime": 10.625,
+  "slowRequests": []
+}

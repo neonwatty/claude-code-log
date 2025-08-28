@@ -2,6 +2,7 @@ import { html, css, TemplateResult, unsafeCSS } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { BaseComponent } from "../base/base-component.js";
+import { messageCardStyles } from "../../styles/components/index.js";
 import type {
   ZodContentItem,
   ZodTranscriptEntry,
@@ -15,7 +16,7 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-bash";
 import "prismjs/components/prism-css";
-import "prismjs/components/prism-html";
+import "prismjs/components/prism-markup";
 import "prismjs/components/prism-markdown";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-yaml";
@@ -80,6 +81,7 @@ export class MessageCard extends BaseComponent {
 
   static override styles = [
     ...BaseComponent.styles,
+    messageCardStyles,
     css`
       :host {
         display: block;

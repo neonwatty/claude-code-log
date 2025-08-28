@@ -9,7 +9,7 @@ vi.mock("fs");
 const mockFs = fs as Mocked<typeof fs>;
 
 // Mock Claude integration service
-vi.mock("../../services/claude-integration.service.js", () => ({
+vi.mock("../../services/claude-integration.service.js",  () => ({
   ClaudeIntegrationService: vi.fn().mockImplementation(() => ({
     continueSession: vi.fn().mockResolvedValue({
       success: true,

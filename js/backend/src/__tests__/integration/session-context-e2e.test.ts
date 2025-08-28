@@ -38,7 +38,7 @@ vi.mock("child_process", async () => {
 
 // Mock ClaudeIntegrationService
 
-vi.mock("../../services/claude-integration.service.js", () => {
+vi.mock("../../services/claude-integration.service.js",  () => {
   const mockService = {
     getSessionContextData: vi.fn(),
     prepareSessionContext: vi.fn(),

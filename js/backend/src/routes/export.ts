@@ -7,11 +7,9 @@ import rateLimit from "express-rate-limit";
 import {
   IApiResponse,
   ISession,
-} from "../../../shared/src";
-import {
   safeValidateExportRequest,
   safeValidateDownloadRequest,
-} from "../../../shared/src";
+} from "../../../shared/dist/src/index.js";
 import { getExportService } from "../services/export.service";
 
 const router = Router();

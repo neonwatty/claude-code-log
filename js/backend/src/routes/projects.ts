@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { IApiResponse, IProject, ISession } from "../../../shared/src";
+import { IApiResponse, IProject, ISession } from "../../../shared/dist/src/index.js";
 import fs from "fs";
 import path from "path";
 // Remove unused imports

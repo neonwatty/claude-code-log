@@ -18,6 +18,9 @@ export * from "./export-dialog/index.js";
 
 // Connection and notification components
 export * from "./connection-status/index.js";
+export * from "./connection-indicator/index.js";
+export * from "./statistics-dashboard/index.js";
+export * from "./session-card/index.js";
 export * from "./toast-notifications/index.js";
 
 // Analytics components

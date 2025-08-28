@@ -1,0 +1,304 @@
+/* Enhanced Code Block Styling for Better UX */
+
+.enhanced-code-block {
+  margin: var(--spacing-md) 0;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-neumorphic);
+  border: 1px solid var(--color-border-medium);
+  background: var(--color-surface);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-bottom: 1px solid var(--color-border-light);
+  font-family: var(--font-family-sans);
+}
+
+.code-language {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.language-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.language-icon.typescript { background: #3178c6; }
+.language-icon.javascript { background: #f7df1e; }
+.language-icon.python { background: #3776ab; }
+.language-icon.json { background: #000000; }
+.language-icon.bash { background: #89e051; }
+.language-icon.css { background: #1572b6; }
+.language-icon.html { background: #e34f26; }
+.language-icon.sql { background: #336791; }
+.language-icon.yaml { background: #cb171e; }
+
+.copy-button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 28px;
+}
+
+.copy-button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  transform: var(--transform-hover);
+}
+
+.copy-button:active {
+  transform: scale(0.95);
+}
+
+.copy-button.copied {
+  background: var(--color-message-tool-result-bg);
+  color: var(--color-message-tool-result);
+  border-color: var(--color-message-tool-result);
+}
+
+.code-content {
+  background: #fafafa;
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Enhanced syntax highlighting with better contrast */
+.code-content pre {
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.code-content code {
+  font-family: var(--font-family-mono);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Improved Prism.js theme for better readability */
+.code-content .token.comment,
+.code-content .token.prolog,
+.code-content .token.doctype,
+.code-content .token.cdata {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.code-content .token.punctuation {
+  color: #5e6687;
+}
+
+.code-content .token.property,
+.code-content .token.tag,
+.code-content .token.boolean,
+.code-content .token.number,
+.code-content .token.constant,
+.code-content .token.symbol,
+.code-content .token.deleted {
+  color: #d73a49;
+}
+
+.code-content .token.selector,
+.code-content .token.attr-name,
+.code-content .token.string,
+.code-content .token.char,
+.code-content .token.builtin,
+.code-content .token.inserted {
+  color: #032f62;
+}
+
+.code-content .token.operator,
+.code-content .token.entity,
+.code-content .token.url,
+.code-content .language-css .token.string,
+.code-content .style .token.string {
+  color: #d73a49;
+}
+
+.code-content .token.atrule,
+.code-content .token.attr-value,
+.code-content .token.keyword {
+  color: #d73a49;
+  font-weight: var(--font-weight-semibold);
+}
+
+.code-content .token.function,
+.code-content .token.class-name {
+  color: #6f42c1;
+  font-weight: var(--font-weight-semibold);
+}
+
+.code-content .token.regex,
+.code-content .token.important,
+.code-content .token.variable {
+  color: #e36209;
+}
+
+/* Line numbers for code blocks */
+.code-content.line-numbers {
+  padding-left: 0;
+}
+
+.code-content.line-numbers pre {
+  padding-left: var(--spacing-md);
+}
+
+.line-numbers-rows {
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  font-size: 100%;
+  left: -3.8em;
+  width: 3em;
+  letter-spacing: -1px;
+  border-right: 1px solid #e1e4e8;
+  user-select: none;
+}
+
+.line-numbers-rows > span {
+  display: block;
+  counter-increment: linenumber;
+}
+
+.line-numbers-rows > span:before {
+  content: counter(linenumber);
+  color: #8b949e;
+  display: block;
+  padding-right: var(--spacing-sm);
+  text-align: right;
+}
+
+/* Code block responsiveness */
+@media (max-width: 768px) {
+  .code-header {
+    padding: var(--spacing-sm);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .code-content {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .copy-button {
+    align-self: flex-end;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .code-header {
+    background: linear-gradient(135deg, #2d3748, #1a202c);
+    color: #e2e8f0;
+  }
+
+  .code-content {
+    background: #1a202c;
+    color: #e2e8f0;
+  }
+
+  .code-content .token.comment,
+  .code-content .token.prolog,
+  .code-content .token.doctype,
+  .code-content .token.cdata {
+    color: #718096;
+  }
+
+  .code-content .token.property,
+  .code-content .token.tag,
+  .code-content .token.boolean,
+  .code-content .token.number,
+  .code-content .token.constant,
+  .code-content .token.symbol,
+  .code-content .token.deleted {
+    color: #f56565;
+  }
+
+  .code-content .token.selector,
+  .code-content .token.attr-name,
+  .code-content .token.string,
+  .code-content .token.char,
+  .code-content .token.builtin,
+  .code-content .token.inserted {
+    color: #68d391;
+  }
+
+  .code-content .token.function,
+  .code-content .token.class-name {
+    color: #9f7aea;
+  }
+
+  .line-numbers-rows > span:before {
+    color: #4a5568;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .code-content {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+  }
+
+  .code-header {
+    background: #f0f0f0;
+    color: #000000;
+    border-bottom: 2px solid #000000;
+  }
+
+  .copy-button {
+    border: 2px solid #000000;
+    background: #ffffff;
+    color: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .copy-button {
+    transition: none;
+  }
+
+  .copy-button:hover {
+    transform: none;
+  }
+
+  .copy-button:active {
+    transform: none;
+  }
+}

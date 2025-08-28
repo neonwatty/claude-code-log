@@ -1,0 +1,168 @@
+{
+  "totalRequests": 72,
+  "failedRequests": 0,
+  "apiCalls": 0,
+  "staticAssets": 6,
+  "avgResponseTime": 287.8235294117647,
+  "slowRequests": [
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=1bf426c6",
+      "timestamp": 1756334584707,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:5173/src/app.ts?t=1756334164837",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "accept-language": "en-US",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=abcbc182",
+      "timestamp": 1756334584707,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:5173/src/app.ts?t=1756334164837",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "accept-language": "en-US",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=55d458c4",
+      "timestamp": 1756334584708,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=1bf426c6",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "accept-language": "en-US",
+        "sec-ch-ua-mobile": "?0"
+      },
+      "postData": null,
+      "responseTime": 2127
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/styles/shared/variables.css?inline",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"1986-r/hYRClJgad3EqiMvOjqU5QrBcs\"",
+        "referer": "http://localhost:5173/src/styles/shared/index.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/styles/shared/typography.css?inline",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"1b5a-rIk3jxtCBJ2N+YMiftWneugCUqI\"",
+        "referer": "http://localhost:5173/src/styles/shared/index.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/styles/shared/layout.css?inline",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"2b1a-F3RqZihIgDLRwIq5PbQsMzHqwfY\"",
+        "referer": "http://localhost:5173/src/styles/shared/index.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/styles/shared/utilities.css?inline",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"255d-ZU0Mxzjlm1e489dmRn8arTkejI4\"",
+        "referer": "http://localhost:5173/src/styles/shared/index.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2126
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/utils/websocket/message-types.ts",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"dd3-3NJvaxGxTvb7j7hJJjnIAH4a/cc\"",
+        "referer": "http://localhost:5173/src/types/websocket.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2124
+    },
+    {
+      "type": "request",
+      "method": "GET",
+      "url": "http://localhost:5173/src/utils/websocket/message-handlers.ts",
+      "timestamp": 1756334584715,
+      "headers": {
+        "origin": "http://localhost:5173",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "if-none-match": "W/\"15d8-I8n0nb2e3HS1osuv8FerO3jrRLg\"",
+        "referer": "http://localhost:5173/src/types/websocket.ts",
+        "accept-language": "en-US",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.5 Safari/537.36"
+      },
+      "postData": null,
+      "responseTime": 2125
+    }
+  ]
+}

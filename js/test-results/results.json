@@ -1,0 +1,1112 @@
+{
+  "config": {
+    "configFile": "/Users/jeremywatt/Desktop/claude-code-log/js/playwright.config.ts",
+    "rootDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/global-setup.ts",
+    "globalTeardown": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "test-suite": "Claude Code Log E2E Tests",
+      "version": "1.0.0",
+      "environment": "development",
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/jeremywatt/Desktop/claude-code-log/js/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "test-suite": "Claude Code Log E2E Tests",
+          "version": "1.0.0",
+          "environment": "development",
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/jeremywatt/Desktop/claude-code-log/js/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "test-suite": "Claude Code Log E2E Tests",
+          "version": "1.0.0",
+          "environment": "development",
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/jeremywatt/Desktop/claude-code-log/js/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "test-suite": "Claude Code Log E2E Tests",
+          "version": "1.0.0",
+          "environment": "development",
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/jeremywatt/Desktop/claude-code-log/js/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "test-suite": "Claude Code Log E2E Tests",
+          "version": "1.0.0",
+          "environment": "development",
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/jeremywatt/Desktop/claude-code-log/js/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "test-suite": "Claude Code Log E2E Tests",
+          "version": "1.0.0",
+          "environment": "development",
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/jeremywatt/Desktop/claude-code-log/js/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "claude-code-log.spec.ts",
+      "file": "claude-code-log.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Claude Code Log - Complete Feature Validation",
+          "file": "claude-code-log.spec.ts",
+          "line": 35,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "🗄️ Backend API Integration",
+              "file": "claude-code-log.spec.ts",
+              "line": 177,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle sessions API",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1472,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "📋 Test fixtures loaded into application\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-27T23:10:23.949Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "da15124fdf331441e347-6ba078dc9fc2628d6371",
+                  "file": "claude-code-log.spec.ts",
+                  "line": 195,
+                  "column": 9
+                },
+                {
+                  "title": "should handle sessions API",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 3535,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "📋 Test fixtures loaded into application\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/?token=7AWmhzPrii2G\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m101\u001b[39m http://localhost:5173/?token=7AWmhzPrii2G\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-27T23:10:25.980Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "da15124fdf331441e347-0f98443cd4e81ed92e93",
+                  "file": "claude-code-log.spec.ts",
+                  "line": 195,
+                  "column": 9
+                },
+                {
+                  "title": "should handle sessions API",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1178,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "📋 Test fixtures loaded into application\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-27T23:10:37.646Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "da15124fdf331441e347-620b6b8553636a7a43e7",
+                  "file": "claude-code-log.spec.ts",
+                  "line": 195,
+                  "column": 9
+                },
+                {
+                  "title": "should handle sessions API",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Chrome",
+                      "projectName": "Mobile Chrome",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 699,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "📋 Test fixtures loaded into application\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-27T23:10:39.461Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "da15124fdf331441e347-d055f52991a801928a9b",
+                  "file": "claude-code-log.spec.ts",
+                  "line": 195,
+                  "column": 9
+                },
+                {
+                  "title": "should handle sessions API",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "Mobile Safari",
+                      "projectName": "Mobile Safari",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 733,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "📋 Test fixtures loaded into application\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@vite/client\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/app.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/sw.js\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/vite/dist/client/env.mjs\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/connection-manager.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/lit_decorators__js.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/base/base-component.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/connection-state.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/accessibility-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/connection-status/connection-status.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/components/toast-notifications/toast-notifications.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/@fs/Users/jeremywatt/Desktop/claude-code-log/js/node_modules/.vite/deps/chunk-JOMJT2WW.js?v=8787f0c5\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/event-emitter.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/services/websocket-service.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/types/websocket.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/index.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "🌐 Request: GET http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-types.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/utils/websocket/message-handlers.ts\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/layout.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/variables.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/typography.css?inline\n"
+                            },
+                            {
+                              "text": "📬 Response: \u001b[33m200\u001b[39m http://localhost:5173/src/styles/shared/utilities.css?inline\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-27T23:10:40.939Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "da15124fdf331441e347-ed344aba913ff6871192",
+                  "file": "claude-code-log.spec.ts",
+                  "line": 195,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-27T23:10:22.329Z",
+    "duration": 19558.49,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

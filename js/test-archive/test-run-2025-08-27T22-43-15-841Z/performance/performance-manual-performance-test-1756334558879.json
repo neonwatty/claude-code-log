@@ -1,0 +1,96 @@
+{
+  "testName": "manual-performance-test",
+  "timestamp": "2025-08-27T22:42:38.879Z",
+  "metrics": [
+    {
+      "timestamp": 1756334557337,
+      "testName": "page-load",
+      "domContentLoaded": 0.09999996423721313,
+      "loadComplete": 0,
+      "firstPaint": 60,
+      "firstContentfulPaint": 60,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334557435,
+      "testName": "rapid-interaction-1",
+      "duration": 130,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334557565,
+      "testName": "rapid-interaction-2",
+      "duration": 142,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334557707,
+      "testName": "rapid-interaction-3",
+      "duration": 134,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334557841,
+      "testName": "rapid-interaction-4",
+      "duration": 132,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334557973,
+      "testName": "rapid-interaction-5",
+      "duration": 134,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334558107,
+      "testName": "rapid-interaction-6",
+      "duration": 132,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334558239,
+      "testName": "rapid-interaction-7",
+      "duration": 139,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334558378,
+      "testName": "rapid-interaction-8",
+      "duration": 128,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334558506,
+      "testName": "rapid-interaction-9",
+      "duration": 134,
+      "type": "interaction"
+    },
+    {
+      "timestamp": 1756334558640,
+      "testName": "rapid-interaction-10",
+      "duration": 133,
+      "type": "interaction"
+    }
+  ],
+  "summary": {
+    "totalInteractions": 10,
+    "avgInteractionTime": 133.8,
+    "slowestInteraction": {
+      "timestamp": 1756334557565,
+      "testName": "rapid-interaction-2",
+      "duration": 142,
+      "type": "interaction"
+    },
+    "pageLoadMetrics": [
+      {
+        "timestamp": 1756334557337,
+        "testName": "page-load",
+        "domContentLoaded": 0.09999996423721313,
+        "loadComplete": 0,
+        "firstPaint": 60,
+        "firstContentfulPaint": 60,
+        "largestContentfulPaint": 0
+      }
+    ]
+  }
+}

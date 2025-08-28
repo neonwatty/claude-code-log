@@ -1,0 +1,42 @@
+{
+  "testName": "manual-testing-session",
+  "timestamp": "2025-08-27T22:42:45.577Z",
+  "metrics": [
+    {
+      "timestamp": 1756334562384,
+      "testName": "page-load",
+      "domContentLoaded": 0,
+      "loadComplete": 0,
+      "firstPaint": 56,
+      "firstContentfulPaint": 56,
+      "largestContentfulPaint": 0
+    },
+    {
+      "timestamp": 1756334562397,
+      "testName": "api-interaction-test",
+      "duration": 3034,
+      "type": "interaction"
+    }
+  ],
+  "summary": {
+    "totalInteractions": 1,
+    "avgInteractionTime": 3034,
+    "slowestInteraction": {
+      "timestamp": 1756334562397,
+      "testName": "api-interaction-test",
+      "duration": 3034,
+      "type": "interaction"
+    },
+    "pageLoadMetrics": [
+      {
+        "timestamp": 1756334562384,
+        "testName": "page-load",
+        "domContentLoaded": 0,
+        "loadComplete": 0,
+        "firstPaint": 56,
+        "firstContentfulPaint": 56,
+        "largestContentfulPaint": 0
+      }
+    ]
+  }
+}

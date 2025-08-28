@@ -1,4 +1,4 @@
-import { ZodSession, ZodTranscriptEntry, ZodUsageInfo } from "@shared";
+import { ZodSession, ZodTranscriptEntry, ZodUsageInfo } from "../../../shared/dist/src/index.js";
 import { EventEmitter } from "events";
 
 /**

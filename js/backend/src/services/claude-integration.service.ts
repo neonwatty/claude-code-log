@@ -18,9 +18,9 @@ import {
   ContextPreparationRequest,
   ContextPreparationResult,
   ALLOWED_CLAUDE_COMMANDS,
-} from "../../../shared/src/schemas/claude-integration.js";
-import { ZodSession } from "../../../shared/src/schemas/index.js";
-import { SessionContextService } from "./session-context.service.js";
+} from "../../../shared/dist/src/index.js";
+import { ZodSession } from "../../../shared/dist/src/index.js";
+import { SessionContextService } from "./session-context.service";
 
 /**
  * Claude Code Integration Service
