@@ -298,7 +298,7 @@ export class AnalyticsDashboard extends BaseComponent {
     return `${(milliseconds / 1000).toFixed(1)}s`;
   }
 
-  override render() {
+  protected safeRender() {
     return html`
       <div class="dashboard-header">
         <h2 class="dashboard-title">Analytics Dashboard</h2>

@@ -963,7 +963,7 @@ export class FilterBar extends BaseComponent {
     return date.toISOString().split("T")[0];
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.isVisible) {
       return html``;
     }

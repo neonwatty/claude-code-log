@@ -34,100 +34,106 @@ export class SessionCard extends BaseComponent {
     css`
       :host {
         display: block;
-        margin-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-4);
       }
 
       .session-card {
-        background: var(--color-surface);
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-lg);
-        border: 1px solid var(--color-border-light);
-        box-shadow: var(--shadow-neumorphic);
-        transition: all var(--transition-medium);
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         position: relative;
         overflow: hidden;
+        /* TEST: Make cards very obvious */
+        border-left: 4px solid #3b82f6;
       }
 
       .session-card:hover {
         transform: var(--transform-hover);
-        box-shadow: var(--shadow-neumorphic-hover);
+        box-shadow: var(--shadow-lg);
         background: var(--color-surface-hover);
+        border-color: var(--color-border-strong);
       }
 
-      .session-card:focus {
+      .session-card:focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
       }
 
       .session-card.selected {
         border-color: var(--color-primary);
-        box-shadow: 
-          var(--shadow-neumorphic),
-          0 0 0 2px var(--color-primary-light);
+        box-shadow: var(--shadow-md), 0 0 0 1px var(--color-primary);
+        background: var(--color-primary-light);
       }
 
       .session-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-4);
       }
 
       .session-info {
         flex: 1;
+        min-width: 0; /* Allow text truncation */
       }
 
       .session-id {
         font-family: var(--font-family-mono);
-        font-size: var(--font-size-lg);
+        font-size: var(--text-lg);
         font-weight: var(--font-weight-semibold);
-        color: var(--color-text);
-        margin-bottom: var(--spacing-xs);
+        color: var(--color-text-header);
+        margin-bottom: var(--spacing-2);
+        word-break: break-all;
       }
 
       .session-id.highlighted {
-        background: yellow;
-        padding: 0 2px;
-        border-radius: 2px;
+        background: var(--color-warning-bg);
+        color: var(--color-warning);
+        padding: 0 var(--spacing-1);
+        border-radius: var(--radius-sm);
       }
 
       .session-name {
-        font-size: var(--font-size-md);
+        font-size: var(--text-base);
         color: var(--color-text-muted);
-        margin-bottom: var(--spacing-xs);
-        font-style: italic;
+        margin-bottom: var(--spacing-2);
+        font-weight: var(--font-weight-medium);
       }
 
       .session-time-range {
-        font-size: var(--font-size-sm);
+        font-size: var(--text-sm);
         color: var(--color-text-light);
         font-family: var(--font-family-mono);
-        margin-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-3);
       }
 
       .session-badges {
         display: flex;
         flex-wrap: wrap;
-        gap: var(--spacing-xs);
-        margin-bottom: var(--spacing-md);
+        gap: var(--spacing-2);
+        margin-bottom: var(--spacing-4);
       }
 
       .badge {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        border-radius: var(--border-radius-md);
-        font-size: var(--font-size-xs);
+        padding: var(--spacing-1) var(--spacing-3);
+        border-radius: var(--radius-full);
+        font-size: var(--text-xs);
         font-weight: var(--font-weight-medium);
-        border: 1px solid;
+        border: 1px solid transparent;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: var(--spacing-1);
+        white-space: nowrap;
       }
 
       .badge.message-count {
-        background: var(--color-message-user-bg);
-        color: var(--color-message-user);
-        border-color: var(--color-message-user);
+        background: var(--color-info-bg);
+        color: var(--color-info);
+        border-color: var(--color-info);
       }
 
       .badge.token-usage {
@@ -137,18 +143,18 @@ export class SessionCard extends BaseComponent {
       }
 
       .badge.cache-stats {
-        background: var(--color-message-tool-result-bg);
-        color: var(--color-message-tool-result);
-        border-color: var(--color-message-tool-result);
+        background: var(--color-success-bg);
+        color: var(--color-success);
+        border-color: var(--color-success);
       }
 
       .session-preview {
-        font-size: var(--font-size-sm);
+        font-size: var(--text-sm);
         color: var(--color-text);
         line-height: var(--line-height-relaxed);
-        margin-top: var(--spacing-md);
-        padding-top: var(--spacing-md);
-        border-top: 1px solid var(--color-border-light);
+        margin-top: var(--spacing-4);
+        padding-top: var(--spacing-4);
+        border-top: 1px solid var(--color-border);
         position: relative;
       }
 
@@ -158,7 +164,7 @@ export class SessionCard extends BaseComponent {
       }
 
       .session-preview.truncated {
-        max-height: 3.6em;
+        max-height: 4.5em;
         overflow: hidden;
         position: relative;
       }
@@ -169,19 +175,21 @@ export class SessionCard extends BaseComponent {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 1.2em;
+        height: 1.5em;
         background: linear-gradient(transparent, var(--color-surface));
+        pointer-events: none;
       }
 
       .read-more-btn {
         background: none;
         border: none;
         color: var(--color-primary);
-        font-size: var(--font-size-xs);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-medium);
         cursor: pointer;
-        margin-top: var(--spacing-xs);
-        padding: 0;
-        text-decoration: underline;
+        margin-top: var(--spacing-2);
+        padding: var(--spacing-1) 0;
+        transition: color var(--transition-fast);
       }
 
       .read-more-btn:hover {
@@ -190,48 +198,67 @@ export class SessionCard extends BaseComponent {
 
       .working-directory {
         font-family: var(--font-family-mono);
-        font-size: var(--font-size-xs);
-        color: var(--color-text-light);
-        background: var(--color-surface-disabled);
-        padding: var(--spacing-xs);
-        border-radius: var(--border-radius-xs);
-        margin-top: var(--spacing-sm);
+        font-size: var(--text-xs);
+        color: var(--color-text-muted);
+        background: var(--color-surface-secondary);
+        padding: var(--spacing-2) var(--spacing-3);
+        border-radius: var(--radius-md);
+        margin-top: var(--spacing-3);
         overflow-x: auto;
+        border: 1px solid var(--color-border);
       }
 
-      /* Responsive design */
+      /* Responsive design - Mobile-first */
       @media (max-width: 768px) {
         .session-card {
-          padding: var(--spacing-md);
+          padding: var(--spacing-4);
+          margin-bottom: var(--spacing-3);
         }
 
         .session-header {
           flex-direction: column;
           align-items: flex-start;
-          gap: var(--spacing-sm);
+          gap: var(--spacing-2);
+          margin-bottom: var(--spacing-3);
+        }
+
+        .session-id {
+          font-size: var(--text-base);
+          word-break: break-word;
         }
 
         .session-badges {
-          gap: var(--spacing-xs);
+          gap: var(--spacing-1);
         }
 
         .badge {
-          font-size: var(--font-size-xs);
-          padding: 2px var(--spacing-xs);
+          font-size: var(--text-xs);
+          padding: var(--spacing-1) var(--spacing-2);
+        }
+
+        .session-preview {
+          margin-top: var(--spacing-3);
+          padding-top: var(--spacing-3);
         }
       }
 
       /* Accessibility improvements */
       @media (prefers-reduced-motion: reduce) {
+        .session-card,
+        .read-more-btn {
+          transition: none;
+        }
+        
         .session-card:hover {
           transform: none;
         }
       }
 
-      /* Focus visible support */
-      .session-card:focus-visible {
-        outline: 2px solid var(--color-primary);
-        outline-offset: 2px;
+      /* High contrast mode */
+      @media (prefers-contrast: high) {
+        .badge {
+          border-width: 2px;
+        }
       }
     `,
   ];
@@ -293,7 +320,7 @@ export class SessionCard extends BaseComponent {
     }
   }
 
-  override render() {
+  protected safeRender() {
     const { text: previewText, isTruncated } = this.truncatePreview(this.session.preview || '');
     const tokenUsage = this.formatTokenUsage();
 

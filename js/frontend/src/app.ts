@@ -1,16 +1,25 @@
 import { html, css } from "lit";
 import { property, state } from "lit/decorators.js";
 import { BaseComponent } from "./components/base/base-component.js";
-import { User, LogEntry } from "@shared/types";
+import { User, LogEntry } from "@shared";
+import type { ZodSession } from "../../shared/src/schemas/index.js";
+
+// Import routing and navigation
+import { Router, getRouter } from "./utils/router.js";
+import type { NavigationSection } from "./components/navigation/app-navigation.js";
+import "./components/navigation/app-navigation.js";
+
+// Import views
+import "./components/views/dashboard-view.js";
+import "./components/views/sessions-view.js";
+import "./components/views/analytics-view.js";
 
 // Import connection management components
 import "./components/connection-status/connection-status.js";
 import "./components/connection-indicator/connection-indicator.js";
-import "./components/statistics-dashboard/statistics-dashboard.js";
-import "./components/session-card/session-card.js";
 import "./components/toast-notifications/toast-notifications.js";
-import "./components/session-list/session-list.js";
-import "./components/session-detail/session-detail.js";
+import "./components/toast-notifications/mobile-toast.js";
+import "./components/error-boundary/error-boundary.js";
 import {
   ConnectionManager,
   getConnectionManager,
@@ -30,10 +39,16 @@ export class AppMain extends BaseComponent {
   logs: LogEntry[] = [];
 
   @state()
-  private sessions: any[] = [];
+  private sessions: ZodSession[] = [];
+
+  @state()
+  private currentSection: NavigationSection = 'dashboard';
 
   @state()
   private selectedSessionId: string | null = null;
+
+  @state()
+  private isMobileView = false;
 
   // Connection state management
   @state()
@@ -57,91 +72,69 @@ export class AppMain extends BaseComponent {
   private connectionDebugInfo: ConnectionDebugInfo | null = null;
 
   private connectionManager: ConnectionManager | null = null;
-  private toastNotifications: Element | null = null; // Will be set after first render
+  private toastNotifications: Element | null = null;
+  private router: Router | null = null;
 
   static override styles = [
     ...BaseComponent.styles,
     css`
       :host {
         display: block;
-        padding: var(--spacing-md);
         background: var(--color-background);
         min-height: 100vh;
-        max-width: 1200px;
-        margin: 0 auto;
+        font-family: var(--font-family-sans);
       }
 
-      .main-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-xl);
-        padding: var(--spacing-xl) var(--spacing-lg);
-        background: var(--color-surface);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-neumorphic);
-        border: 1px solid var(--color-border-light);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .main-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-        opacity: 0.8;
-      }
-
-      .app-title {
-        font-size: 2.2em;
-        font-weight: var(--font-weight-bold);
-        color: var(--color-text-header);
-        margin: 0;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        letter-spacing: -0.02em;
-      }
-
-      .title-section {
+      .app-container {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-xs);
+        min-height: 100vh;
       }
 
-      .app-subtitle {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-        font-weight: var(--font-weight-normal);
-        margin: 0;
-        font-family: var(--font-family-sans);
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--color-background);
+        border-bottom: 1px solid var(--color-border-light);
+        padding: var(--spacing-sm) var(--spacing-md);
       }
 
       .header-controls {
         display: flex;
-        gap: var(--spacing-md);
+        justify-content: flex-end;
         align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
       }
 
-
-      /* Main content sections */
-      .main-content {
+      .app-content {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-xl);
+        overflow: hidden;
       }
 
-      .section-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--color-border-light), transparent);
-        margin: var(--spacing-lg) 0;
-        opacity: 0.5;
+      .view-container {
+        flex: 1;
+        overflow: auto;
       }
 
-      /* Loading and state styles */
-      .card.loading {
+      /* Loading state */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(var(--color-background-rgb), 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .loading-card {
         background: var(--color-surface);
         border-radius: var(--border-radius-lg);
         padding: var(--spacing-xl);
@@ -150,9 +143,10 @@ export class AppMain extends BaseComponent {
         border: 1px solid var(--color-border-light);
         position: relative;
         overflow: hidden;
+        min-width: 300px;
       }
 
-      .card.loading::before {
+      .loading-card::before {
         content: '';
         position: absolute;
         top: 0;
@@ -168,7 +162,7 @@ export class AppMain extends BaseComponent {
         100% { left: 100%; }
       }
 
-      .card.loading p {
+      .loading-text {
         margin: 0;
         color: var(--color-text-muted);
         font-weight: var(--font-weight-medium);
@@ -177,100 +171,19 @@ export class AppMain extends BaseComponent {
         z-index: 1;
       }
 
-      /* Empty state styling */
-      .empty-state {
-        text-align: center;
-        padding: var(--spacing-xxl);
-        color: var(--color-text-muted);
-        font-style: italic;
-        background: var(--color-surface);
-        border-radius: var(--border-radius-lg);
-        border: 2px dashed var(--color-border-medium);
-      }
-
-      .empty-state-icon {
-        font-size: 3em;
-        margin-bottom: var(--spacing-md);
-        opacity: 0.5;
-      }
-
-      .action-button {
-        padding: var(--spacing-sm) var(--spacing-md);
-        border: 1px solid var(--color-border-medium);
-        border-radius: var(--border-radius-md);
-        background: var(--color-surface);
-        color: var(--color-text);
-        cursor: pointer;
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
-        transition: all var(--transition-fast);
-        min-height: 40px;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-      }
-
-      .action-button:hover {
-        background: var(--color-surface-hover);
-        transform: var(--transform-hover);
-        box-shadow: var(--shadow-md);
-      }
-
-      .action-button:disabled {
-        opacity: var(--opacity-disabled);
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .action-button.primary {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-      }
-
-      .action-button.primary:hover:not(:disabled) {
-        background: var(--color-primary-hover);
-        border-color: var(--color-primary-hover);
-      }
-
-      /* Responsive design */
+      /* Mobile adjustments */
       @media (max-width: 768px) {
-        :host {
-          padding: var(--spacing-sm);
+        .app-header {
+          padding: var(--spacing-xs) var(--spacing-sm);
         }
-
-        .main-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: var(--spacing-md);
-          padding: var(--spacing-lg);
-        }
-
-        .app-title {
-          font-size: 1.8em;
-        }
-
+        
         .header-controls {
-          width: 100%;
-          justify-content: flex-end;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .main-header {
-          padding: var(--spacing-md);
+          margin-bottom: var(--spacing-xs);
         }
 
-        .app-title {
-          font-size: 1.6em;
-        }
-
-        .title-section {
-          width: 100%;
-        }
-
-        .header-controls {
-          justify-content: center;
+        /* Add padding for mobile navigation */
+        :host([mobile-view]) .app-content {
+          padding-bottom: 80px;
         }
       }
     `,
@@ -287,78 +200,124 @@ export class AppMain extends BaseComponent {
     }
 
     return html`
-      <!-- Enhanced app header with integrated connection status -->
-      <header class="main-header">
-        <div class="title-section">
-          <h1 class="app-title">Claude Code Log</h1>
-          <p class="app-subtitle">Real-time session visualization and analysis</p>
-        </div>
-        <div class="header-controls">
-          <connection-indicator
-            .connectionState=${this.connectionState}
-            .statistics=${this.connectionStatistics}
-            @connection-action=${this.handleConnectionAction}
-          ></connection-indicator>
-        </div>
-      </header>
+      <div class="app-container">
+        <header class="app-header">
+          <div class="header-controls">
+            <connection-indicator
+              .connectionState=${this.connectionState}
+              .statistics=${this.connectionStatistics}
+              @connection-action=${this.handleConnectionAction}
+            ></connection-indicator>
+          </div>
+          
+          <app-navigation
+            .activeSection=${this.currentSection}
+            .mobileView=${this.isMobileView}
+            @navigation-change=${this.handleNavigationChange}
+          ></app-navigation>
+        </header>
 
-      <main class="main-content">
-        <!-- Enhanced statistics dashboard -->
-        <statistics-dashboard
-          .userCount=${this.users.length}
-          .logEntryCount=${this.logs.length}
-          .isDarkMode=${this.darkMode}
-          .connectionStats=${this.connectionStatistics}
-        ></statistics-dashboard>
+        <main class="app-content">
+          <!-- Debug Panel -->
+          <div style="background: #f0f0f0; padding: 10px; margin: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+            <strong>🔍 Debug Info:</strong><br>
+            Sessions: ${this.sessions.length} | Logs: ${this.logs.length} | Current Section: ${this.currentSection}<br>
+            <button @click=${this.handleDebugLoadData} style="margin: 5px; padding: 5px 10px; cursor: pointer;">
+              🔄 Manual Load Data
+            </button>
+            <button @click=${this.handleDebugShowData} style="margin: 5px; padding: 5px 10px; cursor: pointer;">
+              📊 Show Data
+            </button>
+          </div>
+          
+          <div class="view-container">
+            ${this.renderCurrentView()}
+          </div>
+        </main>
 
-        ${this.isLoading
-          ? html`
-              <div class="card loading">
-                <p>Loading application...</p>
-              </div>
-            `
-          : ""}
+        <!-- Toast notifications container -->
+        <toast-notifications
+          @connection-retry-requested=${this.handleRetryFromToast}
+        ></toast-notifications>
 
-        <!-- Session List -->
-        ${this.sessions.length > 0
-          ? html`
-              <div class="section-divider"></div>
-              <session-list 
-                .sessions=${this.sessions}
-                @session-selected=${this.handleSessionSelected}
-              ></session-list>
-            `
-          : !this.isLoading ? html`
-              <div class="section-divider"></div>
-              <div class="empty-state">
-                <div class="empty-state-icon">📂</div>
-                <h3>No Sessions Found</h3>
-                <p>No Claude Code sessions have been loaded yet. Sessions will appear here when available.</p>
-              </div>
-            ` : ""}
-
-        <!-- Session Detail -->
-        ${this.selectedSessionId
-          ? html`
-              <div class="section-divider"></div>
-              <session-detail 
-                .sessionId=${this.selectedSessionId}
-                .session=${this.sessions.find(s => s.id === this.selectedSessionId)}
-              ></session-detail>
-            `
-          : ""}
-      </main>
-
-
-      <!-- Toast notifications container -->
-      <toast-notifications
-        @connection-retry-requested=${this.handleRetryFromToast}
-      ></toast-notifications>
+        ${this.isLoading ? html`
+          <div class="loading-overlay">
+            <div class="loading-card">
+              <p class="loading-text">Loading application...</p>
+            </div>
+          </div>
+        ` : ''}
+      </div>
     `;
+  }
+
+  private renderCurrentView() {
+    switch (this.currentSection) {
+      case 'dashboard':
+        return html`
+          <error-boundary 
+            fallback-message="Dashboard temporarily unavailable"
+            @error-retry=${this.handleErrorRetry}
+          >
+            <dashboard-view
+              .users=${this.users}
+              .logs=${this.logs}
+              .connectionStats=${this.connectionStatistics}
+              .isDarkMode=${this.darkMode}
+              @navigate-requested=${this.handleViewNavigation}
+            ></dashboard-view>
+          </error-boundary>
+        `;
+      
+      case 'sessions':
+        return html`
+          <error-boundary 
+            fallback-message="Sessions view temporarily unavailable"
+            @error-retry=${this.handleErrorRetry}
+          >
+            <sessions-view
+              .sessions=${this.sessions}
+              @session-selected=${this.handleSessionSelected}
+              @session-detail-requested=${this.handleSessionDetailRequested}
+              @session-list-requested=${this.handleSessionListRequested}
+              @sessions-export-requested=${this.handleSessionsExport}
+              @sessions-refresh-requested=${this.handleSessionsRefresh}
+            ></sessions-view>
+          </error-boundary>
+        `;
+      
+      case 'analytics':
+        return html`
+          <error-boundary 
+            fallback-message="Analytics view temporarily unavailable"
+            @error-retry=${this.handleErrorRetry}
+          >
+            <analytics-view
+              .sessions=${this.sessions}
+              .users=${this.users}
+              .logs=${this.logs}
+              @analytics-export-requested=${this.handleAnalyticsExport}
+            ></analytics-view>
+          </error-boundary>
+        `;
+      
+      default:
+        return this.renderCurrentView();
+    }
   }
 
   override connectedCallback() {
     super.connectedCallback();
+    console.log('🎆 AppMain component connected!');
+    console.log('🔍 Current sessions count:', this.sessions.length);
+    console.log('🔍 Current logs count:', this.logs.length);
+
+    // Initialize router
+    this.initializeRouter();
+
+    // Check mobile view
+    this.checkMobileView();
+    window.addEventListener('resize', () => this.checkMobileView());
 
     // Register service worker for offline support
     this.registerServiceWorker();
@@ -367,7 +326,12 @@ export class AppMain extends BaseComponent {
     this.initializeConnectionManagement();
 
     // Load real session data from API
-    this.loadSessionData();
+    console.log('🚀 About to call loadSessionData...');
+    this.loadSessionData().then(() => {
+      console.log('💯 LoadSessionData completed');
+    }).catch(error => {
+      console.error('😨 LoadSessionData failed:', error);
+    });
   }
 
   override disconnectedCallback() {
@@ -377,6 +341,113 @@ export class AppMain extends BaseComponent {
     if (this.connectionManager) {
       this.connectionManager.destroy();
     }
+
+    // Clean up event listeners
+    window.removeEventListener('resize', () => this.checkMobileView());
+  }
+
+  private initializeRouter(): void {
+    this.router = getRouter();
+    
+    // Register routes
+    this.router.addRoute('/', () => this.navigateToSection('dashboard'));
+    this.router.addRoute('/dashboard', () => this.navigateToSection('dashboard'));
+    this.router.addRoute('/sessions', () => this.navigateToSection('sessions'));
+    this.router.addRoute('/sessions/:id', (params) => {
+      this.navigateToSection('sessions');
+      this.selectedSessionId = params.id || null;
+    });
+    this.router.addRoute('/analytics', () => this.navigateToSection('analytics'));
+  }
+
+  private checkMobileView(): void {
+    this.isMobileView = window.innerWidth <= 768;
+    // Update mobile-view attribute for CSS
+    if (this.isMobileView) {
+      this.setAttribute('mobile-view', '');
+    } else {
+      this.removeAttribute('mobile-view');
+    }
+  }
+
+  private navigateToSection(section: NavigationSection): void {
+    if (this.currentSection !== section) {
+      this.currentSection = section;
+      // Clear selected session when navigating away from sessions
+      if (section !== 'sessions') {
+        this.selectedSessionId = null;
+      }
+    }
+  }
+
+  private handleNavigationChange(event: CustomEvent): void {
+    const { section } = event.detail;
+    
+    // Navigate to the appropriate route
+    switch (section) {
+      case 'dashboard':
+        this.router?.navigate('/');
+        break;
+      case 'sessions':
+        this.router?.navigate('/sessions');
+        break;
+      case 'analytics':
+        this.router?.navigate('/analytics');
+        break;
+    }
+  }
+
+  private handleViewNavigation(event: CustomEvent): void {
+    const { section } = event.detail;
+    this.handleNavigationChange(new CustomEvent('navigation-change', { detail: { section } }));
+  }
+
+  private handleSessionDetailRequested(event: CustomEvent): void {
+    const { sessionId } = event.detail;
+    this.router?.navigate(`/sessions/${sessionId}`);
+  }
+
+  private handleSessionListRequested(): void {
+    this.router?.navigate('/sessions');
+    this.selectedSessionId = null;
+  }
+
+  private handleSessionsExport(event: CustomEvent): void {
+    const { sessions } = event.detail;
+    console.log('Exporting sessions:', sessions.length);
+    // TODO: Implement actual export functionality
+  }
+
+  private handleSessionsRefresh(): void {
+    console.log('Refreshing sessions...');
+    this.loadSessionData();
+  }
+
+  private handleAnalyticsExport(event: CustomEvent): void {
+    const { timeRange, data } = event.detail;
+    console.log('Exporting analytics report:', timeRange, data);
+    // TODO: Implement actual analytics export
+  }
+
+  private handleErrorRetry(event: CustomEvent): void {
+    const { retryCount } = event.detail;
+    console.log(`Error retry attempt ${retryCount}`);
+    
+    // Refresh data on retry
+    this.loadSessionData();
+  }
+
+  private async handleDebugLoadData(): Promise<void> {
+    console.log('🔧 Manual debug load triggered!');
+    await this.loadSessionData();
+  }
+
+  private handleDebugShowData(): void {
+    console.log('📊 Debug Data:');
+    console.log('Sessions:', this.sessions);
+    console.log('Logs:', this.logs);
+    console.log('Users:', this.users);
+    alert(`Sessions: ${this.sessions.length}, Logs: ${this.logs.length}, Users: ${this.users.length}`);
   }
 
   private async initializeConnectionManagement() {
@@ -385,7 +456,7 @@ export class AppMain extends BaseComponent {
 
       // Initialize with demo WebSocket config (would normally come from environment)
       await this.connectionManager.initialize({
-        url: "ws://localhost:3002/ws", // Backend WebSocket server
+        url: "ws://localhost:3001/ws", // Backend WebSocket server
         reconnectInterval: 1000,
         maxReconnectAttempts: 10,
         heartbeatInterval: 30000,
@@ -498,8 +569,14 @@ export class AppMain extends BaseComponent {
   }
 
   private handleSessionSelected(event: CustomEvent) {
-    this.selectedSessionId = event.detail.sessionId;
-    console.log('Selected session:', event.detail.sessionId);
+    const { sessionId } = event.detail;
+    this.selectedSessionId = sessionId;
+    console.log('Selected session:', sessionId);
+    
+    // Update URL to reflect selection
+    if (this.router && sessionId) {
+      this.router.navigate(`/sessions/${sessionId}`);
+    }
   }
 
   private handleDebugPanelToggled(event: CustomEvent) {
@@ -571,21 +648,20 @@ export class AppMain extends BaseComponent {
   }
 
   private async loadSessionData() {
+    console.log('🔍 Starting to load session data...');
     await this.handleAsyncOperation(async () => {
       try {
+        console.log('📡 Making API request to load sessions...');
         // Load real session data from backend API
-        const response = await fetch('http://localhost:3002/api/sessions');
+        const response = await fetch('http://localhost:3001/api/sessions');
         if (!response.ok) {
           throw new Error(`Failed to fetch sessions: ${response.status}`);
         }
         
         const result = await response.json();
         if (result.success && result.data?.sessions) {
-          // Store sessions for session list component
-          this.sessions = result.data.sessions;
-          
-          // Convert session data to display format
-          const sessions = result.data.sessions;
+          // Store sessions as ZodSession type
+          this.sessions = result.data.sessions as ZodSession[];
           
           // Update user count based on unique session entries
           this.users = [
@@ -598,12 +674,17 @@ export class AppMain extends BaseComponent {
           ];
 
           // Convert session entries to log entries for display
-          this.logs = sessions.flatMap((session: any) => 
-            session.entries?.map((entry: any, index: number) => ({
+          this.logs = this.sessions.flatMap((session: ZodSession) => 
+            session.entries?.map((entry, index: number) => ({
               id: `${session.id}_${index}`,
               userId: "real_user",
-              message: entry.type === 'user' ? entry.message?.content?.[0]?.text || 'User message' 
-                      : entry.message?.content?.[0]?.text || 'Assistant message',
+              message: entry.type === 'user' 
+                ? (entry.message?.content?.[0]?.type === 'text' 
+                   ? entry.message.content[0].text 
+                   : 'User message')
+                : (entry.message?.content?.[0]?.type === 'text'
+                   ? entry.message.content[0].text
+                   : 'Assistant message'),
               timestamp: entry.timestamp,
               level: entry.type === 'user' ? 'info' : 'response',
               sessionId: session.id,
@@ -611,7 +692,9 @@ export class AppMain extends BaseComponent {
             })) || []
           );
 
-          console.log(`✅ Loaded ${sessions.length} sessions with ${this.logs.length} total entries`);
+          console.log(`✅ Loaded ${this.sessions.length} sessions with ${this.logs.length} total entries`);
+          console.log('📢 Sessions loaded successfully, triggering re-render...');
+          this.requestUpdate();
         } else {
           throw new Error('Invalid API response format');
         }

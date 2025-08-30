@@ -61,12 +61,28 @@ export class WebSocketService {
   private connectionHealthy = true;
   private consecutiveFailures = 0;
 
+  // Store bound event handlers for proper cleanup
+  private boundHandlers: {
+    open: (event: Event) => void;
+    close: (event: CloseEvent) => void;
+    error: (event: Event) => void;
+    message: (event: MessageEvent) => void;
+  };
+
   /**
    * Private constructor for singleton pattern
    */
   private constructor(config: IWebSocketConfig) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.eventEmitter = new EventEmitter<IWebSocketEventMap>();
+
+    // Initialize bound handlers for consistent cleanup
+    this.boundHandlers = {
+      open: this.handleOpen.bind(this),
+      close: this.handleClose.bind(this),
+      error: this.handleError.bind(this),
+      message: this.handleMessage.bind(this)
+    };
 
     if (this.config.debug) {
       console.log("[WebSocketService] Initialized with config:", this.config);
@@ -262,10 +278,10 @@ export class WebSocketService {
   private setupEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.addEventListener("open", this.handleOpen.bind(this));
-    this.socket.addEventListener("close", this.handleClose.bind(this));
-    this.socket.addEventListener("error", this.handleError.bind(this));
-    this.socket.addEventListener("message", this.handleMessage.bind(this));
+    this.socket.addEventListener("open", this.boundHandlers.open);
+    this.socket.addEventListener("close", this.boundHandlers.close);
+    this.socket.addEventListener("error", this.boundHandlers.error);
+    this.socket.addEventListener("message", this.boundHandlers.message);
   }
 
   /**
@@ -728,6 +744,14 @@ export class WebSocketService {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    // CRITICAL: Remove WebSocket event listeners to prevent memory leaks
+    if (this.socket) {
+      this.socket.removeEventListener("open", this.boundHandlers.open);
+      this.socket.removeEventListener("close", this.boundHandlers.close);
+      this.socket.removeEventListener("error", this.boundHandlers.error);
+      this.socket.removeEventListener("message", this.boundHandlers.message);
     }
   }
 

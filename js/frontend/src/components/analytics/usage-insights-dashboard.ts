@@ -546,7 +546,7 @@ export class UsageInsightsDashboard extends BaseComponent {
     this.requestUpdate();
   }
 
-  override render() {
+  protected safeRender() {
     if (!this.insights) {
       return html`
         <div class="no-data">

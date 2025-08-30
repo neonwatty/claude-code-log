@@ -349,7 +349,7 @@ export class QuickStartGuide extends BaseComponent {
     this.emitEvent("guide-reset");
   }
 
-  override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.visible) return html``;
 
     if (this.isComplete) {

@@ -516,7 +516,7 @@ export class ExportDialog extends BaseComponent {
     },
   ];
 
-  override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.open) return html``;
 
     return html`

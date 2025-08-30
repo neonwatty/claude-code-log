@@ -791,7 +791,7 @@ export class TokenUsageChart extends BaseComponent {
     this.showInputOutput = !this.showInputOutput;
   }
 
-  override render() {
+  protected safeRender() {
     return html`
       <div class="chart-header">
         <h3 class="chart-title">Token Usage Patterns</h3>

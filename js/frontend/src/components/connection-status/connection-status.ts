@@ -279,7 +279,7 @@ export class ConnectionStatusComponent extends BaseComponent {
     }
   }
 
-  override render() {
+  protected safeRender() {
     const stateDisplay = getConnectionStateDisplay(this.connectionState);
     const quality = calculateConnectionQuality(this.statistics);
 

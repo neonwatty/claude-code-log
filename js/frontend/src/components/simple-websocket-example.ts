@@ -311,7 +311,7 @@ export class SimpleWebSocketExample extends BaseComponent {
     this.webSocketController.reconnect();
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     const connectionStatusClass = this.getConnectionStatusClass();
     const connectionStatusText = this.getConnectionStatusText();
 

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Test</title>
+</head>
+<body>
+    <h1>Testing Frontend API Call</h1>
+    <div id="result">Loading...</div>
+    
+    <script>
+        console.log('🧪 Test script starting...');
+        
+        async function testAPI() {
+            try {
+                console.log('📡 Making fetch request to API...');
+                const response = await fetch('http://localhost:3001/api/sessions');
+                console.log('📊 Response received:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Data received:', data);
+                
+                document.getElementById('result').innerHTML = `
+                    <h2>API Response:</h2>
+                    <p>Status: ${response.status}</p>
+                    <p>Sessions: ${data.data?.sessions?.length || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('❌ API call failed:', error);
+                document.getElementById('result').innerHTML = `
+                    <h2>Error:</h2>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            }
+        }
+        
+        // Run test immediately
+        testAPI();
+    </script>
+</body>
+</html>

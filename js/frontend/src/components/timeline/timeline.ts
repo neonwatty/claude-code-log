@@ -608,7 +608,7 @@ export class Timeline extends BaseComponent {
     `;
   }
 
-  render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     const timelineWidth = this.getTimelineWidth();
     const timelineHeight = this.getTimelineHeight();
 

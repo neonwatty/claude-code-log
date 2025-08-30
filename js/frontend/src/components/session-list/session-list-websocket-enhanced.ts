@@ -799,7 +799,7 @@ export class SessionListWebSocketEnhanced extends BaseComponent {
     `;
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     const sessionCount = this.filteredSessions.length;
     const totalCount = this.sessions.length;
 

@@ -322,7 +322,7 @@ export class SessionListWithExport extends BaseComponent {
     this.filteredSessions = this.filterAndSortSessions();
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     const sessionCount = this.filteredSessions.length;
     const totalCount = this.sessions.length;
     const selectedCount = this.selectedSessions.size;

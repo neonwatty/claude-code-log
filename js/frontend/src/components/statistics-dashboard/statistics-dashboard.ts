@@ -37,6 +37,24 @@ export class StatisticsDashboard extends BaseComponent {
     connectionQuality: "unknown",
   };
 
+  override connectedCallback() {
+    super.connectedCallback();
+    this.loadThemePreference();
+  }
+
+  private loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme-preference');
+    if (savedTheme) {
+      this.isDarkMode = savedTheme === 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      // Default to system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.isDarkMode = prefersDark;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    }
+  }
+
   static override styles = [
     ...BaseComponent.styles,
     css`
@@ -82,6 +100,18 @@ export class StatisticsDashboard extends BaseComponent {
         box-shadow: var(--shadow-neumorphic);
         position: relative;
         overflow: hidden;
+      }
+
+      .stat-card.clickable {
+        cursor: pointer;
+      }
+
+      .stat-card.clickable:hover {
+        transform: var(--transform-hover) scale(1.02);
+      }
+
+      .stat-card.clickable:active {
+        transform: scale(0.98);
       }
 
       .stat-card::before {
@@ -303,7 +333,7 @@ export class StatisticsDashboard extends BaseComponent {
     }
   }
 
-  override render() {
+  protected safeRender() {
     const stats = this.getStatistics();
     const quality = this.formatQuality(this.connectionStats.connectionQuality);
 
@@ -319,10 +349,17 @@ export class StatisticsDashboard extends BaseComponent {
         <div class="stats-grid">
           ${stats.map(stat => html`
             <div 
-              class="stat-card ${stat.type}" 
+              class="stat-card ${stat.type} ${stat.id === 'theme' ? 'clickable' : ''}" 
               tabindex="0"
-              role="article"
-              aria-label="${stat.label}: ${stat.value}${stat.description ? `. ${stat.description}` : ''}"
+              role="${stat.id === 'theme' ? 'button' : 'article'}"
+              aria-label="${stat.label}: ${stat.value}${stat.description ? `. ${stat.description}` : ''}${stat.id === 'theme' ? '. Click to toggle theme.' : ''}"
+              @click=${() => this.handleStatCardClick(stat)}
+              @keydown=${(e: KeyboardEvent) => {
+                if (stat.id === 'theme' && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  this.handleStatCardClick(stat);
+                }
+              }}
             >
               <div class="stat-icon" aria-hidden="true">${stat.icon}</div>
               <div class="stat-value" id="stat-${stat.id}">${stat.value}</div>
@@ -354,6 +391,31 @@ export class StatisticsDashboard extends BaseComponent {
       element.textContent = newValue.toString();
       setTimeout(() => element.classList.remove('updated'), 500);
     }
+  }
+
+  private handleStatCardClick(stat: StatisticItem) {
+    if (stat.id === 'theme') {
+      this.toggleTheme();
+    }
+  }
+
+  private toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    
+    // Apply theme to document root
+    document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
+    
+    // Save theme preference to localStorage
+    localStorage.setItem('theme-preference', this.isDarkMode ? 'dark' : 'light');
+    
+    // Emit theme change event
+    this.emitEvent('theme-changed', { 
+      theme: this.isDarkMode ? 'dark' : 'light',
+      isDarkMode: this.isDarkMode 
+    });
+    
+    // Update the stat card with animation
+    this.updateStatValue('theme', this.isDarkMode ? 'Dark' : 'Light');
   }
 }
 

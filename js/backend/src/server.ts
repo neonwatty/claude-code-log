@@ -39,9 +39,9 @@ server.listen(PORT, async () => {
     fileMonitor.start();
     console.log(`📁 File monitor started for JSONL files`);
 
-    // Start monitoring
-    monitoring.start();
-    console.log(`📊 System monitoring started`);
+    // Start monitoring - TEMPORARILY DISABLED due to memory leak
+    // monitoring.start();
+    console.log(`📊 System monitoring disabled temporarily`);
   } catch (error) {
     console.error("Failed to start WebSocket server:", error);
   }

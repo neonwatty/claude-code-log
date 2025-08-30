@@ -35,6 +35,8 @@ export class ToastNotificationsComponent extends BaseComponent {
 
   private toastCounter = 0;
   private ariaAnnouncer: HTMLElement | null = null;
+  private readonly maxToasts = 5; // Maximum number of toasts to show
+  private readonly deduplicationWindow = 3000; // 3 seconds for deduplication
 
   static override styles: CSSResult[] = [
     ...BaseComponent.styles,
@@ -283,6 +285,23 @@ export class ToastNotificationsComponent extends BaseComponent {
    * Show a toast notification
    */
   public showToast(toast: Omit<Toast, "id">): string {
+    // Check for duplicate toasts
+    const existingToast = this.findDuplicateToast(toast);
+    if (existingToast) {
+      // Refresh the existing toast instead of creating a duplicate
+      this.refreshToast(existingToast.id);
+      return existingToast.id;
+    }
+
+    // Limit maximum number of toasts
+    if (this.toasts.length >= this.maxToasts) {
+      // Remove the oldest non-persistent toast
+      const oldestNonPersistentToast = this.toasts.find(t => !t.persistent);
+      if (oldestNonPersistentToast) {
+        this.removeToast(oldestNonPersistentToast.id);
+      }
+    }
+
     const id = `toast-${++this.toastCounter}`;
     const newToast: Toast = {
       id,
@@ -302,6 +321,30 @@ export class ToastNotificationsComponent extends BaseComponent {
     }
 
     return id;
+  }
+
+  /**
+   * Find duplicate toast based on title and message
+   */
+  private findDuplicateToast(toast: Omit<Toast, "id">): Toast | undefined {
+    return this.toasts.find(existingToast => 
+      existingToast.title === toast.title && 
+      existingToast.message === toast.message &&
+      existingToast.type === toast.type
+    );
+  }
+
+  /**
+   * Refresh an existing toast (extend its lifetime)
+   */
+  private refreshToast(id: string): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast && !toast.persistent && toast.duration && toast.duration > 0) {
+      // Remove any existing timeout and set a new one
+      setTimeout(() => {
+        this.removeToast(id);
+      }, toast.duration);
+    }
   }
 
   /**
@@ -401,7 +444,7 @@ export class ToastNotificationsComponent extends BaseComponent {
     this.removeToast(toastId);
   }
 
-  override render() {
+  protected safeRender() {
     return html`
       ${this.toasts.map(
         (toast) => html`

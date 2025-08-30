@@ -51,129 +51,127 @@ export class ProjectDashboard extends BaseComponent {
     css`
       :host {
         display: block;
-        font-family: var(--font-family-mono);
+        font-family: var(--font-family-sans);
       }
 
       .dashboard-container {
         background-color: var(--color-surface);
-        border-radius: var(--border-radius-md);
-        padding: var(--spacing-lg);
-        margin-bottom: var(--spacing-lg);
-        box-shadow:
-          -7px -7px 10px var(--color-shadow-light),
-          7px 7px 10px var(--color-shadow-dark);
-        border-left: var(--color-border-light) 1px solid;
-        border-top: var(--color-border-light) 1px solid;
-        border-bottom: var(--color-border-dark) 1px solid;
-        border-right: var(--color-border-dark) 1px solid;
+        border-radius: var(--radius-2xl);
+        padding: var(--spacing-8);
+        margin-bottom: var(--spacing-6);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--color-border);
       }
 
       .dashboard-header {
-        margin: 0 0 var(--spacing-lg) 0;
+        margin: 0 0 var(--spacing-8) 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-4);
       }
 
       .dashboard-title {
-        font-size: 1.4em;
-        color: var(--color-text);
+        font-size: var(--text-3xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-header);
         margin: 0;
       }
 
       .last-updated {
-        font-size: 0.85em;
+        font-size: var(--text-sm);
         color: var(--color-text-muted);
-        font-style: italic;
+        font-weight: var(--font-weight-medium);
       }
 
       .metrics-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--spacing-md);
-        margin-bottom: var(--spacing-lg);
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--spacing-4);
+        margin-bottom: var(--spacing-8);
       }
 
       .metric-card {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border-dark);
-        border-radius: var(--border-radius-sm);
-        padding: var(--spacing-md);
-        transition: all var(--transition-fast);
-        box-shadow:
-          -3px -3px 5px var(--color-shadow-light),
-          3px 3px 5px var(--color-shadow-dark);
+        background-color: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-6);
+        transition: all var(--transition-medium);
+        box-shadow: var(--shadow-sm);
       }
 
       .metric-card:hover {
-        transform: translateY(-1px);
-        box-shadow:
-          -5px -5px 8px var(--color-shadow-light),
-          5px 5px 8px var(--color-shadow-dark);
+        transform: var(--transform-hover);
+        box-shadow: var(--shadow-md);
+        border-color: var(--color-border-strong);
       }
 
       .metric-card-header {
-        font-size: 0.85em;
+        font-size: var(--text-xs);
         color: var(--color-text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: var(--spacing-xs);
+        letter-spacing: 0.05em;
+        font-weight: var(--font-weight-semibold);
+        margin-bottom: var(--spacing-2);
       }
 
       .metric-card-value {
-        font-size: 1.8em;
-        font-weight: 600;
-        color: var(--color-text);
-        margin-bottom: var(--spacing-xs);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-header);
+        margin-bottom: var(--spacing-2);
+        font-family: var(--font-family-mono);
       }
 
       .metric-card-subtitle {
-        font-size: 0.8em;
+        font-size: var(--text-sm);
         color: var(--color-text-light);
+        font-weight: var(--font-weight-medium);
       }
 
       .activity-sections {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-lg);
+        gap: var(--spacing-6);
       }
 
       @media (min-width: 768px) {
         .activity-sections {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: var(--spacing-lg);
+          gap: var(--spacing-6);
         }
       }
 
       .activity-section {
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border-dark);
-        border-radius: var(--border-radius-sm);
-        padding: var(--spacing-md);
+        background-color: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-6);
+        box-shadow: var(--shadow-sm);
       }
 
       .activity-section-header {
-        font-size: 1.1em;
-        color: var(--color-text);
-        margin: 0 0 var(--spacing-md) 0;
-        padding-bottom: var(--spacing-sm);
-        border-bottom: 1px solid var(--color-border-dark);
+        font-size: var(--text-lg);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-header);
+        margin: 0 0 var(--spacing-4) 0;
+        padding-bottom: var(--spacing-3);
+        border-bottom: 1px solid var(--color-border);
       }
 
       .recent-activity-list {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-3);
       }
 
       .activity-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: var(--spacing-xs) 0;
+        padding: var(--spacing-3) 0;
         border-bottom: 1px solid var(--color-border-light);
       }
 
@@ -182,98 +180,113 @@ export class ProjectDashboard extends BaseComponent {
       }
 
       .activity-label {
-        font-size: 0.85em;
+        font-size: var(--text-sm);
         color: var(--color-text);
+        font-weight: var(--font-weight-medium);
       }
 
       .activity-value {
-        font-size: 0.85em;
-        font-weight: 600;
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-semibold);
         color: var(--color-primary);
+        font-family: var(--font-family-mono);
       }
 
       .top-projects-list {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-3);
       }
 
       .project-item {
-        background-color: var(--color-surface-hover);
-        border-radius: var(--border-radius-sm);
-        padding: var(--spacing-sm);
-        transition: all var(--transition-fast);
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-4);
+        border: 1px solid var(--color-border);
+        transition: all var(--transition-medium);
+        box-shadow: var(--shadow-xs);
       }
 
       .project-item:hover {
-        background-color: var(--color-surface-active);
+        background-color: var(--color-surface-hover);
+        border-color: var(--color-border-strong);
+        box-shadow: var(--shadow-sm);
         cursor: pointer;
+        transform: var(--transform-hover);
       }
 
       .project-item-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: var(--spacing-xs);
+        margin-bottom: var(--spacing-2);
       }
 
       .project-name {
-        font-size: 0.9em;
-        font-weight: 600;
-        color: var(--color-text);
+        font-size: var(--text-base);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-header);
         word-break: break-word;
       }
 
       .project-meta {
         display: flex;
-        gap: var(--spacing-sm);
-        font-size: 0.75em;
+        gap: var(--spacing-3);
+        font-size: var(--text-xs);
         color: var(--color-text-muted);
         flex-wrap: wrap;
+        font-family: var(--font-family-mono);
       }
 
       .token-breakdown {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: var(--spacing-sm);
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: var(--spacing-3);
       }
 
       .token-item {
         text-align: center;
-        padding: var(--spacing-xs);
-        background-color: var(--color-surface-hover);
-        border-radius: var(--border-radius-sm);
+        padding: var(--spacing-4);
+        background-color: var(--color-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border);
+        box-shadow: var(--shadow-xs);
       }
 
       .token-item-label {
-        font-size: 0.75em;
+        font-size: var(--text-xs);
         color: var(--color-text-muted);
-        margin-bottom: var(--spacing-xs);
+        font-weight: var(--font-weight-semibold);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: var(--spacing-2);
       }
 
       .token-item-value {
-        font-size: 0.9em;
-        font-weight: 600;
-        color: var(--color-text);
+        font-size: var(--text-lg);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-header);
+        font-family: var(--font-family-mono);
       }
 
       .empty-state {
         text-align: center;
-        padding: var(--spacing-xl);
+        padding: var(--spacing-12);
         color: var(--color-text-muted);
-        font-style: italic;
+        font-size: var(--text-base);
+        font-weight: var(--font-weight-medium);
       }
 
       .loading-skeleton {
         background: linear-gradient(
           90deg,
-          var(--color-surface-hover) 25%,
-          var(--color-surface) 50%,
-          var(--color-surface-hover) 75%
+          var(--color-surface-secondary) 0%,
+          var(--color-surface-hover) 50%,
+          var(--color-surface-secondary) 100%
         );
         background-size: 200% 100%;
-        animation: loading-shimmer 1.5s infinite;
-        border-radius: var(--border-radius-sm);
+        animation: loading-shimmer 1.5s ease-in-out infinite;
+        border-radius: var(--radius-md);
         height: 20px;
       }
 
@@ -283,6 +296,66 @@ export class ProjectDashboard extends BaseComponent {
         }
         100% {
           background-position: 200% 0;
+        }
+      }
+
+      /* Mobile Responsive Design */
+      @media (max-width: 768px) {
+        .dashboard-container {
+          padding: var(--spacing-4);
+          margin-bottom: var(--spacing-4);
+        }
+
+        .dashboard-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--spacing-2);
+          margin-bottom: var(--spacing-6);
+        }
+
+        .dashboard-title {
+          font-size: var(--text-2xl);
+        }
+
+        .metrics-grid {
+          grid-template-columns: 1fr;
+          gap: var(--spacing-3);
+          margin-bottom: var(--spacing-6);
+        }
+
+        .metric-card {
+          padding: var(--spacing-4);
+        }
+
+        .activity-sections {
+          grid-template-columns: 1fr;
+          gap: var(--spacing-4);
+        }
+
+        .activity-section {
+          padding: var(--spacing-4);
+        }
+
+        .token-breakdown {
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: var(--spacing-2);
+        }
+
+        .token-item {
+          padding: var(--spacing-3);
+        }
+      }
+
+      /* Accessibility improvements */
+      @media (prefers-reduced-motion: reduce) {
+        .metric-card:hover,
+        .project-item:hover {
+          transform: none;
+        }
+        
+        .loading-skeleton {
+          animation: none;
+          background: var(--color-surface-secondary);
         }
       }
     `,
@@ -646,7 +719,7 @@ export class ProjectDashboard extends BaseComponent {
     `;
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (this.isLoading) {
       return this.renderLoadingSkeleton();
     }

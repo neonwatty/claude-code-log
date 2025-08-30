@@ -254,7 +254,7 @@ export class WelcomeScreen extends BaseComponent {
     this.visible = false;
   }
 
-  override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.visible) return html``;
 
     const step = this.steps[this.currentStep];

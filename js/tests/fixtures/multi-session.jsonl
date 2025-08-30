@@ -1,2 +1,2 @@
-{"sessionId":"550e8400-e29b-41d4-a716-446655440001","timestamp":"2025-08-26T23:10:22.382Z","type":"user","cwd":"/Users/test/project1","message":{"role":"user","content":[{"type":"text","text":"Session 1 message"}]}}
-{"sessionId":"550e8400-e29b-41d4-a716-446655440002","timestamp":"2025-08-27T23:10:22.382Z","type":"user","cwd":"/Users/test/project2","message":{"role":"user","content":[{"type":"text","text":"Session 2 message"}]}}
+{"sessionId":"550e8400-e29b-41d4-a716-446655440001","timestamp":"2025-08-27T23:11:59.738Z","type":"user","cwd":"/Users/test/project1","message":{"role":"user","content":[{"type":"text","text":"Session 1 message"}]}}
+{"sessionId":"550e8400-e29b-41d4-a716-446655440002","timestamp":"2025-08-28T23:11:59.738Z","type":"user","cwd":"/Users/test/project2","message":{"role":"user","content":[{"type":"text","text":"Session 2 message"}]}}

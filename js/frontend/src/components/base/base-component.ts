@@ -25,37 +25,85 @@ export abstract class BaseComponent extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: "dark-mode" })
   darkMode = false;
 
+  // Track event listeners and cleanup functions for memory management
+  private cleanup: Array<() => void> = [];
+  private renderAttempts = 0;
+  private maxRenderAttempts = 5;
+
   /**
-   * Common base styles that all components inherit
-   * Now uses shared styles from the design system
+   * Modern base styles that all components inherit
+   * Clean, accessible, and mobile-first design
    */
   static override styles: CSSResult[] = [
     baseStyles,
     css`
       :host {
-        /* Component defaults */
+        /* Modern component defaults - TESTING */
         box-sizing: border-box;
-        font-family: var(--font-family-mono);
-        line-height: var(--line-height-relaxed);
-        color: var(--color-text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Inter", "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.5;
+        color: #0f172a;
+        background: #f0f9ff;
       }
 
-      /* Component-specific utilities not covered by shared styles */
+      /* Modern utility classes */
       .loading {
-        opacity: 0.6;
+        opacity: var(--opacity-disabled);
         pointer-events: none;
+        cursor: progress;
+        transition: opacity var(--transition-medium);
       }
 
       .error {
-        color: var(--color-message-system-error);
-        background-color: var(--color-message-system-error-bg);
-        padding: var(--spacing-sm);
-        border-radius: var(--border-radius-sm);
-        border-left: var(--color-message-system-error) 3px solid;
+        color: var(--color-error);
+        background-color: var(--color-error-bg);
+        padding: var(--spacing-3) var(--spacing-4);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-error);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-medium);
+      }
+
+      .success {
+        color: var(--color-success);
+        background-color: var(--color-success-bg);
+        padding: var(--spacing-3) var(--spacing-4);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-success);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-medium);
+      }
+
+      .warning {
+        color: var(--color-warning);
+        background-color: var(--color-warning-bg);
+        padding: var(--spacing-3) var(--spacing-4);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-warning);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-medium);
       }
 
       .hidden {
         display: none !important;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Modern focus styles */
+      .focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
       }
     `,
   ];
@@ -159,5 +207,115 @@ export abstract class BaseComponent extends LitElement {
   protected truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength - 3) + "...";
+  }
+
+  /**
+   * Override connectedCallback to initialize cleanup tracking
+   */
+  override connectedCallback() {
+    super.connectedCallback();
+    this.cleanup = [];
+    this.renderAttempts = 0;
+  }
+
+  /**
+   * Override disconnectedCallback to ensure proper cleanup
+   */
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.performCleanup();
+  }
+
+  /**
+   * Perform all registered cleanup operations
+   */
+  private performCleanup(): void {
+    this.cleanup.forEach((cleanupFn) => {
+      try {
+        cleanupFn();
+      } catch (error) {
+        console.warn('Cleanup function failed:', error);
+      }
+    });
+    this.cleanup = [];
+  }
+
+  /**
+   * Register a cleanup function to be called on disconnect
+   */
+  protected addCleanup(cleanupFn: () => void): void {
+    this.cleanup.push(cleanupFn);
+  }
+
+  /**
+   * Safe render with error protection and DOM validation
+   */
+  protected render() {
+    // Check if component is still connected to DOM
+    if (!this.isConnected) {
+      return '';
+    }
+
+    try {
+      this.renderAttempts++;
+      
+      // Prevent infinite render loops
+      if (this.renderAttempts > this.maxRenderAttempts) {
+        console.warn(`${this.constructor.name}: Maximum render attempts exceeded`);
+        return '';
+      }
+      
+      const result = this.safeRender();
+      this.renderAttempts = 0; // Reset on successful render
+      return result;
+    } catch (error) {
+      console.error(`${this.constructor.name}: Render error:`, error);
+      return this.renderError(error);
+    }
+  }
+
+  /**
+   * Override this method in child components instead of render()
+   */
+  protected abstract safeRender(): any;
+
+  /**
+   * Render error fallback
+   */
+  protected renderError(error: any): any {
+    return '';
+  }
+
+  /**
+   * Add safe event listener with automatic cleanup
+   */
+  protected addEventListenerWithCleanup(
+    target: EventTarget,
+    event: string,
+    handler: EventListener,
+    options?: boolean | AddEventListenerOptions
+  ): void {
+    target.addEventListener(event, handler, options);
+    this.addCleanup(() => {
+      target.removeEventListener(event, handler, options);
+    });
+  }
+
+  /**
+   * Safe setTimeout with automatic cleanup
+   */
+  protected setSafeTimeout(callback: () => void, delay: number): number {
+    const timeoutId = setTimeout(callback, delay);
+    this.addCleanup(() => clearTimeout(timeoutId));
+    return timeoutId;
+  }
+
+  /**
+   * Safe setInterval with automatic cleanup
+   */
+  protected setSafeInterval(callback: () => void, delay: number): number {
+    const intervalId = setInterval(callback, delay);
+    this.addCleanup(() => clearInterval(intervalId));
+    return intervalId;
   }
 }

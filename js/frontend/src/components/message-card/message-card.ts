@@ -628,10 +628,11 @@ export class MessageCard extends BaseComponent {
       lastIndex = match.index + match[0].length;
     }
 
-    afterCode = text.slice(lastIndex);
-
     if (codeBlocks.length === 0) {
       beforeCode = text;
+      afterCode = "";
+    } else {
+      afterCode = text.slice(lastIndex);
     }
 
     return { beforeCode, codeBlocks, afterCode };
@@ -796,7 +797,7 @@ export class MessageCard extends BaseComponent {
     return parts.join(" | ");
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.message) {
       return html`<div class="message-card empty">No message data</div>`;
     }

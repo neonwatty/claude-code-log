@@ -351,7 +351,7 @@ export class ConnectionIndicator extends BaseComponent {
     document.removeEventListener('click', this.handleClickOutside);
   }
 
-  override render() {
+  protected safeRender() {
     const uptime = this.formatUptime();
 
     return html`

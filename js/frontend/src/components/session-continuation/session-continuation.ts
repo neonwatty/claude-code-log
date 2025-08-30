@@ -868,7 +868,7 @@ export class SessionContinuation extends BaseComponent {
     }
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.session) {
       return html`
         <div class="session-continuation-container">

@@ -56,8 +56,9 @@ export class SessionDetail extends BaseComponent {
     showTimeline: false,
   };
 
-  @state()
   private scrollContainer: HTMLElement | null = null;
+
+  // Removed debug state properties
 
   private readonly messageTypeIcons: MessageTypeIcons = {
     user: "🤷",
@@ -383,6 +384,8 @@ export class SessionDetail extends BaseComponent {
     ) as HTMLElement;
   }
 
+  // Lifecycle management removed to prevent duplicate renders
+
   private getMessageType(entry: ZodTranscriptEntry): string {
     if (entry.type === "summary") return "summary";
     if (entry.type === "system") return "system";
@@ -637,7 +640,7 @@ ${typeof content.content === "string"
     `;
   }
 
-  protected override render(): TemplateResult {
+  protected safeRender(): TemplateResult {
     if (!this.session) {
       return html`
         <div class="session-detail-container">

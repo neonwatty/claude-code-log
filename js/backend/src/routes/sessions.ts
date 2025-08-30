@@ -123,12 +123,15 @@ router.get(
 
       const { limit, offset, project } = validation.data;
 
-      // Look for JSONL files in common locations
+      // Look for JSONL files in Claude Code session directories and fallback locations
       const searchPaths = [
-        process.cwd(),
-        path.join(process.cwd(), "logs"),
-        path.join(process.cwd(), ".."),
-        path.join(process.env.HOME || "/", ".config", "claude-code"),
+        path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+        path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+        path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+        process.cwd(),                                                    // Current project (for test files)
+        path.join(process.cwd(), "logs"),                                // Project logs directory
+        path.join(process.cwd(), ".."),                                  // Parent directory
+        path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
         path.join(
           process.env.HOME || "/",
           "Library",
@@ -138,16 +141,33 @@ router.get(
       ];
 
       let allSessions: ISession[] = [];
+      const processedFiles = new Set<string>();
+      const sessionMap = new Map<string, ISession>();
 
       for (const searchPath of searchPaths) {
         if (fs.existsSync(searchPath)) {
           const jsonlFiles = findJsonlFiles(searchPath);
           for (const file of jsonlFiles) {
+            // Get real path to handle symlinks and prevent duplicate processing
+            const realPath = fs.realpathSync(file);
+            if (processedFiles.has(realPath)) {
+              continue;
+            }
+            processedFiles.add(realPath);
+
             const sessions = parseSessionsFromJsonl(file);
-            allSessions.push(...sessions);
+            for (const session of sessions) {
+              // Deduplicate by session ID - keep the most recent version
+              if (!sessionMap.has(session.id) || 
+                  new Date(session.lastTimestamp) > new Date(sessionMap.get(session.id)!.lastTimestamp)) {
+                sessionMap.set(session.id, session);
+              }
+            }
           }
         }
       }
+
+      allSessions = Array.from(sessionMap.values());
 
       // Filter by project if specified
       if (project) {
@@ -213,12 +233,15 @@ router.get(
 
       const sessionId = validation.data;
 
-      // Look for JSONL files in common locations
+      // Look for JSONL files in Claude Code session directories and fallback locations
       const searchPaths = [
-        process.cwd(),
-        path.join(process.cwd(), "logs"),
-        path.join(process.cwd(), ".."),
-        path.join(process.env.HOME || "/", ".config", "claude-code"),
+        path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+        path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+        path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+        process.cwd(),                                                    // Current project (for test files)
+        path.join(process.cwd(), "logs"),                                // Project logs directory
+        path.join(process.cwd(), ".."),                                  // Parent directory
+        path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
         path.join(
           process.env.HOME || "/",
           "Library",
@@ -291,12 +314,15 @@ router.post("/continue", async (req: Request, res: Response) => {
 
     // Find the session file path if not provided
     if (!request.sessionPath) {
-      // Look for the session JSONL file
+      // Look for the session JSONL file in Claude Code directories
       const searchPaths = [
-        process.cwd(),
-        path.join(process.cwd(), "logs"),
-        path.join(process.cwd(), ".."),
-        path.join(process.env.HOME || "/", ".config", "claude-code"),
+        path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+        path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+        path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+        process.cwd(),                                                    // Current project (for test files)
+        path.join(process.cwd(), "logs"),                                // Project logs directory
+        path.join(process.cwd(), ".."),                                  // Parent directory
+        path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
         path.join(
           process.env.HOME || "/",
           "Library",
@@ -514,12 +540,15 @@ router.post("/prepare-context", async (req: Request, res: Response) => {
     const sessionId = request.sessionId;
     let foundSession: ISession | null = null;
 
-    // Look for JSONL files in common locations
+    // Look for JSONL files in Claude Code session directories and fallback locations
     const searchPaths = [
-      process.cwd(),
-      path.join(process.cwd(), "logs"),
-      path.join(process.cwd(), ".."),
-      path.join(process.env.HOME || "/", ".config", "claude-code"),
+      path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+      path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+      path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+      process.cwd(),                                                    // Current project (for test files)
+      path.join(process.cwd(), "logs"),                                // Project logs directory
+      path.join(process.cwd(), ".."),                                  // Parent directory
+      path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
       path.join(
         process.env.HOME || "/",
         "Library",
@@ -601,12 +630,15 @@ router.post("/continue-with-context", async (req: Request, res: Response) => {
     const sessionId = request.sessionId;
     let foundSession: ISession | null = null;
 
-    // Look for JSONL files in common locations
+    // Look for JSONL files in Claude Code session directories and fallback locations
     const searchPaths = [
-      process.cwd(),
-      path.join(process.cwd(), "logs"),
-      path.join(process.cwd(), ".."),
-      path.join(process.env.HOME || "/", ".config", "claude-code"),
+      path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+      path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+      path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+      process.cwd(),                                                    // Current project (for test files)
+      path.join(process.cwd(), "logs"),                                // Project logs directory
+      path.join(process.cwd(), ".."),                                  // Parent directory
+      path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
       path.join(
         process.env.HOME || "/",
         "Library",
@@ -719,12 +751,15 @@ router.get(
       // Find the session
       let foundSession: ISession | null = null;
 
-      // Look for JSONL files in common locations
+      // Look for JSONL files in Claude Code session directories and fallback locations
       const searchPaths = [
-        process.cwd(),
-        path.join(process.cwd(), "logs"),
-        path.join(process.cwd(), ".."),
-        path.join(process.env.HOME || "/", ".config", "claude-code"),
+        path.join(process.env.HOME || "/", ".claude", "projects"),     // Primary Claude Code location
+        path.join(process.env.HOME || "/", ".claude", "conversations"), // Alternative Claude Code location
+        path.join(process.env.HOME || "/", ".claude"),                   // Claude base directory
+        process.cwd(),                                                    // Current project (for test files)
+        path.join(process.cwd(), "logs"),                                // Project logs directory
+        path.join(process.cwd(), ".."),                                  // Parent directory
+        path.join(process.env.HOME || "/", ".config", "claude-code"),    // Legacy config location
         path.join(
           process.env.HOME || "/",
           "Library",
