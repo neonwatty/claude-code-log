@@ -226,6 +226,20 @@ export class Timeline extends BaseComponent {
       case "user":
         return "user";
       case "assistant":
+        // Check if this assistant message contains tool_use or tool_result content
+        const message = (entry as any).message;
+        if (message && Array.isArray(message.content)) {
+          const hasToolUse = message.content.some((item: any) => item.type === "tool_use");
+          const hasToolResult = message.content.some((item: any) => item.type === "tool_result");
+          const hasThinking = message.content.some((item: any) => item.type === "thinking");
+          
+          // Prioritize tool_use over tool_result if both exist
+          if (hasToolUse) return "tool_use";
+          if (hasToolResult) return "tool_result";
+          if (hasThinking && !message.content.some((item: any) => item.type === "text" && item.text.trim().length > 0)) {
+            return "thinking";
+          }
+        }
         return "assistant";
       case "tool_use":
         return "tool_use";

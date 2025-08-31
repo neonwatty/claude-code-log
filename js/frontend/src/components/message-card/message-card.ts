@@ -239,11 +239,11 @@ export class MessageCard extends BaseComponent {
         justify-content: space-between;
         align-items: center;
         padding: var(--spacing-xs) var(--spacing-sm);
-        background-color: var(--color-surface-active);
+        background-color: var(--color-code-bg);
         border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
         font-size: 0.8em;
         color: var(--color-text-muted);
-        border-bottom: 1px solid var(--color-border-dark);
+        border-bottom: 1px solid var(--color-code-border);
       }
 
       .code-language {
@@ -272,7 +272,8 @@ export class MessageCard extends BaseComponent {
       }
 
       .code-content {
-        background-color: var(--color-surface-hover);
+        background-color: var(--color-code-bg);
+        color: var(--color-code-text);
         padding: var(--spacing-sm);
         border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
         overflow-x: auto;
@@ -300,7 +301,8 @@ export class MessageCard extends BaseComponent {
 
       /* Inline code styling */
       .text-content code {
-        background-color: var(--color-surface-hover);
+        background-color: var(--color-code-bg);
+        color: var(--color-code-text);
         padding: 2px 4px;
         border-radius: var(--border-radius-sm);
         font-family: var(--font-family-mono);
@@ -399,6 +401,15 @@ export class MessageCard extends BaseComponent {
         color: var(--color-text-muted);
       }
 
+      /* Empty and unknown content */
+      .empty-content,
+      .unknown-content {
+        color: var(--color-text-muted);
+        font-style: italic;
+        padding: var(--spacing-sm);
+        text-align: center;
+      }
+
       /* Responsive design */
       @media (max-width: 768px) {
         .message-header {
@@ -417,44 +428,44 @@ export class MessageCard extends BaseComponent {
         }
       }
 
-      /* Prism.js theme integration */
+      /* Prism.js theme integration - Indigo Theme */
       .language-javascript .token.keyword,
       .language-typescript .token.keyword,
       .language-python .token.keyword {
-        color: #d73a49;
+        color: var(--color-code-keyword);
       }
 
       .language-javascript .token.string,
       .language-typescript .token.string,
       .language-python .token.string {
-        color: #032f62;
+        color: var(--color-code-string);
       }
 
       .language-javascript .token.function,
       .language-typescript .token.function,
       .language-python .token.function {
-        color: #6f42c1;
+        color: var(--color-code-function);
       }
 
       .language-javascript .token.comment,
       .language-typescript .token.comment,
       .language-python .token.comment {
-        color: #6a737d;
+        color: var(--color-code-comment);
         font-style: italic;
       }
 
       .language-javascript .token.number,
       .language-typescript .token.number,
       .language-python .token.number {
-        color: #005cc5;
+        color: var(--color-code-number);
       }
 
       .language-json .token.property {
-        color: #d73a49;
+        color: var(--color-code-keyword);
       }
 
       .language-json .token.string {
-        color: #032f62;
+        color: var(--color-code-string);
       }
     `,
   ];
@@ -705,6 +716,30 @@ export class MessageCard extends BaseComponent {
     `;
   }
 
+  private renderUserMessageContent(
+    content: string | ZodContentItem[] | undefined,
+  ): TemplateResult {
+    if (!content) {
+      return html`<div class="empty-content">No content</div>`;
+    }
+
+    // If content is a string, render it as text
+    if (typeof content === "string") {
+      return this.renderTextContent(content);
+    }
+
+    // If content is an array, render each item
+    if (Array.isArray(content)) {
+      return html`
+        ${content.map((contentItem, index) =>
+          this.renderContentItem(contentItem, index),
+        )}
+      `;
+    }
+
+    return html`<div class="unknown-content">Unknown content format</div>`;
+  }
+
   private renderContentItem(
     content: ZodContentItem,
     index: number,
@@ -874,9 +909,7 @@ export class MessageCard extends BaseComponent {
               : ""}
           </div>
           <div class="message-content">
-            ${this.message.message.content?.map((content, index) =>
-              this.renderContentItem(content, index),
-            )}
+            ${this.renderUserMessageContent(this.message.message.content)}
           </div>
         </div>
       `;

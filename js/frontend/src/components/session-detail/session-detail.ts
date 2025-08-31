@@ -47,10 +47,6 @@ export class SessionDetail extends BaseComponent {
       "user",
       "assistant",
       "system",
-      "tool_use",
-      "tool_result",
-      "thinking",
-      "image",
       "sidechain",
     ]),
     showTimeline: false,
@@ -390,7 +386,11 @@ export class SessionDetail extends BaseComponent {
     if (entry.type === "summary") return "summary";
     if (entry.type === "system") return "system";
     if (entry.type === "user") return "user";
-    if (entry.type === "assistant") return "assistant";
+    if (entry.type === "assistant") {
+      // Assistant messages should always be shown as "assistant"
+      // The MessageCard component will handle tool content with appropriate icons
+      return "assistant";
+    }
     return "unknown";
   }
 
@@ -560,11 +560,7 @@ ${typeof content.content === "string"
       { key: "user", label: "User", icon: "🤷" },
       { key: "assistant", label: "Assistant", icon: "🤖" },
       { key: "system", label: "System", icon: "⚙️" },
-      { key: "tool_use", label: "Tool Use", icon: "🛠️" },
-      { key: "tool_result", label: "Tool Results", icon: "🧰" },
-      { key: "thinking", label: "Thinking", icon: "💭" },
-      { key: "image", label: "Images", icon: "🖼️" },
-      { key: "sidechain", label: "Sub-assistant", icon: "🔗" },
+      { key: "sidechain", label: "Sub-conversation", icon: "🔗" },
     ];
 
     return html`

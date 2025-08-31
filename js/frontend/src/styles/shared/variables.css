@@ -1,24 +1,36 @@
-/* CSS Custom Properties - Modern Design System */
-/* 2025 Design Standards with CSS light-dark() Support - Updated */
+/* CSS Custom Properties - Indigo Design System */
+/* 2025 Modern Indigo Theme - Comprehensive Color System */
 
 :root {
-  /* Colors - Modern Primary Palette */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Indigo Color Palette - Primary Brand Colors */
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-200: #c7d2fe;
+  --indigo-300: #a5b4fc;
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+  --indigo-800: #3730a3;
+  --indigo-900: #312e81;
 
-  --color-primary: var(--color-primary-600);
-  --color-primary-hover: var(--color-primary-700);
-  --color-primary-light: var(--color-primary-50);
+  /* Primary Colors - Indigo Theme */
+  --color-primary-50: var(--indigo-50);
+  --color-primary-100: var(--indigo-100);
+  --color-primary-200: var(--indigo-200);
+  --color-primary-300: var(--indigo-300);
+  --color-primary-400: var(--indigo-400);
+  --color-primary-500: var(--indigo-500);
+  --color-primary-600: var(--indigo-600);
+  --color-primary-700: var(--indigo-700);
+  --color-primary-800: var(--indigo-800);
+  --color-primary-900: var(--indigo-900);
 
-  /* Neutral Color Scale */
+  --color-primary: var(--indigo-600);
+  --color-primary-hover: var(--indigo-700);
+  --color-primary-light: var(--indigo-50);
+
+  /* Neutral Color Scale - Enhanced for Indigo Theme */
   --color-slate-50: #f8fafc;
   --color-slate-100: #f1f5f9;
   --color-slate-200: #e2e8f0;
@@ -30,68 +42,105 @@
   --color-slate-800: #1e293b;
   --color-slate-900: #0f172a;
 
-  /* Background Colors - Clean & Modern - TEST */
-  --color-background: #f0f9ff;
+  /* Violet Colors for Code Highlighting */
+  --violet-50: #f5f3ff;
+  --violet-100: #ede9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6d28d9;
+  --violet-800: #5b21b6;
+  --violet-900: #4c1d95;
+
+  /* Background Colors - Indigo-tinted */
+  --color-background: var(--indigo-50);
   --color-background-solid: #ffffff;
+  --color-background-secondary: var(--slate-50);
+  --color-background-tertiary: var(--indigo-100);
 
-  /* Surface Colors - Modern & Clean */
+  /* Surface Colors - Indigo Theme */
   --color-surface: #ffffff;
-  --color-surface-hover: var(--color-slate-50);
-  --color-surface-active: var(--color-slate-100);
-  --color-surface-disabled: var(--color-slate-100);
-  --color-surface-header: var(--color-slate-50);
-  --color-surface-secondary: var(--color-slate-100);
+  --color-surface-hover: var(--indigo-50);
+  --color-surface-active: var(--indigo-100);
+  --color-surface-disabled: var(--slate-100);
+  --color-surface-header: #ffffff;
+  --color-surface-secondary: var(--indigo-50);
 
-  /* Text Colors - Modern Hierarchy */
-  --color-text: var(--color-slate-900);
-  --color-text-muted: var(--color-slate-600);
-  --color-text-light: var(--color-slate-500);
-  --color-text-header: var(--color-slate-900);
-  --color-text-section: var(--color-slate-800);
+  /* Text Colors - Enhanced Hierarchy */
+  --color-text: var(--slate-900);
+  --color-text-muted: var(--slate-600);
+  --color-text-light: var(--slate-500);
+  --color-text-header: var(--indigo-900);
+  --color-text-section: var(--indigo-800);
+  --color-text-accent: var(--indigo-600);
 
-  /* Border Colors - Clean & Modern */
-  --color-border: var(--color-slate-200);
-  --color-border-light: var(--color-slate-100);
-  --color-border-strong: var(--color-slate-300);
+  /* Border Colors - Indigo Accents */
+  --color-border: var(--slate-200);
+  --color-border-light: var(--indigo-100);
+  --color-border-strong: var(--indigo-300);
+  --color-border-accent: var(--indigo-600);
 
-  /* Modern Shadow System */
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Modern Shadow System - Indigo-tinted */
+  --shadow-xs: 0 1px 2px 0 rgb(79 70 229 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(79 70 229 / 0.1), 0 1px 2px -1px rgb(79 70 229 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(79 70 229 / 0.1), 0 2px 4px -2px rgb(79 70 229 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(79 70 229 / 0.1), 0 4px 6px -4px rgb(79 70 229 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(79 70 229 / 0.1), 0 8px 10px -6px rgb(79 70 229 / 0.1);
 
-  /* Semantic Colors - Modern System Status */
+  /* Semantic Colors - Indigo Theme Compatible */
   --color-success: #059669;
   --color-success-bg: #ecfdf5;
+  --color-success-border: #6ee7b7;
   
   --color-warning: #d97706;
   --color-warning-bg: #fffbeb;
+  --color-warning-border: #fed7aa;
   
   --color-error: #dc2626;
   --color-error-bg: #fef2f2;
+  --color-error-border: #fca5a5;
   
-  --color-info: var(--color-primary-600);
-  --color-info-bg: var(--color-primary-50);
+  --color-info: var(--indigo-600);
+  --color-info-bg: var(--indigo-50);
+  --color-info-border: var(--indigo-200);
 
-  /* Message Type Colors - Clean & Professional */
-  --color-message-user: var(--color-primary);
-  --color-message-user-bg: var(--color-primary-light);
+  /* Code Block Colors - FIXES BLACK CODE ISSUE */
+  --color-code-bg: var(--indigo-50);
+  --color-code-border: var(--indigo-200);
+  --color-code-text: var(--slate-800);
+  --color-code-comment: var(--slate-500);
+  --color-code-keyword: var(--indigo-600);
+  --color-code-string: var(--violet-600);
+  --color-code-number: var(--indigo-700);
+  --color-code-function: var(--violet-700);
+  --color-code-variable: var(--slate-700);
 
-  --color-message-assistant: #7c3aed;
-  --color-message-assistant-bg: #f3f4f6;
+  /* Message Type Colors - Indigo System */
+  --color-message-user: var(--indigo-600);
+  --color-message-user-bg: var(--indigo-50);
+  --color-message-user-border: var(--indigo-200);
 
-  --color-message-system: var(--color-warning);
-  --color-message-system-bg: var(--color-warning-bg);
+  --color-message-assistant: var(--violet-600);
+  --color-message-assistant-bg: var(--violet-50);
+  --color-message-assistant-border: var(--violet-200);
 
-  --color-message-tool-use: #dc2626;
-  --color-message-tool-use-bg: #fef2f2;
+  --color-message-system: var(--slate-600);
+  --color-message-system-bg: var(--slate-50);
+  --color-message-system-border: var(--slate-200);
+
+  --color-message-tool-use: var(--indigo-700);
+  --color-message-tool-use-bg: var(--indigo-100);
+  --color-message-tool-use-border: var(--indigo-300);
 
   --color-message-tool-result: var(--color-success);
   --color-message-tool-result-bg: var(--color-success-bg);
+  --color-message-tool-result-border: var(--color-success-border);
 
-  --color-message-thinking: var(--color-text-muted);
-  --color-message-thinking-bg: var(--color-surface-secondary);
+  --color-message-thinking: var(--violet-500);
+  --color-message-thinking-bg: var(--violet-50);
+  --color-message-thinking-border: var(--violet-200);
 
   /* Spacing Scale - Modern 4px base unit */
   --spacing-1: 4px;
@@ -169,10 +218,13 @@
   --border-radius-lg: var(--radius-2xl);
   --border-radius-xl: var(--radius-full);
 
-  /* Modern Transitions */
+  /* Modern Transitions - Enhanced for Indigo Theme */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-medium: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-colors: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+                       background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+                       border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Z-Index Scale */
   --z-base: 1;
@@ -193,11 +245,33 @@
   --component-height-md: 40px;
   --component-height-lg: 48px;
 
-  /* Interactive States - Subtle & Modern */
+  /* Interactive States - Enhanced for Indigo */
   --transform-hover: translateY(-1px);
   --transform-pressed: translateY(0px);
   --opacity-disabled: 0.5;
   --opacity-muted: 0.7;
+
+  /* Navigation & UI Component Colors */
+  --color-nav-bg: #ffffff;
+  --color-nav-border: var(--indigo-200);
+  --color-nav-text: var(--slate-700);
+  --color-nav-text-active: var(--indigo-600);
+  --color-nav-text-hover: var(--indigo-700);
+
+  /* Button Colors */
+  --color-button-primary-bg: var(--indigo-600);
+  --color-button-primary-bg-hover: var(--indigo-700);
+  --color-button-primary-text: #ffffff;
+  --color-button-secondary-bg: var(--indigo-100);
+  --color-button-secondary-bg-hover: var(--indigo-200);
+  --color-button-secondary-text: var(--indigo-700);
+
+  /* Card Colors */
+  --color-card-bg: #ffffff;
+  --color-card-border: var(--indigo-200);
+  --color-card-border-hover: var(--indigo-300);
+  --color-card-shadow: var(--shadow-sm);
+  --color-card-shadow-hover: var(--shadow-md);
 }
 
 /* Responsive Design Breakpoints */
@@ -209,30 +283,42 @@
   --breakpoint-2xl: 1536px;
 }
 
-/* Dark Mode Support - Future Enhancement */
+/* Dark Mode Support - Indigo Theme */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    /* Dark mode colors can be added here in the future */
+    /* Dark indigo theme can be enhanced here */
+    --color-background: var(--slate-900);
+    --color-surface: var(--slate-800);
+    --color-text: var(--slate-100);
+    --color-border: var(--slate-700);
   }
 }
 
-/* Manual dark mode override */
+/* Manual dark mode override - Indigo Theme */
 [data-theme="dark"] {
   color-scheme: dark;
-  /* Dark mode overrides can be added here in the future */
+  --color-background: var(--slate-900);
+  --color-surface: var(--slate-800);
+  --color-text: var(--slate-100);
+  --color-text-muted: var(--slate-400);
+  --color-border: var(--slate-700);
+  --color-code-bg: var(--slate-800);
+  --color-code-border: var(--slate-600);
 }
 
-/* High Contrast Mode Support */
+/* High Contrast Mode Support - Indigo Compatible */
 @media (prefers-contrast: high) {
   :root {
-    --color-border: #000000;
-    --color-border-light: #333333;
-    --color-border-strong: #000000;
+    --color-border: var(--indigo-800);
+    --color-border-light: var(--indigo-600);
+    --color-border-strong: var(--indigo-900);
+    --color-text: var(--slate-900);
+    --color-text-muted: var(--slate-700);
     
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.45);
+    --shadow-sm: 0 2px 4px rgba(79, 70, 229, 0.25);
+    --shadow-md: 0 4px 8px rgba(79, 70, 229, 0.35);
+    --shadow-lg: 0 8px 16px rgba(79, 70, 229, 0.45);
   }
 }
 
@@ -242,6 +328,7 @@
     --transition-fast: 0ms;
     --transition-medium: 0ms;
     --transition-slow: 0ms;
+    --transition-colors: none;
     --transform-hover: none;
     --transform-pressed: none;
   }

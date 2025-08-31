@@ -38,24 +38,24 @@ export class SessionCard extends BaseComponent {
       }
 
       .session-card {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 24px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--color-card-bg);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-6);
+        border: 1px solid var(--color-card-border);
+        box-shadow: var(--color-card-shadow);
+        transition: all var(--transition-medium);
         cursor: pointer;
         position: relative;
         overflow: hidden;
-        /* TEST: Make cards very obvious */
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid var(--color-primary);
       }
 
       .session-card:hover {
         transform: var(--transform-hover);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--color-card-shadow-hover);
         background: var(--color-surface-hover);
-        border-color: var(--color-border-strong);
+        border-color: var(--color-card-border-hover);
+        border-left-color: var(--color-primary-hover);
       }
 
       .session-card:focus-visible {

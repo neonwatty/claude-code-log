@@ -57,8 +57,8 @@ export class AppNavigation extends BaseComponent {
         border-radius: var(--border-radius-lg);
         padding: var(--spacing-sm);
         margin-bottom: var(--spacing-lg);
-        box-shadow: var(--shadow-neumorphic);
-        border: 1px solid var(--color-border-light);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--color-border);
       }
 
       .nav-tabs {
@@ -71,7 +71,7 @@ export class AppNavigation extends BaseComponent {
         flex: 1;
         max-width: 200px;
         padding: var(--spacing-md) var(--spacing-lg);
-        border: 1px solid var(--color-border-medium);
+        border: 1px solid var(--color-border-light);
         border-radius: var(--border-radius-md);
         background: var(--color-surface);
         color: var(--color-text);
@@ -79,7 +79,7 @@ export class AppNavigation extends BaseComponent {
         font-weight: var(--font-weight-medium);
         font-size: var(--font-size-sm);
         cursor: pointer;
-        transition: all var(--transition-fast);
+        transition: all var(--transition-medium);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -89,6 +89,8 @@ export class AppNavigation extends BaseComponent {
 
       .nav-tab:hover {
         background: var(--color-surface-hover);
+        color: var(--color-text-accent);
+        border-color: var(--color-border-strong);
         transform: var(--transform-hover);
         box-shadow: var(--shadow-md);
       }
@@ -98,6 +100,7 @@ export class AppNavigation extends BaseComponent {
         color: white;
         border-color: var(--color-primary);
         box-shadow: var(--shadow-lg);
+        font-weight: var(--font-weight-semibold);
       }
 
       .nav-tab-icon {
@@ -125,8 +128,8 @@ export class AppNavigation extends BaseComponent {
         left: 0;
         right: 0;
         background: var(--color-surface);
-        border-top: 1px solid var(--color-border-light);
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid var(--color-border);
+        box-shadow: var(--shadow-lg);
         z-index: 1000;
         padding: var(--spacing-sm) var(--spacing-md);
         padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom));
@@ -158,6 +161,11 @@ export class AppNavigation extends BaseComponent {
       .mobile-nav-tab.active {
         color: var(--color-primary);
         background: var(--color-primary-light);
+        border-radius: var(--border-radius-sm);
+      }
+      
+      .mobile-nav-tab.active {
+        font-weight: var(--font-weight-semibold);
       }
 
       .mobile-nav-icon {

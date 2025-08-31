@@ -4,9 +4,9 @@
   margin: var(--spacing-md) 0;
   border-radius: var(--border-radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-neumorphic);
-  border: 1px solid var(--color-border-medium);
-  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-code-border);
+  background: var(--color-code-bg);
 }
 
 .code-header {
@@ -14,8 +14,8 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-sm) var(--spacing-md);
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-code-bg);
+  border-bottom: 1px solid var(--color-code-border);
   font-family: var(--font-family-sans);
 }
 
@@ -80,7 +80,8 @@
 }
 
 .code-content {
-  background: #fafafa;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
   padding: var(--spacing-md);
   overflow-x: auto;
   font-family: var(--font-family-mono);
@@ -105,17 +106,17 @@
   border-radius: 0;
 }
 
-/* Improved Prism.js theme for better readability */
+/* Improved Prism.js theme for better readability - Indigo Theme */
 .code-content .token.comment,
 .code-content .token.prolog,
 .code-content .token.doctype,
 .code-content .token.cdata {
-  color: #6a737d;
+  color: var(--color-code-comment);
   font-style: italic;
 }
 
 .code-content .token.punctuation {
-  color: #5e6687;
+  color: var(--color-code-text);
 }
 
 .code-content .token.property,
@@ -125,7 +126,7 @@
 .code-content .token.constant,
 .code-content .token.symbol,
 .code-content .token.deleted {
-  color: #d73a49;
+  color: var(--color-code-number);
 }
 
 .code-content .token.selector,
@@ -134,7 +135,7 @@
 .code-content .token.char,
 .code-content .token.builtin,
 .code-content .token.inserted {
-  color: #032f62;
+  color: var(--color-code-string);
 }
 
 .code-content .token.operator,
@@ -142,26 +143,26 @@
 .code-content .token.url,
 .code-content .language-css .token.string,
 .code-content .style .token.string {
-  color: #d73a49;
+  color: var(--color-code-keyword);
 }
 
 .code-content .token.atrule,
 .code-content .token.attr-value,
 .code-content .token.keyword {
-  color: #d73a49;
+  color: var(--color-code-keyword);
   font-weight: var(--font-weight-semibold);
 }
 
 .code-content .token.function,
 .code-content .token.class-name {
-  color: #6f42c1;
+  color: var(--color-code-function);
   font-weight: var(--font-weight-semibold);
 }
 
 .code-content .token.regex,
 .code-content .token.important,
 .code-content .token.variable {
-  color: #e36209;
+  color: var(--color-code-variable);
 }
 
 /* Line numbers for code blocks */
@@ -219,51 +220,27 @@
   }
 }
 
-/* Dark mode support */
+/* Dark mode support - uses indigo theme variables */
+[data-theme="dark"] .enhanced-code-block,
 @media (prefers-color-scheme: dark) {
+  .enhanced-code-block {
+    background: var(--color-code-bg);
+    border-color: var(--color-code-border);
+  }
+
   .code-header {
-    background: linear-gradient(135deg, #2d3748, #1a202c);
-    color: #e2e8f0;
+    background: var(--color-code-bg);
+    color: var(--color-code-text);
+    border-bottom-color: var(--color-code-border);
   }
 
   .code-content {
-    background: #1a202c;
-    color: #e2e8f0;
-  }
-
-  .code-content .token.comment,
-  .code-content .token.prolog,
-  .code-content .token.doctype,
-  .code-content .token.cdata {
-    color: #718096;
-  }
-
-  .code-content .token.property,
-  .code-content .token.tag,
-  .code-content .token.boolean,
-  .code-content .token.number,
-  .code-content .token.constant,
-  .code-content .token.symbol,
-  .code-content .token.deleted {
-    color: #f56565;
-  }
-
-  .code-content .token.selector,
-  .code-content .token.attr-name,
-  .code-content .token.string,
-  .code-content .token.char,
-  .code-content .token.builtin,
-  .code-content .token.inserted {
-    color: #68d391;
-  }
-
-  .code-content .token.function,
-  .code-content .token.class-name {
-    color: #9f7aea;
+    background: var(--color-code-bg);
+    color: var(--color-code-text);
   }
 
   .line-numbers-rows > span:before {
-    color: #4a5568;
+    color: var(--color-text-muted);
   }
 }
 

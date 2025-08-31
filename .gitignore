@@ -156,3 +156,63 @@ dev-debug.log
 # tasks/ 
 # TFQ test failure queue database
 .tfq/
+
+# Test artifacts and screenshots  
+*.png
+*.jpg
+*.jpeg
+*.webm
+*.gif
+test-session-*.jsonl
+*-screenshot.png
+*-theme-*.png
+indigo-theme-*.png
+final-styling-investigation/
+test-archive/
+playwright-report/
+coverage/
+debug-screenshots/
+.playwright-mcp/
+
+# Temporary and debug files
+debug-*.js
+test-*.js  
+temp/
+current-state-check.*
+final-state-*.png
+*-debug.js
+*-investigation.*
+*-verification.*
+
+# Build outputs and dist folders
+dist/
+build/
+out/
+
+# Generated HTML reports
+*-report.html
+*.html
+!index.html
+!offline.html
+
+# Claude sessions data (if not needed in repo)
+claude-sessions/
+test-session-*.jsonl
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.swp
+*.swo
+
+# Temporary exports
+temp/
+exports/
